@@ -40,7 +40,7 @@ class BankWire extends PaymentModule
 	{
 		$this->name = 'bankwire';
 		$this->tab = 'payments_gateways';
-		$this->version = '1.1.0';
+		$this->version = '1.1.1';
 		$this->author = 'PrestaShop';
 		$this->controllers = array('payment', 'validation');
 		$this->is_eu_compatible = 1;
@@ -163,7 +163,7 @@ class BankWire extends PaymentModule
 
 		$payment_options = array(
 			'cta_text' => $this->l('Pay by Bank Wire'),
-			'logo' => Media::getMediaPath(dirname(__FILE__).'/bankwire.jpg'),
+			'logo' => Media::getMediaPath(_PS_MODULE_DIR_.$this->name.'/bankwire.jpg'),
 			'action' => $this->context->link->getModuleLink($this->name, 'validation', array(), true)
 		);
 

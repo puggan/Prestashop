@@ -38,7 +38,7 @@ class SocialSharing extends Module
 		$this->author = 'PrestaShop';
 		$this->tab = 'advertising_marketing';
 		$this->need_instance = 0;
-		$this->version = '1.3.1';
+		$this->version = '1.4.1';
 		$this->bootstrap = true;
 		$this->_directory = dirname(__FILE__);
 
@@ -79,7 +79,7 @@ class SocialSharing extends Module
 		// The module will then be hooked on the product and comparison pages
 		$this->registerHook('displayRightColumnProduct');
 		$this->registerHook('displayCompareExtraInformation');
-		
+
 		// The module will then be hooked and accessible with Smarty function
 		$this->registerHook('displaySocialSharing');
 
@@ -158,21 +158,23 @@ class SocialSharing extends Module
 		$this->context->controller->addCss($this->_path.'css/socialsharing.css');
 		$this->context->controller->addJS($this->_path.'js/socialsharing.js');
 
-		// Exception are managed with Module::registerExceptions() but this is needed in case the merchant added new controllers afterwards
-		if (!isset($this->context->controller->php_self) || $this->context->controller->php_self != 'product')
-			return;
+		if ($this->context->controller->php_self == 'product') {
+			$product = $this->context->controller->getProduct();
 
-		$product = $this->context->controller->getProduct();
-		if (!$this->isCached('socialsharing_header.tpl', $this->getCacheId('socialsharing_header|'.(isset($product->id) && $product->id ? (int)$product->id : ''))))
-		{
-			$this->context->smarty->assign(array(
-				'price' => Tools::ps_round($product->getPrice(!Product::getTaxCalculationMethod((int)$this->context->cookie->id_customer), null), _PS_PRICE_COMPUTE_PRECISION_),
-				'pretax_price' => Tools::ps_round($product->getPrice(false, null), _PS_PRICE_COMPUTE_PRECISION_),
-				'weight' => $product->weight,
-				'weight_unit' => Configuration::get('PS_WEIGHT_UNIT'),
-				'cover' => isset($product->id) ? Product::getCover((int)$product->id) : '',
-				'link_rewrite' => isset($product->link_rewrite) && $product->link_rewrite ? $product->link_rewrite : '',
-			));
+			if (!Validate::isLoadedObject($product)) {
+				return;
+			}
+			if (!$this->isCached('socialsharing_header.tpl', $this->getCacheId('socialsharing_header|'.(isset($product->id) && $product->id ? (int)$product->id : ''))))
+			{
+				$this->context->smarty->assign(array(
+					'price' => Tools::ps_round($product->getPrice(!Product::getTaxCalculationMethod((int)$this->context->cookie->id_customer), null), _PS_PRICE_COMPUTE_PRECISION_),
+					'pretax_price' => Tools::ps_round($product->getPrice(false, null), _PS_PRICE_COMPUTE_PRECISION_),
+					'weight' => $product->weight,
+					'weight_unit' => Configuration::get('PS_WEIGHT_UNIT'),
+					'cover' => isset($product->id) ? Product::getCover((int)$product->id) : '',
+					'link_rewrite' => isset($product->link_rewrite) && $product->link_rewrite ? $product->link_rewrite : '',
+				));
+			}
 		}
 
 		return $this->display(__FILE__, 'socialsharing_header.tpl', $this->getCacheId('socialsharing_header|'.(isset($product->id) && $product->id ? (int)$product->id : '')));
@@ -180,7 +182,12 @@ class SocialSharing extends Module
 
 	public function hookDisplaySocialSharing()
 	{
+		if (!isset($this->context->controller) || !method_exists($this->context->controller, 'getProduct')) {
+			return;
+		}
+
 		$product = $this->context->controller->getProduct();
+
 		if (isset($product) && Validate::isLoadedObject($product))
 		{
 			$image_cover_id = $product->getCover($product->id);
