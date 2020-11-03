@@ -121,7 +121,9 @@
 				$(".productTabs a").click(function(e){
 					e.preventDefault();
 					// currentId is the current product tab id
-					currentId = $(".productTabs a.active").attr('id').substr(5);
+					currentId = false;
+					if ($(".productTabs a.active").length)
+						currentId = $(".productTabs a.active").attr('id').substr(5);
 					// id is the wanted producttab id
 					id = $(this).attr('id').substr(5);
 
@@ -150,7 +152,6 @@
 					tabs_manager.onLoad(id, function(){
 						$("#product-tab-content-"+id).show(0, function(){
 							$(this).trigger('displayed');
-							//console.log('show tab'+id);
 						});
 						$("#link-"+id).addClass('active');
 					});

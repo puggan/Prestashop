@@ -38,7 +38,7 @@ class BlockLayered extends Module
 	{
 		$this->name = 'blocklayered';
 		$this->tab = 'front_office_features';
-		$this->version = '1.10.4';
+		$this->version = '1.10.5';
 		$this->author = 'PrestaShop';
 		$this->need_instance = 0;
 		$this->bootstrap = true;
@@ -723,7 +723,7 @@ class BlockLayered extends Module
 		$this->context->controller->addJS(($this->_path).'blocklayered.js');
 		$this->context->controller->addJS(_PS_JS_DIR_.'jquery/jquery-ui-1.8.10.custom.min.js');
 		$this->context->controller->addJQueryUI('ui.slider');
-		$this->context->controller->addCSS(_PS_CSS_DIR_.'jquery-ui-1.8.10.custom.css"');		
+		$this->context->controller->addCSS(_PS_CSS_DIR_.'jquery-ui-1.8.10.custom.css');		
 
 		if (version_compare(_PS_VERSION_, '1.6.0', '>=') === true)
 			$this->context->controller->addCSS(($this->_path).'blocklayered.css', 'all');
@@ -2655,7 +2655,7 @@ class BlockLayered extends Module
 		foreach ($filter_blocks as $type_filter)
 		{
 			$filter_name = (!empty($type_filter['url_name']) ? $type_filter['url_name'] : $type_filter['name']);
-			$filter_meta = (!empty($type_filter['meta_title']) ? $type_filter['meta_title'] : '');
+			$filter_meta = (!empty($type_filter['meta_title']) ? $type_filter['meta_title'] : $type_filter['name']);
 			$attr_key = $type_filter['type'].'_'.$type_filter['id_key'];
 			
 			$param_group_selected = '';
@@ -2668,9 +2668,9 @@ class BlockLayered extends Module
 					.$this->getAnchor().str_replace($this->getAnchor(), '_', $type_filter['values'][1]);
 				$param_group_selected_array[Tools::link_rewrite($filter_name)][] = Tools::link_rewrite($filter_name);
 			
-				if (!isset($title_values[$filter_name]))
-					$title_values[$filter_name] = array();
-				$title_values[$filter_name][] = $filter_name;
+				if (!isset($title_values[$filter_meta]))
+					$title_values[$filter_meta] = array();
+				$title_values[$filter_meta][] = $filter_meta;
 				if (!isset($meta_values[$attr_key]))
 					$meta_values[$attr_key] = array('title' => $filter_meta, 'values' => array());
 				$meta_values[$attr_key]['values'][] = $filter_meta;
@@ -2686,9 +2686,9 @@ class BlockLayered extends Module
 						$param_group_selected .= $this->getAnchor().str_replace($this->getAnchor(), '_', Tools::link_rewrite($value_name));
 						$param_group_selected_array[Tools::link_rewrite($filter_name)][] = Tools::link_rewrite($value_name);
 					
-						if (!isset($title_values[$filter_name]))
-							$title_values[$filter_name] = array();
-						$title_values[$filter_name][] = $value_name;
+						if (!isset($title_values[$filter_meta]))
+							$title_values[$filter_meta] = array();
+						$title_values[$filter_meta][] = $value_name;
 						if (!isset($meta_values[$attr_key]))
 							$meta_values[$attr_key] = array('title' => $filter_meta, 'values' => array());
 						$meta_values[$attr_key]['values'][] = $value_meta;
@@ -2810,6 +2810,7 @@ class BlockLayered extends Module
 			'param_product_url' => $param_product_url,
 			'no_follow' => (!empty($param_selected) || $global_nofollow)
 		);
+
 		return $cache;
 	}
 	
@@ -3256,20 +3257,22 @@ class BlockLayered extends Module
 						$done_categories[(int)$id_category]['cat'] = true;
 						$to_insert = true;
 					}
-					foreach ($a as $k_attribute => $attribute)
-						if (!isset($done_categories[(int)$id_category]['a'.(int)$attribute_groups_by_id[(int)$k_attribute]]))
-						{
-							$filter_data['layered_selection_ag_'.(int)$attribute_groups_by_id[(int)$k_attribute]] = array('filter_type' => 0, 'filter_show_limit' => 0);
-							$done_categories[(int)$id_category]['a'.(int)$attribute_groups_by_id[(int)$k_attribute]] = true;
-							$to_insert = true;
-						}
-					foreach ($f as $k_feature => $feature)
-						if (!isset($done_categories[(int)$id_category]['f'.(int)$features_by_id[(int)$k_feature]]))
-						{
-							$filter_data['layered_selection_feat_'.(int)$features_by_id[(int)$k_feature]] = array('filter_type' => 0, 'filter_show_limit' => 0);
-							$done_categories[(int)$id_category]['f'.(int)$features_by_id[(int)$k_feature]] = true;
-							$to_insert = true;
-						}
+					if (is_array($attribute_groups_by_id) && count($attribute_groups_by_id) > 0)
+						foreach ($a as $k_attribute => $attribute)
+							if (!isset($done_categories[(int)$id_category]['a'.(int)$attribute_groups_by_id[(int)$k_attribute]]))
+							{
+								$filter_data['layered_selection_ag_'.(int)$attribute_groups_by_id[(int)$k_attribute]] = array('filter_type' => 0, 'filter_show_limit' => 0);
+								$done_categories[(int)$id_category]['a'.(int)$attribute_groups_by_id[(int)$k_attribute]] = true;
+								$to_insert = true;
+							}
+					if (is_array($attribute_groups_by_id) && count($attribute_groups_by_id) > 0)
+						foreach ($f as $k_feature => $feature)
+							if (!isset($done_categories[(int)$id_category]['f'.(int)$features_by_id[(int)$k_feature]]))
+							{
+								$filter_data['layered_selection_feat_'.(int)$features_by_id[(int)$k_feature]] = array('filter_type' => 0, 'filter_show_limit' => 0);
+								$done_categories[(int)$id_category]['f'.(int)$features_by_id[(int)$k_feature]] = true;
+								$to_insert = true;
+							}
 					if (!isset($done_categories[(int)$id_category]['q']))
 					{
 						$filter_data['layered_selection_stock'] = array('filter_type' => 0, 'filter_show_limit' => 0);

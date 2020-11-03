@@ -2292,6 +2292,7 @@ class AdminProductsControllerCore extends AdminController
 			$tree = new HelperTreeCategories('categories-tree', $this->l('Filter by category'));
 			$tree->setAttribute('is_category_filter', (bool)$this->id_current_category)
 				->setAttribute('base_url', preg_replace('#&id_category=[0-9]*#', '', self::$currentIndex).'&token='.$this->token)
+				->setInputName('id-category')
 				->setSelectedCategories(array((int)$id_category));
 			$this->tpl_list_vars['category_tree'] = $tree->render();
 
@@ -3342,6 +3343,7 @@ class AdminProductsControllerCore extends AdminController
 		$content .= '
 				</tbody>
 			</table>
+			</div>
 			<div class="panel-footer">
 				<a href="'.$this->context->link->getAdminLink('AdminProducts').'" class="btn btn-default"><i class="process-icon-cancel"></i> '.$this->l('Cancel').'</a>
 				<button id="product_form_submit_btn"  type="submit" name="submitAddproduct" class="btn btn-default pull-right"><i class="process-icon-save"></i> '.$this->l('Save') .'</button>
@@ -3875,7 +3877,8 @@ class AdminProductsControllerCore extends AdminController
 
 				$languages = Language::getLanguages(true);
 				$image_uploader = new HelperImageUploader('file');
-				$image_uploader->setMultiple(true)->setUseAjax(true)->setUrl(
+				$image_uploader->setMultiple(!(Tools::getUserBrowser() == 'Apple Safari' && Tools::getUserPlatform() == 'Windows'))
+					->setUseAjax(true)->setUrl(
 					Context::getContext()->link->getAdminLink('AdminProducts').'&ajax=1&id_product='.(int)$obj->id
 					.'&action=addProductImage');
 					
@@ -4458,6 +4461,7 @@ class AdminProductsControllerCore extends AdminController
 					die (Tools::jsonEncode(array('error' =>  $this->l('Undefined id product attribute'))));
 
 				StockAvailable::setQuantity($product->id, (int)Tools::getValue('id_product_attribute'), (int)Tools::getValue('value'));
+				Hook::exec('actionProductUpdate', array('product' => $this->object));
 				break;
 			case 'advanced_stock_management' :
 				if (Tools::getValue('value') === false)

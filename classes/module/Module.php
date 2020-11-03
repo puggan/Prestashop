@@ -174,7 +174,7 @@ abstract class ModuleCore
 			$this->ps_versions_compliancy['min'] .= '.0.0';
 		
 		if (strlen($this->ps_versions_compliancy['max']) == 3)
-			$this->ps_versions_compliancy['min'] .= '.999.999';
+			$this->ps_versions_compliancy['max'] .= '.999.999';
 		
 		// Load context and smarty
 		$this->context = $context ? $context : Context::getContext();				
@@ -1666,7 +1666,8 @@ abstract class ModuleCore
 	{
 	 	$output = '
 	 	<div class="bootstrap">
-		<div class="module_error alert alert-danger">
+		<div class="module_error alert alert-danger" >
+			<button type="button" class="close" data-dismiss="alert">&times;</button>
 			'.$error.'
 		</div>
 		</div>';
@@ -1679,6 +1680,7 @@ abstract class ModuleCore
 	 	$output = '
 	 	<div class="bootstrap">
 		<div class="module_confirmation conf confirm alert alert-success">
+			<button type="button" class="close" data-dismiss="alert">&times;</button>
 			'.$string.'
 		</div>
 		</div>';
@@ -1831,6 +1833,9 @@ abstract class ModuleCore
 			return Tools::displayError('No template found for module').' '.basename($file, '.php');
 		else
 		{
+			if (Tools::getIsset('live_edit'))
+				$cacheId = null;
+		
 			$this->smarty->assign(array(
 				'module_dir' =>	__PS_BASE_URI__.'modules/'.basename($file, '.php').'/',
 				'module_template_dir' => ($overloaded ? _THEME_DIR_ : __PS_BASE_URI__).'modules/'.basename($file, '.php').'/',
@@ -1902,6 +1907,9 @@ abstract class ModuleCore
 
 	public function isCached($template, $cacheId = null, $compileId = null)
 	{
+		if (Tools::getIsset('live_edit'))
+			return false;
+
 		Tools::enableCache();
 		$is_cached = $this->getCurrentSubTemplate($this->getTemplatePath($template), $cacheId, $compileId)->isCached($this->getTemplatePath($template), $cacheId, $compileId);
 		Tools::restoreCacheSettings();

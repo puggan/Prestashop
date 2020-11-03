@@ -111,8 +111,8 @@ class AdminOrdersControllerCore extends AdminController
 			),
 			'osname' => array(
 				'title' => $this->l('Status'),
-				'color' => 'color',
 				'type' => 'select',
+				'color' => 'color',
 				'list' => $this->statuses_array,
 				'filter_key' => 'os!id_order_state',
 				'filter_type' => 'int',
@@ -229,7 +229,7 @@ class AdminOrdersControllerCore extends AdminController
 			'recyclable_pack' => (int)Configuration::get('PS_RECYCLABLE_PACK'),
 			'gift_wrapping' => (int)Configuration::get('PS_GIFT_WRAPPING'),
 			'cart' => $cart,
-			'currencies' => Currency::getCurrencies(),
+			'currencies' => Currency::getCurrenciesByIdShop(Context::getContext()->shop->id),
 			'langs' => Language::getLanguages(true, Context::getContext()->shop->id),
 			'payment_modules' => $payment_modules,
 			'order_states' => OrderState::getOrderStates((int)Context::getContext()->language->id),
@@ -1539,6 +1539,11 @@ class AdminOrdersControllerCore extends AdminController
 
 		$gender = new Gender((int)$customer->id_gender, $this->context->language->id);
 
+		$history = $order->getHistory($this->context->language->id);
+
+		foreach ($history as &$order_state)
+			$order_state['text-color'] = Tools::getBrightness($order_state['color']) < 128 ? 'white' : 'black';
+
 		// Smarty assign
 		$this->tpl_view_vars = array(
 			'order' => $order,
@@ -1562,13 +1567,13 @@ class AdminOrdersControllerCore extends AdminController
 			'orderMessages' => OrderMessage::getOrderMessages($order->id_lang),
 			'messages' => Message::getMessagesByOrderId($order->id, true),
 			'carrier' => new Carrier($order->id_carrier),
-			'history' => $order->getHistory($this->context->language->id),
+			'history' => $history,
 			'states' => OrderState::getOrderStates($this->context->language->id),
 			'warehouse_list' => $warehouse_list,
 			'sources' => ConnectionsSource::getOrderSources($order->id),
 			'currentState' => $order->getCurrentOrderState(),
 			'currency' => new Currency($order->id_currency),
-			'currencies' => Currency::getCurrencies(),
+			'currencies' => Currency::getCurrenciesByIdShop($order->id_shop),
 			'previousOrder' => $order->getPreviousOrderId(),
 			'nextOrder' => $order->getNextOrderId(),
 			'current_index' => self::$currentIndex,

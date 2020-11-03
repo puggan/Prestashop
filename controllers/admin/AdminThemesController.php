@@ -62,7 +62,7 @@ class AdminThemesControllerCore extends AdminController
 					),
 				),
 			),
-			'error' => 'This theme may not correctly use "combine, compress and cache"',
+			'error' => 'This theme may not correctly use "combine, compress and cache" options.',
 			'tab' => 'AdminPerformance',
 		),
 		'guest_checkout' => array(
@@ -72,7 +72,7 @@ class AdminThemesControllerCore extends AdminController
 					'check_if_not_valid' => array('PS_GUEST_CHECKOUT_ENABLED' => 0)
 				),
 			),
-			'error' => 'This theme may not correctly use "guest checkout"',
+			'error' => 'This theme may not correctly use "guest checkout" option.',
 			'tab' => 'AdminPreferences',
 		),
 		'one_page_checkout' => array(
@@ -82,7 +82,7 @@ class AdminThemesControllerCore extends AdminController
 					'check_if_not_valid' => array('PS_ORDER_PROCESS_TYPE' => 0),
 				),
 			),
-			'error' => 'This theme may not correctly use "one page checkout"',
+			'error' => 'This theme may not correctly use "one-page checkout" option.',
 			'tab' => 'AdminPreferences',
 		),
 		'store_locator' => array(
@@ -95,7 +95,7 @@ class AdminThemesControllerCore extends AdminController
 					),
 				)
 			),
-			'error' => 'This theme may not correctly use "display store location"',
+			'error' => 'This theme may not correctly use "display store location" option.',
 			'tab' => 'AdminStores',
 		)
 	);
@@ -237,7 +237,7 @@ class AdminThemesControllerCore extends AdminController
 			'responsive' => array(
 				'title' => $this->l('Responsive'),
 				'type' => 'bool',
-				'active' => 'responsive',
+				'callback' => 'printResponsiveIcon',
 				'align' => 'center',
 				'class' => 'fixed-width-xs'
 			),
@@ -348,25 +348,9 @@ class AdminThemesControllerCore extends AdminController
 				),
 				array(
 					'type' => 'switch',
-					'label' => $this->l('Responsive'),
-					'name' => 'responsive',
-					'values' => array(
-						array(
-							'id' => 'responsive_on',
-							'value' => 1,
-							'label' => $this->l('Yes')
-						),
-						array(
-							'id' => 'responsive_off',
-							'value' => 0,
-							'label' => $this->l('No')
-						)
-					),
-				),
-				array(
-					'type' => 'switch',
 					'label' => $this->l('Default left column'),
 					'name' => 'default_left_column',
+					'hint' => $this->l('Choose a default behavior when displaying the column in a new page added by you or by a module.'),
 					'values' => array(
 						array(
 							'id' => 'default_left_column_on',
@@ -384,6 +368,7 @@ class AdminThemesControllerCore extends AdminController
 					'type' => 'switch',
 					'label' => $this->l('Default right column'),
 					'name' => 'default_right_column',
+					'hint' => $this->l('Choose a default behavior when displaying the column in a new page added by you or by a module.'),
 					'values' => array(
 						array(
 							'id' => 'default_right_column_on',
@@ -401,6 +386,7 @@ class AdminThemesControllerCore extends AdminController
 					'type' => 'text',
 					'label' => $this->l('Number of products per page'),
 					'name' => 'product_per_page',
+					'hint' => $this->l('This value will be used when activating the theme.'),
 				)
 			),
 			'submit' => array(
@@ -423,7 +409,7 @@ class AdminThemesControllerCore extends AdminController
 				'type' => 'select',
 				'name' => 'based_on',
 				'label' => $this->l('Copy missing files from existing theme'),
-				'hint' => $this->l('If you create a new theme, it\'s recommended that you use default theme files.'),
+				'hint' => $this->l('If you create a new theme, it\'s recommended that you use the default theme files.'),
 				'options' => array(
 					'id' => 'id',
 					'name' => 'name',
@@ -433,6 +419,25 @@ class AdminThemesControllerCore extends AdminController
 					),
 					'query' => $theme_query,
 				)
+			);
+
+			$this->fields_form['input'][] = array(
+				'type' => 'switch',
+				'label' => $this->l('Responsive'),
+				'name' => 'responsive',
+				'hint' => $this->l('Please indicate if the theme is adapted to all screen sizes (mobile, tablet, desktop).'),
+				'values' => array(
+					array(
+						'id' => 'responsive_on',
+						'value' => 1,
+						'label' => $this->l('Yes')
+					),
+					array(
+						'id' => 'responsive_off',
+						'value' => 0,
+						'label' => $this->l('No')
+					)
+				),
 			);
 		}
 		else
@@ -1895,7 +1900,7 @@ class AdminThemesControllerCore extends AdminController
 	 */
 	private function getNativeModule($type = 0)
 	{
-		$xml = simplexml_load_string(Tools::file_get_contents('http://api.prestashop.com/xml/modules_list_15.xml'));
+		$xml = simplexml_load_string(Tools::file_get_contents('http://api.prestashop.com/xml/modules_list_16.xml'));
 
 		if ($xml)
 		{
@@ -2675,6 +2680,11 @@ class AdminThemesControllerCore extends AdminController
 		// This is a composite page, we don't want the "options" display mode
 		if ($this->display == 'options' || $this->display == 'list')
 			$this->display = '';
+	}
+
+	public function printResponsiveIcon($value)
+	{
+		return ($value ? '<span class="list-action-enable  action-enabled"><i class="icon-check"></i></span>' : '<span class="list-action-enable  action-disabled"><i class="icon-remove"></i></span>');
 	}
 
 	public function processResponsive()
