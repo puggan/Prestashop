@@ -1,6 +1,6 @@
 <?php
 /*
-* 2007-2013 PrestaShop
+* 2007-2014 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -19,7 +19,7 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author PrestaShop SA <contact@prestashop.com>
-*  @copyright  2007-2013 PrestaShop SA
+*  @copyright  2007-2014 PrestaShop SA
 *  @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
@@ -55,6 +55,10 @@ class AdminAttachmentsControllerCore extends AdminController
 			'file' => array(
 				'title' => $this->l('File')
 			),
+			'file_size' => array(
+				'title' => $this->l('Size'),
+				'callback' => 'displayHumanReadableSize'
+			),
 			'products' => array(
 				'title' => $this->l('Associated to'),
 				'suffix' => $this->l('product(s)'),
@@ -65,12 +69,17 @@ class AdminAttachmentsControllerCore extends AdminController
 		parent::__construct();
 	}
 
+	public static function displayHumanReadableSize($size)
+	{
+		return Tools::formatBytes($size);
+	}
+
 	public function initPageHeaderToolbar()
 	{
 		if (empty($this->display))
 			$this->page_header_toolbar_btn['new_attachment'] = array(
-				'href' => self::$currentIndex.'&amp;addattachment&amp;token='.$this->token,
-				'desc' => $this->l('Add new attachment'),
+				'href' => self::$currentIndex.'&addattachment&token='.$this->token,
+				'desc' => $this->l('Add new attachment', null, null, false),
 				'icon' => 'process-icon-new'
 			);
 
@@ -129,7 +138,6 @@ class AdminAttachmentsControllerCore extends AdminController
 			),
 			'submit' => array(
 				'title' => $this->l('Save'),
-				'class' => 'button'
 			)
 		);
 
@@ -204,7 +212,7 @@ class AdminAttachmentsControllerCore extends AdminController
 						$_POST['mime'] = $_FILES['file']['type'];
 					}
 				}
-				else if (array_key_exists('file', $_FILES) && (int)$_FILES['file']['error'] === 1)
+				elseif (array_key_exists('file', $_FILES) && (int)$_FILES['file']['error'] === 1)
 				{
 					$max_upload = (int)ini_get('upload_max_filesize');
 					$max_post = (int)ini_get('post_max_size');
@@ -215,7 +223,7 @@ class AdminAttachmentsControllerCore extends AdminController
 						'<b>'.$upload_mb.'</b>'
 					);
 				}
-				else
+				elseif (!isset($a) || (isset($a) && !file_exists(_PS_DOWNLOAD_DIR_.$a->file)))
 					$this->errors[] = $this->l('Upload error.  Please check your server configurations for the maximum upload size allowed.');
 			}
 			$this->validateRules();

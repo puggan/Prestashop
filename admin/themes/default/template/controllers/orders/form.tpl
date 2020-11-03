@@ -1,5 +1,5 @@
 {*
-* 2007-2013 PrestaShop
+* 2007-2014 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -18,7 +18,7 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author PrestaShop SA <contact@prestashop.com>
-*  @copyright  2007-2013 PrestaShop SA
+*  @copyright  2007-2014 PrestaShop SA
 *  @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 *}
@@ -597,7 +597,7 @@
 					else
 						customization_errors = false;
 					$('#products_found').show();
-					products_found += '<label class="control-label col-lg-3">{l s='Product:'}</label><div class="col-lg-6"><select id="id_product" onclick="display_product_attributes();display_product_customizations();"></div>';
+					products_found += '<label class="control-label col-lg-3">{l s='Product'}</label><div class="col-lg-6"><select id="id_product" onclick="display_product_attributes();display_product_customizations();"></div>';
 					attributes_html += '<label class="control-label col-lg-3">{l s='Combination'}</label><div class="col-lg-6">';
 					$.each(res.products, function() {
 						products_found += '<option '+(this.combinations.length > 0 ? 'rel="'+this.qty_in_stock+'"' : '')+' value="'+this.id_product+'">'+this.name+(this.combinations.length == 0 ? ' - '+this.formatted_price : '')+'</option>';
@@ -693,7 +693,7 @@
 			cart_content += (!this.id_customization ? '<div class="input-group fixed-width-md"><div class="input-group-btn"><a href="#" class="btn btn-default increaseqty_product" rel="'+this.id_product+'_'+this.id_product_attribute+'_'+(this.id_customization ? this.id_customization : 0)+'" ><i class="icon-caret-up"></i></a><a href="#" class="btn btn-default decreaseqty_product" rel="'+this.id_product+'_'+this.id_product_attribute+'_'+(this.id_customization ? this.id_customization : 0)+'"><i class="icon-caret-down"></i></a></div>' : '');
 			cart_content += (!this.id_customization ? '<input type="text" rel="'+this.id_product+'_'+this.id_product_attribute+'_'+(this.id_customization ? this.id_customization : 0)+'" class="cart_quantity" value="'+this.cart_quantity+'" />' : '');
 			cart_content += (!this.id_customization ? '<div class="input-group-btn"><a href="#" class="delete_product btn btn-default" rel="delete_'+this.id_product+'_'+this.id_product_attribute+'_'+(this.id_customization ? this.id_customization : 0)+'" ><i class="icon-remove text-danger"></i></a></div></div>' : '');
-			cart_content += '</td><td>' + formatCurrency(parseFloat(this.total.replace(',', '.')), currency_format, currency_sign, currency_blank) + '</td></tr>';
+			cart_content += '</td><td>' + formatCurrency(this.numeric_total, currency_format, currency_sign, currency_blank) + '</td></tr>';
 			
 			if (this.id_customization && this.id_customization != 0)
 			{
@@ -794,12 +794,12 @@
 			$('#shipping_price').html('<b>' + formatCurrency(parseFloat(jsonSummary.summary.total_shipping), currency_format, currency_sign, currency_blank) + '</b>');
 		shipping_price_selected_carrier = jsonSummary.summary.total_shipping;
 
-		$('#total_vouchers').html(formatCurrency(parseFloat(fixPriceFormat(jsonSummary.summary.total_discounts_tax_exc)), currency_format, currency_sign, currency_blank));
-		$('#total_shipping').html(formatCurrency(parseFloat(fixPriceFormat(jsonSummary.summary.total_shipping_tax_exc)), currency_format, currency_sign, currency_blank));
-		$('#total_taxes').html(formatCurrency(parseFloat(fixPriceFormat(jsonSummary.summary.total_tax)), currency_format, currency_sign, currency_blank));
-		$('#total_without_taxes').html(formatCurrency(parseFloat(fixPriceFormat(jsonSummary.summary.total_price_without_tax)), currency_format, currency_sign, currency_blank));
-		$('#total_with_taxes').html(formatCurrency(parseFloat(fixPriceFormat(jsonSummary.summary.total_price)), currency_format, currency_sign, currency_blank));
-		$('#total_products').html(formatCurrency(parseFloat(fixPriceFormat(jsonSummary.summary.total_products)), currency_format, currency_sign, currency_blank));
+		$('#total_vouchers').html(formatCurrency(parseFloat(jsonSummary.summary.total_discounts_tax_exc), currency_format, currency_sign, currency_blank));
+		$('#total_shipping').html(formatCurrency(parseFloat(jsonSummary.summary.total_shipping_tax_exc), currency_format, currency_sign, currency_blank));
+		$('#total_taxes').html(formatCurrency(parseFloat(jsonSummary.summary.total_tax), currency_format, currency_sign, currency_blank));
+		$('#total_without_taxes').html(formatCurrency(parseFloat(jsonSummary.summary.total_price_without_tax), currency_format, currency_sign, currency_blank));
+		$('#total_with_taxes').html(formatCurrency(parseFloat(jsonSummary.summary.total_price), currency_format, currency_sign, currency_blank));
+		$('#total_products').html(formatCurrency(parseFloat(jsonSummary.summary.total_products), currency_format, currency_sign, currency_blank));
 		id_currency = jsonSummary.cart.id_currency;
 		$('#id_currency option').removeAttr('selected');
 		$('#id_currency option[value="'+id_currency+'"]').attr('selected', true);
@@ -978,25 +978,13 @@
 		$.each(addresses, function() {
 			if (this.id_address == id_address_invoice)
 			{
-				address_invoice_detail = this.company+' '+this.firstname+' '+this.lastname+'<br />'+this.address1+'<br />'+this.address2+'<br />'+this.postcode+' '+this.city;
-
-				if (this.state != null)
-					address_invoice_detail += ' '+this.state;
-
-				address_invoice_detail += '</br>'+this.country;
-
+				address_invoice_detail = this.formated_address;
 				invoice_address_edit_link = "{$link->getAdminLink('AdminAddresses')}&id_address="+this.id_address+"&updateaddress&realedit=1&liteDisplaying=1&submitFormAjax=1#";
 			}
 
 			if(this.id_address == id_address_delivery)
 			{
-				address_delivery_detail = this.company+' '+this.firstname+' '+this.lastname+'<br />'+this.address1+'<br />'+this.address2+'<br />'+this.postcode+' '+this.city;
-
-				if (this.state != null)
-					address_delivery_detail += ' '+this.state;
-
-				address_delivery_detail += '</br>'+this.country;
-
+				address_delivery_detail = this.formated_address;
 				delivery_address_edit_link = "{$link->getAdminLink('AdminAddresses')}&id_address="+this.id_address+"&updateaddress&realedit=1&liteDisplaying=1&submitFormAjax=1#";
 			}
 
@@ -1059,8 +1047,8 @@
 
 		<div id="search-customer-form-group" class="form-group ">
 			<label class="control-label col-lg-3">
-				<span title="" data-toggle="tooltip" class="label-tooltip" data-original-title="{l s='Search a customer by typping the first letters of his/her name'}">
-					{l s='Search customers'}
+				<span title="" data-toggle="tooltip" class="label-tooltip" data-original-title="{l s='Search for an existing customer by typing the first letters of his/her name.'}">
+					{l s='Search for a customer'}
 				</span>
 			</label>
 			<div class="col-lg-9">
@@ -1128,9 +1116,9 @@
 							<tr>
 								<th><span class="title_box">{l s='ID'}</span></th>
 								<th><span class="title_box">{l s='Date'}</span></th>
-								<th><span class="title_box">{l s='Products:'}</span></th>
+								<th><span class="title_box">{l s='Products'}</span></th>
 								<th><span class="title_box">{l s='Total paid'}</span></th>
-								<th><span class="title_box">{l s='Payment: '}</span></th>
+								<th><span class="title_box">{l s='Payment'}</span></th>
 								<th><span class="title_box">{l s='Status'}</span></th>
 								<th></th>
 							</tr>
@@ -1152,7 +1140,7 @@
 		</h3>
 		<div class="form-group">
 			<label class="control-label col-lg-3">
-				<span title="" data-toggle="tooltip" class="label-tooltip" data-original-title="{l s='Search a product by typping the first letters of his/her name.'}">
+				<span title="" data-toggle="tooltip" class="label-tooltip" data-original-title="{l s='Search for an existing product by typing the first letters of his/her name.'}">
 					{l s='Search for a product'}
 				</span>
 			</label>
@@ -1190,10 +1178,10 @@
 				</div>
 			</div>
 			<div class="form-group">
-				<label class="control-label col-lg-3" for="qty">{l s='Quantity:'}</label>
+				<label class="control-label col-lg-3" for="qty">{l s='Quantity'}</label>
 				<div class="col-lg-9">
 					<input type="text" name="qty" id="qty" class="form-control fixed-width-sm" value="1" />
-					<p class="help-block">{l s='In stock:'} <span id="qty_in_stock"></span></p>
+					<p class="help-block">{l s='In stock'} <span id="qty_in_stock"></span></p>
 				</div>
 			</div>
 
@@ -1217,9 +1205,9 @@
 						<tr>
 							<th><span class="title_box">{l s='Product'}</span></th>
 							<th><span class="title_box">{l s='Description'}</span></th>
-							<th><span class="title_box">{l s='Ref'}</span></th>
+							<th><span class="title_box">{l s='Reference'}</span></th>
 							<th><span class="title_box">{l s='Unit price'}</span></th>
-							<th><span class="title_box">{l s='Qty'}</span></th>
+							<th><span class="title_box">{l s='Quantity'}</span></th>
 							<th><span class="title_box">{l s='Price'}</span></th>
 						</tr>
 					</thead>
@@ -1273,7 +1261,7 @@
 		</h3>
 		<div class="form-group">
 			<label class="control-label col-lg-3">
-				{l s='Search for a voucher:'} 
+				{l s='Search for a voucher'} 
 			</label>
 			<div class="col-lg-9">
 				<div class="row">
@@ -1329,6 +1317,7 @@
 					<select id="id_address_delivery" name="id_address_delivery"></select>
 				</div>
 				<div class="well">
+					<a href="" id="edit_delivery_address" class="btn btn-default pull-right fancybox"><i class="icon-pencil"></i> {l s='Edit'}</a>
 					<div id="address_delivery_detail"></div>
 				</div>
 			</div>
@@ -1341,6 +1330,7 @@
 					<select id="id_address_invoice" name="id_address_invoice"></select>
 				</div>
 				<div class="well">
+					<a href="" id="edit_invoice_address" class="btn btn-default pull-right fancybox"><i class="icon-pencil"></i> {l s='Edit'}</a>
 					<div id="address_invoice_detail"></div>
 				</div>
 			</div>
@@ -1372,7 +1362,7 @@
 			</div>
 			<div class="form-group">
 				<label class="control-label col-lg-3" for="shipping_price">
-					{l s='Shipping price:'}
+					{l s='Shipping price'}
 				</label>
 				<div class="col-lg-9">
 					<p id="shipping_price" class="form-control-static" name="shipping_price"></p>
@@ -1394,7 +1384,7 @@
 							<i class="icon-ban-circle text-danger"></i>
 							{l s='No'}
 						</label>
-						<a class="slide-button btn btn-default"></a>
+						<a class="slide-button btn"></a>
 					</span>
 				</div>
 			</div>
@@ -1440,31 +1430,31 @@
 			<div class="row">
 				<div class="col-lg-2">
 					<div class="data-focus">
-						<span>{l s='Total products:'}</span><br/>
+						<span>{l s='Total products'}</span><br/>
 						<span id="total_products" class="size_l text-success"></span>
 					</div>
 				</div>
 				<div class="col-lg-2">
 					<div class="data-focus">
-						<span>{l s='Total vouchers:'}</span><br/>
+						<span>{l s='Total vouchers'}</span><br/>
 						<span id="total_vouchers" class="size_l text-danger"></span>
 					</div>
 				</div>
 				<div class="col-lg-2">
 					<div class="data-focus">
-						<span>{l s='Total shipping:'}</span><br/>
+						<span>{l s='Total shipping'}</span><br/>
 						<span id="total_shipping" class="size_l"></span>
 					</div>
 				</div>
 				<div class="col-lg-2">
 					<div class="data-focus">
-						<span>{l s='Total taxes:'}</span><br/>
+						<span>{l s='Total taxes'}</span><br/>
 						<span id="total_taxes" class="size_l"></span>
 					</div>
 				</div>
 				<div class="col-lg-2">
 					<div class="data-focus">
-						<span>{l s='Total without taxes:'}</span><br/>
+						<span>{l s='Total without taxes'}</span><br/>
 						<span id="total_without_taxes" class="size_l"></span>
 					</div>
 				</div>

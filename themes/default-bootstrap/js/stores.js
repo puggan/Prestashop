@@ -1,5 +1,5 @@
 /*
-* 2007-2013 PrestaShop
+* 2007-2014 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -18,10 +18,36 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author PrestaShop SA <contact@prestashop.com>
-*  @copyright  2007-2013 PrestaShop SA
+*  @copyright  2007-2014 PrestaShop SA
 *  @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
+$(document).ready(function()
+{
+	map = new google.maps.Map(document.getElementById('map'), {
+		center: new google.maps.LatLng(defaultLat, defaultLong),
+		zoom: 10,
+		mapTypeId: 'roadmap',
+		mapTypeControlOptions: {style: google.maps.MapTypeControlStyle.DROPDOWN_MENU}
+	});
+	infoWindow = new google.maps.InfoWindow();
+
+	locationSelect = document.getElementById('locationSelect');
+		locationSelect.onchange = function() {
+		var markerNum = locationSelect.options[locationSelect.selectedIndex].value;
+		if (markerNum !== 'none')
+		google.maps.event.trigger(markers[markerNum], 'click');
+	};
+	
+	$('#addressInput').keypress(function(e) {
+		code = e.keyCode ? e.keyCode : e.which;
+		if(code.toString() === 13)
+			searchLocations();
+	});
+
+
+	initMarkers();
+});
 
 function initMarkers()
 {
@@ -196,30 +222,3 @@ function parseXml(str)
 }
 
 function doNothing() {}
-
-$(document).ready(function()
-{
-	map = new google.maps.Map(document.getElementById('map'), {
-		center: new google.maps.LatLng(defaultLat, defaultLong),
-		zoom: 10,
-		mapTypeId: 'roadmap',
-		mapTypeControlOptions: {style: google.maps.MapTypeControlStyle.DROPDOWN_MENU}
-	});
-	infoWindow = new google.maps.InfoWindow();
-
-	locationSelect = document.getElementById('locationSelect');
-		locationSelect.onchange = function() {
-		var markerNum = locationSelect.options[locationSelect.selectedIndex].value;
-		if (markerNum !== 'none')
-		google.maps.event.trigger(markers[markerNum], 'click');
-	};
-	
-	$('#addressInput').keypress(function(e) {
-		code = e.keyCode ? e.keyCode : e.which;
-		if(code.toString() === 13)
-			searchLocations();
-	});
-
-
-	initMarkers();
-});

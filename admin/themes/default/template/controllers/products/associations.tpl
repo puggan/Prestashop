@@ -1,5 +1,5 @@
 {*
-* 2007-2013 PrestaShop
+* 2007-2014 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -18,7 +18,7 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author PrestaShop SA <contact@prestashop.com>
-*  @copyright  2007-2013 PrestaShop SA
+*  @copyright  2007-2014 PrestaShop SA
 *  @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 *}
@@ -104,5 +104,10 @@
 				<i class="icon-plus-sign"></i> {l s='Create new manufacturer'} <i class="icon-external-link-sign"></i>
 			</a>
 		</div>
+	</div>
+	<div class="panel-footer">
+		<a href="{$link->getAdminLink('AdminProducts')}" class="btn btn-default"><i class="process-icon-cancel"></i> {l s='Cancel'}</a>
+		<button type="submit" name="submitAddproduct" class="btn btn-default pull-right"><i class="process-icon-save"></i> {l s='Save'}</button>
+		<button type="submit" name="submitAddproductAndStay" class="btn btn-default pull-right"><i class="process-icon-save"></i> {l s='Save and stay'}</button>
 	</div>
 </div>

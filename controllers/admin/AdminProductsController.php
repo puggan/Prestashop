@@ -1,6 +1,6 @@
 <?php
 /*
-* 2007-2013 PrestaShop
+* 2007-2014 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -19,7 +19,7 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author PrestaShop SA <contact@prestashop.com>
-*  @copyright  2007-2013 PrestaShop SA
+*  @copyright  2007-2014 PrestaShop SA
 *  @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
@@ -228,13 +228,13 @@ class AdminProductsControllerCore extends AdminController
 		$this->fields_list['price'] = array(
 			'title' => $this->l('Base price'),
 			'type' => 'price',
-			'align' => 'right',
+			'align' => 'text-right',
 			'filter_key' => 'a!price'
 		);
 		$this->fields_list['price_final'] = array(
 			'title' => $this->l('Final price'),
 			'type' => 'price',
-			'align' => 'right',
+			'align' => 'text-right',
 			'havingFilter' => true,
 			'orderby' => false
 		);
@@ -243,7 +243,7 @@ class AdminProductsControllerCore extends AdminController
 			$this->fields_list['sav_quantity'] = array(
 				'title' => $this->l('Quantity'),
 				'type' => 'int',
-				'align' => 'right',
+				'align' => 'text-right',
 				'filter_key' => 'sav!quantity',
 				'orderby' => true,
 				//'hint' => $this->l('This is the quantity available in the current shop/group.'),
@@ -253,7 +253,7 @@ class AdminProductsControllerCore extends AdminController
 			'title' => $this->l('Status'),
 			'active' => 'status',
 			'filter_key' => $alias.'!active',
-			'align' => 'center',
+			'align' => 'text-center',
 			'type' => 'bool',
 			'class' => 'fixed-width-sm',
 			'orderby' => false
@@ -270,8 +270,8 @@ class AdminProductsControllerCore extends AdminController
 
 	public function setMedia()
 	{
-		$admin_webpath = str_ireplace(_PS_ROOT_DIR_, '', _PS_ADMIN_DIR_);
-		$admin_webpath = preg_replace('/^'.preg_quote(DIRECTORY_SEPARATOR, '/').'/', '', $admin_webpath);
+		parent::setMedia();
+
 		$bo_theme = ((Validate::isLoadedObject($this->context->employee)
 			&& $this->context->employee->bo_theme) ? $this->context->employee->bo_theme : 'default');
 
@@ -279,15 +279,12 @@ class AdminProductsControllerCore extends AdminController
 			.'template'))
 			$bo_theme = 'default';
 
-		$this->addJs(__PS_BASE_URI__.$admin_webpath.'/themes/'.$bo_theme.'/js/vendor/jquery.ui.widget.js');
-		$this->addJs(__PS_BASE_URI__.$admin_webpath.'/themes/'.$bo_theme.'/js/jquery.iframe-transport.js');
-		$this->addJs(__PS_BASE_URI__.$admin_webpath.'/themes/'.$bo_theme.'/js/jquery.fileupload.js');
-		$this->addJs(__PS_BASE_URI__.$admin_webpath.'/themes/'.$bo_theme.'/js/jquery.fileupload-process.js');
-		$this->addJs(__PS_BASE_URI__.$admin_webpath.'/themes/'.$bo_theme.'/js/jquery.fileupload-validate.js');			
+		$this->addJs(__PS_BASE_URI__.$this->admin_webpath.'/themes/'.$bo_theme.'/js/jquery.iframe-transport.js');
+		$this->addJs(__PS_BASE_URI__.$this->admin_webpath.'/themes/'.$bo_theme.'/js/jquery.fileupload.js');
+		$this->addJs(__PS_BASE_URI__.$this->admin_webpath.'/themes/'.$bo_theme.'/js/jquery.fileupload-process.js');
+		$this->addJs(__PS_BASE_URI__.$this->admin_webpath.'/themes/'.$bo_theme.'/js/jquery.fileupload-validate.js');			
 		$this->addJs(__PS_BASE_URI__.'js/vendor/spin.js');
 		$this->addJs(__PS_BASE_URI__.'js/vendor/ladda.js');
-
-		return parent::setMedia();
 	}
 	
 	protected function _cleanMetaKeywords($keywords)
@@ -452,18 +449,22 @@ class AdminProductsControllerCore extends AdminController
 		$this->content = $tpl->fetch();
 	}
 
-	public function ajaxProcessDeleteVirtualProduct()
+	public function processDeleteVirtualProduct()
 	{
 		if (!($id_product_download = ProductDownload::getIdFromIdProduct((int)Tools::getValue('id_product'))))
-			$this->jsonError($this->l('Cannot retrieve file'));
+			$this->errors[] = Tools::displayError('Cannot retrieve file');
 		else
 		{
 			$product_download = new ProductDownload((int)$id_product_download);
+
 			if (!$product_download->deleteFile((int)$id_product_download))
-				$this->jsonError($this->l('Cannot delete file'));
+				$this->errors[] = Tools::displayError('Cannot delete file');
 			else
-				$this->jsonConfirmation($this->_conf[1]);
+				$this->redirect_after = self::$currentIndex.'&id_product='.(int)Tools::getValue('id_product').'&updateproduct&key_tab=VirtualProduct&conf=1&token='.$this->token;
 		}
+
+		$this->display = 'edit';
+		$this->tab_display = 'VirtualProduct';
 	}
 
 	public function ajaxProcessAddAttachment()
@@ -682,7 +683,7 @@ class AdminProductsControllerCore extends AdminController
 					{
 						$id_category = (int)Tools::getValue('id_category');
 						$category_url = empty($id_category) ? '' : '&id_category='.(int)$id_category;
-						Logger::addLog(sprintf($this->l('%s deletion', 'AdminTab', false, false), $this->className), 1, null, $this->className, (int)$object->id, true, (int)$this->context->employee->id);
+						PrestaShopLogger::addLog(sprintf($this->l('%s deletion', 'AdminTab', false, false), $this->className), 1, null, $this->className, (int)$object->id, true, (int)$this->context->employee->id);
 						$this->redirect_after = self::$currentIndex.'&conf=1&token='.$this->token.$category_url;
 					}
 					else
@@ -781,7 +782,7 @@ class AdminProductsControllerCore extends AdminController
 							if (!count($this->errors))
 							{
 								if ($product->delete())
-									Logger::addLog(sprintf($this->l('%s deletion', 'AdminTab', false, false), $this->className), 1, null, $this->className, (int)$product->id, true, (int)$this->context->employee->id);
+									PrestaShopLogger::addLog(sprintf($this->l('%s deletion', 'AdminTab', false, false), $this->className), 1, null, $this->className, (int)$product->id, true, (int)$this->context->employee->id);
 								else
 									$success = false;
 							}
@@ -1327,8 +1328,7 @@ class AdminProductsControllerCore extends AdminController
 		{
 			$this->addJqueryUI(array(
 				'ui.core',
-				'ui.widget',
-				'ui.accordion',
+				'ui.widget'
 			));
 
 			$this->addjQueryPlugin(array(
@@ -1341,25 +1341,18 @@ class AdminProductsControllerCore extends AdminController
 			));
 
 			$this->addJS(array(
-				_PS_JS_DIR_.'productTabsManager.js',
 				_PS_JS_DIR_.'admin-products.js',
 				_PS_JS_DIR_.'attributesBack.js',
 				_PS_JS_DIR_.'price.js',
 				_PS_JS_DIR_.'tiny_mce/tiny_mce.js',
 				_PS_JS_DIR_.'tinymce.inc.js',
-				_PS_JS_DIR_.'fileuploader.js',
 				_PS_JS_DIR_.'admin-dnd.js',
-				_PS_JS_DIR_.'jquery/plugins/treeview-categories/jquery.treeview-categories.js',
-				_PS_JS_DIR_.'jquery/plugins/treeview-categories/jquery.treeview-categories.async.js',
-				_PS_JS_DIR_.'jquery/plugins/treeview-categories/jquery.treeview-categories.edit.js',
-				_PS_JS_DIR_.'admin-categories-tree.js',
 				_PS_JS_DIR_.'jquery/ui/jquery.ui.progressbar.min.js',
 				_PS_JS_DIR_.'vendor/spin.js',
 				_PS_JS_DIR_.'vendor/ladda.js'
 			));
 
 			$this->addCSS(array(
-				_PS_JS_DIR_.'jquery/plugins/treeview-categories/jquery.treeview-categories.css',
 				_PS_JS_DIR_.'jquery/plugins/timepicker/jquery-ui-timepicker-addon.css',
 			));
 		}
@@ -1718,7 +1711,7 @@ class AdminProductsControllerCore extends AdminController
 
 		if ($this->object->add())
 		{
-			Logger::addLog(sprintf($this->l('%s addition', 'AdminTab', false, false), $this->className), 1, null, $this->className, (int)$this->object->id, true, (int)$this->context->employee->id);
+			PrestaShopLogger::addLog(sprintf($this->l('%s addition', 'AdminTab', false, false), $this->className), 1, null, $this->className, (int)$this->object->id, true, (int)$this->context->employee->id);
 			$this->addCarriers();
 			$this->updateAccessories($this->object);
 			$this->updatePackItems($this->object);
@@ -1754,9 +1747,11 @@ class AdminProductsControllerCore extends AdminController
 						.'&conf=3&token='.$this->token;
 			}
 			else
+			{
 				$this->object->delete();
 				// if errors : stay on edit page
 				$this->display = 'edit';
+			}
 		}
 		else
 			$this->errors[] = Tools::displayError('An error occurred while creating an object.').' <b>'.$this->table.'</b>';
@@ -1846,7 +1841,7 @@ class AdminProductsControllerCore extends AdminController
 
 				if ($object->update())
 				{
-					Logger::addLog(sprintf($this->l('%s edition', 'AdminTab', false, false), $this->className), 1, null, $this->className, (int)$this->object->id, true, (int)$this->context->employee->id);
+					PrestaShopLogger::addLog(sprintf($this->l('%s edition', 'AdminTab', false, false), $this->className), 1, null, $this->className, (int)$this->object->id, true, (int)$this->context->employee->id);
 					if (in_array($this->context->shop->getContext(), array(Shop::CONTEXT_SHOP, Shop::CONTEXT_ALL)))
 					{
 						if ($this->isTabSubmitted('Shipping'))
@@ -2104,19 +2099,25 @@ class AdminProductsControllerCore extends AdminController
 	 */
 	public function updateDownloadProduct($product, $edit = 0)
 	{
-		$is_virtual_file = (int)Tools::getValue('is_virtual_file');
-		// add or update a virtual product
-		if (Tools::getValue('is_virtual_good') == 'true')
+		if ((int)Tools::getValue('is_virtual_file') == 1)
 		{
-			$product->setDefaultAttribute(0);//reset cache_default_attribute			
-			if (Tools::getValue('virtual_product_expiration_date') && !Validate::isDate(Tools::getValue('virtual_product_expiration_date') && !empty($is_virtual_file)))
+			if (isset($_FILES['virtual_product_file_uploader']) && $_FILES['virtual_product_file_uploader']['size'] > 0)
 			{
+				$virtual_product_filename = ProductDownload::getNewFilename();
+				$helper = new HelperUploader('virtual_product_file_uploader');
+				$files = $helper->setPostMaxSize(Tools::getOctets(ini_get('upload_max_filesize')))
+					->setSavePath(_PS_DOWNLOAD_DIR_)->upload($_FILES['virtual_product_file_uploader'], $virtual_product_filename);
+			}
+			else
+				$virtual_product_filename = Tools::getValue('virtual_product_filename', ProductDownload::getNewFilename());
+
+			$product->setDefaultAttribute(0);//reset cache_default_attribute
+			if (Tools::getValue('virtual_product_expiration_date') && !Validate::isDate(Tools::getValue('virtual_product_expiration_date')))
 				if (!Tools::getValue('virtual_product_expiration_date'))
 				{
 					$this->errors[] = Tools::displayError('The expiration-date attribute is required.');
 					return false;
 				}
-			}
 
 			// Trick's
 			if ($edit == 1)
@@ -2130,20 +2131,14 @@ class AdminProductsControllerCore extends AdminController
 
 			$is_shareable = Tools::getValue('virtual_product_is_shareable');
 			$virtual_product_name = Tools::getValue('virtual_product_name');
-			$virtual_product_filename = Tools::getValue('virtual_product_filename');
 			$virtual_product_nb_days = Tools::getValue('virtual_product_nb_days');
 			$virtual_product_nb_downloable = Tools::getValue('virtual_product_nb_downloable');
 			$virtual_product_expiration_date = Tools::getValue('virtual_product_expiration_date');
 
-			if ($virtual_product_filename)
-				$filename = $virtual_product_filename;
-			else
-				$filename = ProductDownload::getNewFilename();
-
 			$download = new ProductDownload((int)$id_product_download);
 			$download->id_product = (int)$product->id;
 			$download->display_filename = $virtual_product_name;
-			$download->filename = $filename;
+			$download->filename = $virtual_product_filename;
 			$download->date_add = date('Y-m-d H:i:s');
 			$download->date_expiration = $virtual_product_expiration_date ? $virtual_product_expiration_date.' 23:59:59' : '';
 			$download->nb_days_accessible = (int)$virtual_product_nb_days;
@@ -2222,9 +2217,6 @@ class AdminProductsControllerCore extends AdminController
 
 	public function initContent($token = null)
 	{
-		//Required for Features Textarea autosize
-		$this->addJS(_PS_JS_DIR_.'jquery/plugins/jquery.autosize.min.js');
-
 		if ($this->display == 'edit' || $this->display == 'add')
 		{
 			$this->fields_form = array();
@@ -2287,7 +2279,7 @@ class AdminProductsControllerCore extends AdminController
 			$this->tpl_list_vars['is_category_filter'] = (bool)$this->id_current_category;
 
 			// Generate category selection tree
-			$tree = new HelperTreeCategories('categories-tree', 'Filter by category');
+			$tree = new HelperTreeCategories('categories-tree', $this->l('Filter by category'));
 			$tree->setAttribute('is_category_filter', (bool)$this->id_current_category)
 				->setAttribute('base_url', preg_replace('#&id_category=[0-9]*#', '', self::$currentIndex).'&token='.$this->token)
 				->setSelectedCategories(array((int)$id_category));
@@ -2440,57 +2432,51 @@ class AdminProductsControllerCore extends AdminController
 	{
 		if (empty($this->display))
 			$this->page_header_toolbar_btn['new_product'] = array(
-					'href' => self::$currentIndex.'&amp;addproduct&amp;token='.$this->token,
-					'desc' => $this->l('Add new product'),
+					'href' => self::$currentIndex.'&addproduct&token='.$this->token,
+					'desc' => $this->l('Add new product', null, null, false),
 					'icon' => 'process-icon-new'
 				);
-		if ($this->display == 'edit' || $this->display == 'add')
+		if ($this->display == 'edit')
 		{
 			if (($product = $this->loadObject(true)))
 			{
-				// adding button for duplicate this product
-				if ($this->tabAccess['add'] && $this->display != 'add')
-					$this->page_header_toolbar_btn['duplicate'] = array(
-						'short' => 'Duplicate',
-						'href' => '#',
-						'desc' => $this->l('Duplicate'),
-						'confirm' => 1,
-						'js' => 'if (confirm(\''.$this->l('Also copy images').' ?\')) document.location = \''.$this->context->link->getAdminLink('AdminProducts').'&amp;id_product='.(int)$product->id.'&amp;duplicateproduct\'; else document.location = \''.$this->context->link->getAdminLink('AdminProducts').'&amp;id_product='.(int)$product->id.'&amp;duplicateproduct&amp;noimage=1\';'
-					);
-
 				// adding button for preview this product
 				if ($url_preview = $this->getPreviewUrl($product))
 					$this->page_header_toolbar_btn['preview'] = array(
-						'short' => 'Preview',
+						'short' => $this->l('Preview', null, null, false),
 						'href' => $url_preview,
-						'desc' => $this->l('Preview'),
+						'desc' => $this->l('Preview', null, null, false),
 						'target' => true,
 						'class' => 'previewUrl'
 					);
 
-				// adding button for preview this product statistics
-				if (file_exists(_PS_MODULE_DIR_.'statsproduct/statsproduct.php') && $this->display != 'add')
-					$this->page_header_toolbar_btn['stats'] = array(
-					'short' => 'Statistics',
-					'href' => $this->context->link->getAdminLink('AdminStats').'&amp;module=statsproduct&amp;id_product='.(int)$product->id,
-					'desc' => $this->l('Product sales'),
-				);
-				
-				// adding button for delete this product
-				if ($this->tabAccess['delete'] && $this->display != 'add')
-					$this->page_header_toolbar_btn['delete'] = array(
-						'short' => 'Delete',
-						'href' => $this->context->link->getAdminLink('AdminProducts').'&amp;id_product='.(int)$product->id.'&amp;deleteproduct',
-						'desc' => $this->l('Delete this product'),
+				// adding button for duplicate this product
+				if ($this->tabAccess['add'])
+					$this->page_header_toolbar_btn['duplicate'] = array(
+						'short' => $this->l('Duplicate', null, null, false),
+						'href' => '#',
+						'desc' => $this->l('Duplicate', null, null, false),
 						'confirm' => 1,
-						'js' => 'if (confirm(\''.$this->l('Delete product?').'\')){return true;}else{event.preventDefault();}'
+						'js' => 'if (confirm(\''.$this->l('Also copy images', null, true, false).' ?\')) document.location = \''.$this->context->link->getAdminLink('AdminProducts', null, true, false).'&id_product='.(int)$product->id.'&duplicateproduct\'; else document.location = \''.$this->context->link->getAdminLink('AdminProducts', null, true, false).'&id_product='.(int)$product->id.'&duplicateproduct&noimage=1\';'
 					);
 
-				$this->page_header_toolbar_btn['save-and-stay'] = array(
-					'short' => 'SaveAndStay',
-					'href' => '#',
-					'desc' => $this->l('Save and stay'),
-				);	
+				// adding button for preview this product statistics
+				if (file_exists(_PS_MODULE_DIR_.'statsproduct/statsproduct.php'))
+					$this->page_header_toolbar_btn['stats'] = array(
+					'short' => $this->l('Statistics', null, null, false),
+					'href' => $this->context->link->getAdminLink('AdminStats').'&module=statsproduct&id_product='.(int)$product->id,
+					'desc' => $this->l('Product sales', null, null, false),
+				);
+
+				// adding button for delete this product
+				if ($this->tabAccess['delete'])
+					$this->page_header_toolbar_btn['delete'] = array(
+						'short' => $this->l('Delete', null, null, false),
+						'href' => $this->context->link->getAdminLink('AdminProducts').'&id_product='.(int)$product->id.'&deleteproduct',
+						'desc' => $this->l('Delete this product', null, null, false),
+						'confirm' => 1,
+						'js' => 'if (confirm(\''.$this->l('Delete product?', null, true, false).'\')){return true;}else{event.preventDefault();}'
+					);
 			}
 		}
 		parent::initPageHeaderToolbar();
@@ -2560,7 +2546,7 @@ class AdminProductsControllerCore extends AdminController
 
 			if (Shop::getContext() != Shop::CONTEXT_ALL)
 			{
-				$this->context->smarty->assign('bullet_common_field', '<img src="themes/'.$this->context->employee->bo_theme.'/img/bullet_orange.png" style="vertical-align: bottom" />');
+				$this->context->smarty->assign('bullet_common_field', '<i class="icon-circle text-orange"></i>');
 				$this->context->smarty->assign('display_common_field', true);
 			}
 		}
@@ -2588,7 +2574,7 @@ class AdminProductsControllerCore extends AdminController
 		// autoload rich text editor (tiny mce)
 		$this->tpl_form_vars['tinymce'] = true;
 		$iso = $this->context->language->iso_code;
-		$this->tpl_form_vars['iso'] = file_exists(_PS_ROOT_DIR_.'/js/tiny_mce/langs/'.$iso.'.js') ? $iso : 'en';
+		$this->tpl_form_vars['iso'] = file_exists(_PS_CORE_DIR_.'/js/tiny_mce/langs/'.$iso.'.js') ? $iso : 'en';
 		$this->tpl_form_vars['ad'] = dirname($_SERVER['PHP_SELF']);
 
 		if (Validate::isLoadedObject(($this->object)))
@@ -3174,34 +3160,53 @@ class AdminProductsControllerCore extends AdminController
 			$product_download = new ProductDownload($id_product_download);
 		$product->{'productDownload'} = $product_download;
 
+		if ($product->productDownload->id && empty($product->productDownload->display_filename))
+		{
+			$this->errors[] = Tools::displayError('A file name is required in order to associate a file');
+			$this->tab_display = 'VirtualProduct';
+		}
+
 		// @todo handle is_virtual with the value of the product
 		$exists_file = realpath(_PS_DOWNLOAD_DIR_).'/'.$product->productDownload->filename;
-		$data->assign('product_downloaded', $product->productDownload->id && !empty($product->productDownload->display_filename));
+		$data->assign('product_downloaded', $product->productDownload->id);
 
 		if (!file_exists($exists_file)
 			&& !empty($product->productDownload->display_filename)
 			&& empty($product->cache_default_attribute))
-			$msg = sprintf(Tools::displayError('This file "%s" is missing'), $product->productDownload->display_filename);
+			$msg = sprintf(Tools::displayError('This file "%s" is missing'),
+				$product->productDownload->display_filename);
 		else
 			$msg = '';
 
-		$data->assign('download_product_file_missing', $msg);
-		$data->assign('download_dir_writable', ProductDownload::checkWritableDir());
+		$virtual_product_file_uploader = new HelperUploader('virtual_product_file_uploader');
+		$virtual_product_file_uploader->setMultiple(false)->setUrl(
+			Context::getContext()->link->getAdminLink('AdminProducts').'&ajax=1&id_product='.(int)$product->id
+			.'&action=AddVirtualProductFile')->setPostMaxSize(Tools::getOctets(ini_get('upload_max_filesize')));
 
-		$data->assign('up_filename', strval(Tools::getValue('virtual_product_filename')));
+		$data->assign(array(
+			'download_product_file_missing' => $msg,
+			'download_dir_writable' => ProductDownload::checkWritableDir(),
+			'up_filename' => strval(Tools::getValue('virtual_product_filename'))
+		));
 
 		$product->productDownload->nb_downloadable = ($product->productDownload->id > 0) ? $product->productDownload->nb_downloadable : htmlentities(Tools::getValue('virtual_product_nb_downloable'), ENT_COMPAT, 'UTF-8');
 		$product->productDownload->date_expiration = ($product->productDownload->id > 0) ? ((!empty($product->productDownload->date_expiration) && $product->productDownload->date_expiration != '0000-00-00 00:00:00') ? date('Y-m-d', strtotime($product->productDownload->date_expiration)) : '' ) : htmlentities(Tools::getValue('virtual_product_expiration_date'), ENT_COMPAT, 'UTF-8');
 		$product->productDownload->nb_days_accessible = ($product->productDownload->id > 0) ? $product->productDownload->nb_days_accessible : htmlentities(Tools::getValue('virtual_product_nb_days'), ENT_COMPAT, 'UTF-8');
 		$product->productDownload->is_shareable = $product->productDownload->id > 0 && $product->productDownload->is_shareable;
 
-		$data->assign('ad', dirname($_SERVER['PHP_SELF']));
-		$data->assign('product', $product);
-		$data->assign('token', $this->token);
-		$data->assign('currency', $currency);
+		$iso_tiny_mce = $this->context->language->iso_code;
+		$iso_tiny_mce = (file_exists(_PS_JS_DIR_.'tiny_mce/langs/'.$iso_tiny_mce.'.js') ? $iso_tiny_mce : 'en');
+		$data->assign(array(
+			'ad' => __PS_BASE_URI__.basename(_PS_ADMIN_DIR_),
+			'iso_tiny_mce' => $iso_tiny_mce,
+			'product' => $product,
+			'token' => $this->token,
+			'currency' => $currency,
+			'link' => $this->context->link,
+			'is_file' => $product->productDownload->checkFile(),
+			'virtual_product_file_uploader' => $virtual_product_file_uploader->render()
+		));
 		$data->assign($this->tpl_form_vars);
-		$data->assign('link', $this->context->link);
-		$data->assign('is_file', $product->productDownload->checkFile());
 		$this->tpl_form_vars['product'] = $product;
 		$this->tpl_form_vars['custom_form'] = $data->fetch();
 	}
@@ -3321,6 +3326,11 @@ class AdminProductsControllerCore extends AdminController
 		$content .= '
 				</tbody>
 			</table>
+			<div class="panel-footer">
+				<a href="'.$this->context->link->getAdminLink('AdminProducts').'" class="btn btn-default"><i class="process-icon-cancel"></i> '.$this->l('Cancel').'</a>
+				<button id="product_form_submit_btn"  type="submit" name="submitAddproduct" class="btn btn-default pull-right"><i class="process-icon-save"></i> '.$this->l('Save') .'</button>
+				<button id="product_form_submit_btn"  type="submit" name="submitAddproductAndStay" class="btn btn-default pull-right"><i class="process-icon-save"></i> '.$this->l('Save and stay') .'</button>
+			</div>
 		</div>';
 
 		$content .= '
@@ -3394,6 +3404,11 @@ class AdminProductsControllerCore extends AdminController
 				</p>
 			</div>
 		</div>
+		<div class="panel-footer">
+				<a href="'.$this->context->link->getAdminLink('AdminProducts').'" class="btn btn-default"><i class="process-icon-cancel"></i> '.$this->l('Cancel').'</a>
+				<button id="product_form_submit_btn"  type="submit" name="submitAddproduct" class="btn btn-default pull-right"><i class="process-icon-save"></i> '.$this->l('Save') .'</button>
+				<button id="product_form_submit_btn"  type="submit" name="submitAddproductAndStay" class="btn btn-default pull-right"><i class="process-icon-save"></i> '.$this->l('Save and stay') .'</button>
+			</div>
 		</div>
 		';
 		return $content;
@@ -3426,14 +3441,23 @@ class AdminProductsControllerCore extends AdminController
 
 		$template = $this->context->smarty->createTemplate('controllers/products/input_text_lang.tpl',
 			$this->context->smarty);
-		return '<div class="form-group"><div class="input-group">'
-			.'<span class="input-group-addon"><span class="checkbox"><input type="checkbox" name="require_'.$type.'_'.(int)($id_customization_field).'" id="require_'.$type.'_'.(int)($id_customization_field).'" value="1" '.($required ? 'checked="checked"' : '').'/><label for="require_'.$type.'_'.(int)($id_customization_field).'"> '.$this->l('Required').'</label></span></span>'
+		return '<div class="form-group">'
+			.'<div class="col-lg-6">'
 			.$template->assign(array(
 				'languages' => $languages,
 				'input_name'  => 'label_'.$type.'_'.(int)($id_customization_field),
 				'input_value' => $input_value
 			))->fetch()
-			.'</div></div>';
+			.'</div>'
+			.'<div class="col-lg-6">'
+			.'<div class="checkbox">'
+			.'<label for="require_'.$type.'_'.(int)($id_customization_field).'">'
+			.'<input type="checkbox" name="require_'.$type.'_'.(int)($id_customization_field).'" id="require_'.$type.'_'.(int)($id_customization_field).'" value="1" '.($required ? 'checked="checked"' : '').'/>'
+			.$this->l('Required')
+			.'</label>'
+			.'</div>'
+			.'</div>'
+			.'</div>';
 	}
 
 	protected function _displayLabelFields(&$obj, &$labels, $languages, $default_language, $type)
@@ -3511,9 +3535,8 @@ class AdminProductsControllerCore extends AdminController
 				$data->assign(array(
 					'obj' => $obj,
 					'table' => $this->table,
-					'ad' => dirname($_SERVER['PHP_SELF']),
+					'ad' => __PS_BASE_URI__.basename(_PS_ADMIN_DIR_),
 					'iso_tiny_mce' => $iso_tiny_mce,
-					'autosize_js' => _PS_JS_DIR_.'jquery/plugins/jquery.autosize.min.js',
 					'languages' => $this->_languages,
 					'id_lang' => $this->context->language->id,
 					'attach1' => Attachment::getAttachments($this->context->language->id, $obj->id, true),
@@ -3698,6 +3721,9 @@ class AdminProductsControllerCore extends AdminController
 			else
 				$image->cover = 0;
 
+			if (($validate = $image->validateFieldsLang(false, true)) !== true)
+				$file['error'] = Tools::displayError($validate);
+
 			if (isset($file['error']) && (!is_numeric($file['error']) || $file['error'] != 0))
 				continue;
 
@@ -3711,9 +3737,28 @@ class AdminProductsControllerCore extends AdminController
 					continue;
 				}
 
-				if (!ImageManager::resize($file['save_path'], $new_path.'.'.$image->image_format))
+				$error = 0;
+
+				if (!ImageManager::resize($file['save_path'], $new_path.'.'.$image->image_format, null, null, 'jpg', false, $error))
 				{
-					$file['error'] = Tools::displayError('An error occurred while copying image.');
+					switch ($error)
+					{
+						case ImageManager::ERROR_FILE_NOT_EXIST :
+							$file['error'] = Tools::displayError('An error occurred while copying image, the file does not exist anymore.');
+							break;
+
+						case ImageManager::ERROR_FILE_WIDTH :
+							$file['error'] = Tools::displayError('An error occurred while copying image, the file width is 0px.');
+							break;
+
+						case ImageManager::ERROR_MEMORY_LIMIT :
+							$file['error'] = Tools::displayError('An error occurred while copying image, check your memory limit.');
+							break;
+
+						default:
+							$file['error'] = Tools::displayError('An error occurred while copying image.');
+							break;
+					}
 					continue;
 				}
 				else

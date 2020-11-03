@@ -17,10 +17,169 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author PrestaShop SA <contact@prestashop.com>
-*  @copyright  2007-2013 PrestaShop SA
+*  @copyright  2007-2014 PrestaShop SA
 *  @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
+
+/**
+ * Handles loading of product tabs
+ */
+function ProductTabsManager(){
+	var self = this;
+	this.product_tabs = [];
+	this.current_request;
+	this.stack_error = [];
+	this.page_reloading = false;
+
+	this.setTabs = function(tabs){
+		this.product_tabs = tabs;
+	}
+
+	/**
+	 * Schedule execution of onReady() function for each tab and bind events
+	 */
+	this.init = function(){
+		for (var tab_name in this.product_tabs)
+		{
+			if (this.product_tabs[tab_name].onReady !== undefined)
+				this.onLoad(tab_name, this.product_tabs[tab_name].onReady);
+		}
+
+		$('.shopList.chzn-done').bind('change', function(){
+			if (self.current_request)
+			{
+				self.page_reloading = true;
+				self.current_request.abort();
+			}
+		});
+
+		$(window).bind('beforeunload', function() {
+			self.page_reloading = true;
+		});
+	}
+
+	/**
+	 * Execute a callback function when a specific tab has finished loading or right now if the tab has already loaded
+	 *
+	 * @param tab_name name of the tab that is checked for loading
+	 * @param callback_function function to call
+	 */
+	this.onLoad = function (tab_name, callback)
+	{
+		var container = $('#product-tab-content-' + tab_name);
+		// Some containers are not loaded depending on the shop configuration
+		if (container.length === 0)
+			return;
+
+		// onReady() is always called after the dom has been created for the tab (similar to $(document).ready())
+		if (container.hasClass('not-loaded'))
+			container.bind('loaded', callback);
+		else
+			callback();
+	}
+
+	/**
+	 * Get a single tab or recursively get tabs in stack then display them
+	 *
+	 * @param string tab_name name of the tab
+	 * @param boolean selected is the tab selected
+	 */
+	this.display = function (tab_name, selected)
+	{
+		var tab_selector = $("#product-tab-content-"+tab_name);
+
+		// Is the tab already being loaded?
+		if (!tab_selector.hasClass('not-loaded') || tab_selector.hasClass('loading'))
+			return;
+
+		// Mark the tab as being currently loading
+		tab_selector.addClass('loading');
+
+		if (selected)
+			$('#product-tab-content-wait').show();
+
+		// send $_POST array with the request to be able to retrieve posted data if there was an error while saving product
+		var data;
+		if (save_error)
+		{
+			data = post_data;
+			// set key_tab so that the ajax call returns the display for the current tab
+			data.key_tab = tab_name;
+		}
+
+		return $.ajax({
+			url : $('#link-'+tab_name).attr("href")+"&ajax=1" + '&rand=' + new Date().getTime(),
+			async : true,
+			cache: false, // cache needs to be set to false or IE will cache the page with outdated product values
+			type: 'POST',
+			headers: { "cache-control": "no-cache" },
+			data: data,
+			success : function(data)
+			{
+				tab_selector.html(data).find('.dropdown-toggle').dropdown();
+				tab_selector.removeClass('not-loaded');
+
+				if (selected)
+				{
+					$("#link-"+tab_name).addClass('selected');
+					tab_selector.show();
+				}
+				tab_selector.trigger('loaded');
+			},
+			complete : function(data)
+			{
+				tab_selector.removeClass('loading');
+				if (selected)
+				{
+					$('#product-tab-content-wait').hide();
+					tab_selector.trigger('displayed');
+				}
+			},
+			beforeSend : function(data)
+			{
+				// don't display the loading notification bar
+				if (typeof(ajax_running_timeout) !== 'undefined')
+					clearTimeout(ajax_running_timeout);
+			}
+		});
+	}
+
+	/**
+	 * Send an ajax call for each tab in the stack, binding each call to the "complete" event of the previous call
+	 *
+	 * @param array stack contains tab names as strings
+	 */
+	this.displayBulk = function(stack){
+		this.current_request = this.display(stack[0], false);
+
+		if (this.current_request !== undefined)
+		{
+			this.current_request.complete(function(request, status) {
+				if (status === 'abort' || status === 'error')
+					self.stack_error.push(stack.shift());
+				else
+					stack.shift()
+				if (stack.length !== 0 && status !== 'abort')
+				{
+					self.displayBulk(stack);
+				}
+				else if (self.stack_error.length !== 0 && !self.page_reloading)
+				{
+					jConfirm(reload_tab_description, reload_tab_title, function(confirm) {
+						if (confirm === true)
+						{
+							self.displayBulk(self.stack_error.slice(0));
+							self.stack_error = [];
+						}
+						else
+							return false;
+					});
+				}
+			});
+		}
+	}
+}
 
 // array of product tab objects containing methods and dom bindings
 // The ProductTabsManager instance will make sure the onReady() methods of each tabs are executed once the tab has loaded
@@ -183,9 +342,9 @@ product_tabs['Combinations'] = new function(){
 	this.removeButtonCombination = function(item)
 	{		
 		$('#add_new_combination').show();
-		$('.process-icon-newCombination').removeClass('toolbar-new');
-		$('.process-icon-newCombination').addClass('toolbar-cancel');
-		$('#desc-product-newCombination div').html(msg_cancel_combination);
+		$('#desc-product-newCombination').children('i').first().removeClass('process-icon-new');
+		$('#desc-product-newCombination').children('i').first().addClass('process-icon-minus');
+		$('#desc-product-newCombination').children('span').first().html(msg_cancel_combination);
 		$('id_product_attribute').val(0);
 		self.init_elems();
 	};
@@ -193,14 +352,16 @@ product_tabs['Combinations'] = new function(){
 	this.addButtonCombination = function(item)
 	{
 		$('#add_new_combination').hide();
-		$('.process-icon-newCombination').removeClass('toolbar-cancel');
-		$('.process-icon-newCombination').addClass('toolbar-new');
-		$('#desc-product-newCombination div').html(msg_new_combination);
+		$('#desc-product-newCombination').children('i').first().removeClass('process-icon-minus');
+		$('#desc-product-newCombination').children('i').first().addClass('process-icon-new');
+		$('#desc-product-newCombination').children('span').first().html(msg_new_combination);
 	};
 
 	this.bindToggleAddCombination = function (){
-		$('#desc-product-newCombination').click(function() {
-			if ($('.process-icon-newCombination').hasClass('toolbar-new'))
+		$('#desc-product-newCombination').click(function(e) {
+			e.preventDefault();
+
+			if ($(this).children('i').first().hasClass('process-icon-new'))
 				self.removeButtonCombination('add');
 			else
 			{
@@ -381,8 +542,8 @@ product_tabs['Combinations'] = new function(){
  */
 function disableSave()
 {
-		$('#desc-product-save').hide();
-		$('#desc-product-save-and-stay').hide();
+	//$('button[name="submitAddproduct"]').hide();
+	//$('button[name="submitAddproductAndStay"]').hide();
 }
 
 /**
@@ -393,8 +554,8 @@ function disableSave()
  */
 function enableSave()
 {
-		$('#desc-product-save').show();
-		$('#desc-product-save-and-stay').show();
+	$('button[name="submitAddproduct"]').show();
+	$('button[name="submitAddproductAndStay"]').show();
 }
 
 function handleSaveButtons(e)
@@ -448,23 +609,15 @@ function handleSaveButtons(e)
 	}
 }
 
-function handleSaveButtonsForSimple()
-{
-	return "";
-}
-
-function handleSaveButtonsForVirtual()
-{
-	return "";
-}
+function handleSaveButtonsForSimple(){return '';}
+function handleSaveButtonsForVirtual(){return '';}
 
 function handleSaveButtonsForPack()
 {
 	// if no item left in the pack, disable save buttons
 	if ($("#inputPackItems").val() == "")
 		return empty_pack_msg;
-	else
-		return "";
+	return '';
 }
 
 product_tabs['Seo'] = new function(){
@@ -714,7 +867,7 @@ product_tabs['Associations'] = new function(){
 product_tabs['Attachments'] = new function(){
 	var self = this;
 	this.bindAttachmentEvents = function (){
-		$("#addAttachment").live('click', function() {
+		$("#addAttachment").on('click', function() {
 			$("#selectAttachment2 option:selected").each(function(){
 				var val = $('#arrayAttachments').val();
 				var tab = val.split(',');
@@ -725,7 +878,7 @@ product_tabs['Attachments'] = new function(){
 			});
 			return !$("#selectAttachment2 option:selected").remove().appendTo("#selectAttachment1");
 		});
-		$("#removeAttachment").live('click', function() {
+		$("#removeAttachment").on('click', function() {
 			$("#selectAttachment1 option:selected").each(function(){
 				var val = $('#arrayAttachments').val();
 				var tab = val.split(',');
@@ -755,20 +908,30 @@ product_tabs['Shipping'] = new function(){
 	var self = this;
 
 	this.bindCarriersEvents = function (){
-		$("#addCarrier").live('click', function() {
+		$("#addCarrier").on('click', function() {
 			$('#availableCarriers option:selected').each( function() {
 	                $('#selectedCarriers').append("<option value='"+$(this).val()+"'>"+$(this).text()+"</option>");
 	            $(this).remove();
 	        });
 	        $('#selectedCarriers option').prop('selected', true);
+	       
+	       	if ($('#selectedCarriers').find("option").length == 0)
+	       		$('#no-selected-carries-alert').show();
+	       	else
+	       		$('#no-selected-carries-alert').hide();
 		});
 
-		$("#removeCarrier").live('click', function() {
+		$("#removeCarrier").on('click', function() {
 			$('#selectedCarriers option:selected').each( function() {
 	            $('#availableCarriers').append("<option value='"+$(this).val()+"'>"+$(this).text()+"</option>");
 	            $(this).remove();
 	        });
 			$('#selectedCarriers option').prop('selected', true);
+
+			if ($('#selectedCarriers').find("option").length == 0)
+	       		$('#no-selected-carries-alert').show();
+	       	else
+	       		$('#no-selected-carries-alert').hide();
 		});
 	};
 
@@ -870,8 +1033,15 @@ product_tabs['Informations'] = new function(){
 			$('#simple_product').attr('checked', true);
 		}
 
-		$('input[name="type_product"]').live('click', function()
+		$('input[name="type_product"]').on('click', function(e)
 		{
+			if ($(this).attr('id') == 'virtual_product' && $('#name_' + id_lang_default).val() == '')
+			{
+				e.preventDefault();
+				alert(missing_product_name);
+				$('#name_' + id_lang_default).focus();
+				return false;
+			}
 			// Reset settings
 			$('a[id*="Pack"]').hide();
 			$('a[id*="VirtualProduct"]').hide();
@@ -986,7 +1156,7 @@ product_tabs['Pack'] = new function(){
 			$('#ppackdiv').show();
 		}
 
-		$('.delPackItem').live('click', function(){
+		$('.delPackItem').on('click', function(){
 			delPackItem($(this).attr('name'));
 		})
 
@@ -1141,13 +1311,21 @@ product_tabs['Quantities'] = new function(){
 		data.ajax = 1;
 		data.controller = "AdminProducts";
 		data.action = "productQuantity";
-		//showNoticeMessage(quantities_ajax_waiting);
+
 		$.ajax({
 			type: "POST",
 			url: "ajax-tab.php",
 			data: data,
 			dataType: 'json',
 			async : true,
+			beforeSend: function(xhr, settings)
+			{
+				$('.product_quantities_button').attr('disabled', 'disabled');
+			},
+			complete: function(xhr, status)
+			{
+				$('.product_quantities_button').removeAttr('disabled');
+			},
 			success: function(msg)
 			{
 				if (msg.error)
@@ -1159,7 +1337,7 @@ product_tabs['Quantities'] = new function(){
 			},
 			error: function(msg)
 			{
-				showErrorMessage(msg.error);
+				showErrorMessage(msg.error);				
 			}
 		});
 	};
@@ -1274,7 +1452,7 @@ product_tabs['Suppliers'] = new function(){
 	};
 
 	this.onReady = function(){
-		$('.supplierCheckBox').live('click', function() {
+		$('.supplierCheckBox').on('click', function() {
 			var check = $(this);
 			var checkbox = $('#default_supplier_'+check.val());
 
@@ -1317,8 +1495,8 @@ product_tabs['VirtualProduct'] = new function(){
 		else
 			$('#is_virtual_file_product').hide();
 
-		$('input[name=is_virtual_file]').live('change', function(e) {
-			if($(this).prop('checked'))
+		$('input[name=is_virtual_file]').on('change', function(e) {
+			if ($(this).val() == 1)
 				$('#is_virtual_file_product').show();
 			else
 				$('#is_virtual_file_product').hide();
@@ -1601,13 +1779,13 @@ $(document).ready(function() {
 	tabs_manager.init();
 	updateCurrentText();
 	$("#name_" + id_lang_default + ",#link_rewrite_" + id_lang_default)
-		.live("change", function(e)
+		.on("change", function(e)
 		{
 			$(this).trigger("handleSaveButtons");
 		});
 	// bind that custom event
 	$("#name_" + id_lang_default + ",#link_rewrite_" + id_lang_default)
-		.live("handleSaveButtons", function(e)
+		.on("handleSaveButtons", function(e)
 		{
 			handleSaveButtons()
 		});

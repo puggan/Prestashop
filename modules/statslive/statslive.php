@@ -1,6 +1,6 @@
 <?php
 /*
-* 2007-2013 PrestaShop
+* 2007-2014 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -19,7 +19,7 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author PrestaShop SA <contact@prestashop.com>
-*  @copyright  2007-2013 PrestaShop SA
+*  @copyright  2007-2014 PrestaShop SA
 *  @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
@@ -42,7 +42,7 @@ class StatsLive extends Module
 		parent::__construct();
 
 		$this->displayName = $this->l('Visitors online');
-		$this->description = $this->l('Display the list of customers and visitors currently online.');
+		$this->description = $this->l('Adds a list of customers and visitors who are currently online to the Stats dashboard.');
 	}
 
 	public function install()
@@ -59,7 +59,7 @@ class StatsLive extends Module
 	{
 		if ($maintenance_ips = Configuration::get('PS_MAINTENANCE_IP'))
 			$maintenance_ips = implode(',', array_map('ip2long', array_map('trim', explode(',', $maintenance_ips))));
-		
+
 		if (Configuration::get('PS_STATSDATA_CUSTOMER_PAGESVIEWS'))
 		{
 			$sql = 'SELECT u.id_customer, u.firstname, u.lastname, pt.name as page
@@ -89,6 +89,7 @@ class StatsLive extends Module
 					ORDER BY u.firstname, u.lastname';
 		}
 		$results = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($sql);
+
 		return array($results, Db::getInstance()->NumRows());
 	}
 
@@ -100,7 +101,7 @@ class StatsLive extends Module
 	private function getVisitorsOnline()
 	{
 		if ($maintenance_ips = Configuration::get('PS_MAINTENANCE_IP'))
-			$maintenance_ips = implode(',', array_map('ip2long', array_map('trim', explode(',', $maintenance_ips))));
+			$maintenance_ips = implode(',', array_map('ip2long', array_filter(array_map('trim', explode(',', $maintenance_ips)))));
 
 		if (Configuration::get('PS_STATSDATA_CUSTOMER_PAGESVIEWS'))
 		{
@@ -131,13 +132,14 @@ class StatsLive extends Module
 		}
 
 		$results = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($sql);
+
 		return array($results, Db::getInstance()->NumRows());
 	}
 
 	public function hookAdminStatsModules($params)
 	{
-		list($customers, $totalCustomers) = $this->getCustomersOnline();
-		list($visitors, $totalVisitors) = $this->getVisitorsOnline();
+		list($customers, $total_customers) = $this->getCustomersOnline();
+		list($visitors, $total_visitors) = $this->getVisitorsOnline();
 		$irow = 0;
 
 		$this->html .= '<script type="text/javascript" language="javascript">
@@ -146,13 +148,13 @@ class StatsLive extends Module
 		if (!Configuration::get('PS_STATSDATA_CUSTOMER_PAGESVIEWS'))
 			$this->html .= '
 				<div class="alert alert-info">'.
-					$this->l('You must activate the option "pages viewed for each customer" in the "Stats data-mining" module in order to see the pages viewed by your customers.').'
+				$this->l('You must activate the "Save page views for each customer" option in the "Data mining for statstics" (StatsData) module in order to see the pages viewed by your customers.').'
 				</div>';
 		$this->html .= '
 			<h4> '.$this->l('Customers online').'</h4>';
-		if ($totalCustomers)
+		if ($total_customers)
 		{
-			$this->html .= $this->l('Total:').' '.(int)$totalCustomers.'
+			$this->html .= $this->l('Total:').' '.(int)$total_customers.'
 			<table class="table">
 				<thead>
 					<tr>
@@ -163,8 +165,8 @@ class StatsLive extends Module
 					</tr>
 				</thead>
 				<tbody>';
-				foreach ($customers as $customer)
-					$this->html .= '
+			foreach ($customers as $customer)
+				$this->html .= '
 					<tr'.($irow++ % 2 ? ' class="alt_row"' : '').'>
 						<td class="center">'.$customer['id_customer'].'</td>
 						<td class="center">'.$customer['firstname'].' '.$customer['lastname'].'</td>
@@ -176,16 +178,16 @@ class StatsLive extends Module
 							</a>
 						</td>
 					</tr>';
-				$this->html .= '
+			$this->html .= '
 				</tbody>
 			</table>';
 		}
 		else
 			$this->html .= '<p class="alert alert-warning">'.$this->l('Currently, there are no customers online.').'</p>
 			<h4> '.$this->l('Visitors online').'</h4>';
-		if ($totalVisitors)
+		if ($total_visitors)
 		{
-			$this->html .= $this->l('Total:').' '.(int)($totalVisitors).'
+			$this->html .= $this->l('Total:').' '.(int)$total_visitors.'
 			<div>
 				<table class="table">
 					<thead>
@@ -198,15 +200,15 @@ class StatsLive extends Module
 						</tr>
 					</thead>
 					<tbody>';
-				foreach ($visitors as $visitor)
-					$this->html .= '<tr'.($irow++ % 2 ? ' class="alt_row"' : '').'>
+			foreach ($visitors as $visitor)
+				$this->html .= '<tr'.($irow++ % 2 ? ' class="alt_row"' : '').'>
 						<td class="center">'.$visitor['id_guest'].'</td>
 						<td class="center">'.long2ip($visitor['ip_address']).'</td>
-						<td class="center">'.substr($visitor['date_add'], 11).'</td>
+						<td class="center">'.Tools::substr($visitor['date_add'], 11).'</td>
 						<td class="center">'.(isset($visitor['page']) ? $visitor['page'] : $this->l('Undefined')).'</td>
 						<td class="center">'.(empty($visitor['http_referer']) ? $this->l('None') : parse_url($visitor['http_referer'], PHP_URL_HOST)).'</td>
 					</tr>';
-				$this->html .= '
+			$this->html .= '
 					</tbody>
 				</table>
 			</div>';
@@ -214,7 +216,7 @@ class StatsLive extends Module
 		else
 			$this->html .= '<p class="alert alert-warning">'.$this->l('There are no visitors online.').'</p>
 			<h4>'.$this->l('Notice').'</h4>
-			<p class="alert alert-info">'.$this->l('Maintenance IP(s) are excluded from the online visitors.').'</p>
+			<p class="alert alert-info">'.$this->l('Maintenance IPs are excluded from the online visitors.').'</p>
 			<a class="btn btn-default" href="index.php?controller=AdminMaintenance&token='.Tools::getAdminTokenLite('AdminMaintenance').'">
 				<i class="icon-share-alt"></i> '.$this->l('Add or remove an IP address.').'
 			</a>
@@ -223,5 +225,3 @@ class StatsLive extends Module
 		return $this->html;
 	}
 }
-
-

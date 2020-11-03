@@ -1,6 +1,6 @@
 <?php
 /*
-* 2007-2013 PrestaShop
+* 2007-2014 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -19,7 +19,7 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author PrestaShop SA <contact@prestashop.com>
-*  @copyright  2007-2013 PrestaShop SA
+*  @copyright  2007-2014 PrestaShop SA
 *  @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
@@ -354,7 +354,7 @@ class FrontControllerCore extends Controller
 		));
 
 		// Add the tpl files directory for mobile
-		if ($this->context->getMobileDevice() != false)
+		if ($this->useMobileTheme())
 			$this->context->smarty->assign(array(
 				'tpl_mobile_uri' => _PS_THEME_MOBILE_DIR_,
 			));
@@ -383,11 +383,11 @@ class FrontControllerCore extends Controller
 		);
 
 		// Add the images directory for mobile
-		if ($this->context->getMobileDevice() != false)
+		if ($this->useMobileTheme())
 			$assign_array['img_mobile_dir'] = _THEME_MOBILE_IMG_DIR_;
 
 		// Add the CSS directory for mobile
-		if ($this->context->getMobileDevice() != false)
+		if ($this->useMobileTheme())
 			$assign_array['css_mobile_dir'] = _THEME_MOBILE_CSS_DIR_;
 
 		foreach ($assign_array as $assign_key => $assign_value)
@@ -429,12 +429,10 @@ class FrontControllerCore extends Controller
 		$this->process();
 		if (!isset($this->context->cart))
 			$this->context->cart = new Cart();
-		if ($this->context->getMobileDevice() == false)
+		if (!$this->useMobileTheme())
 		{
 			// These hooks aren't used for the mobile theme.
 			// Needed hooks are called in the tpl files.
-			if (!isset($this->context->cart))
-				$this->context->cart = new Cart();
 			$this->context->smarty->assign(array(
 				'HOOK_HEADER' => Hook::exec('displayHeader'),
 				'HOOK_TOP' => Hook::exec('displayTop'),
@@ -443,11 +441,7 @@ class FrontControllerCore extends Controller
 			));
 		}
 		else
-		{
-			$this->context->smarty->assign(array(
-				'HOOK_MOBILE_HEADER' => Hook::exec('displayMobileHeader'),
-			));
-		}
+			$this->context->smarty->assign('HOOK_MOBILE_HEADER', Hook::exec('displayMobileHeader'));
 	}
 
 	/**
@@ -455,8 +449,8 @@ class FrontControllerCore extends Controller
 	 */
 	public function displayHeader($display = true)
 	{
-		// This method will be removed in 1.6
 		Tools::displayAsDeprecated();
+
 		$this->initHeader();
 		$hook_header = Hook::exec('displayHeader');
 		if ((Configuration::get('PS_CSS_THEME_CACHE') || Configuration::get('PS_JS_THEME_CACHE')) && is_writable(_PS_THEME_DIR_.'cache'))
@@ -478,8 +472,10 @@ class FrontControllerCore extends Controller
 			'HOOK_FOOTER' => Hook::exec('displayFooter')
 		));
 
-		$this->context->smarty->assign('css_files', $this->css_files);
-		$this->context->smarty->assign('js_files', array_unique($this->js_files));
+		$this->context->smarty->assign(array(
+			'css_files' => $this->css_files,
+			'js_files' => array() // assign moved to smartyOutputContent since 1.6
+		));
 
 		$this->display_header = $display;
 		$this->smartyOutputContent(_PS_THEME_DIR_.'header.tpl');
@@ -491,7 +487,6 @@ class FrontControllerCore extends Controller
 	 */
 	public function displayFooter($display = true)
 	{
-		// This method will be removed in 1.6
 		Tools::displayAsDeprecated();
 		$this->smartyOutputContent(_PS_THEME_DIR_.'footer.tpl');
 	}
@@ -511,7 +506,7 @@ class FrontControllerCore extends Controller
 	}
 
 	/**
-	 * 1.4 retrocompatibility - will be removed in 1.6
+	 * 1.4 retrocompatibility
 	 */
 	public function displayContent()
 	{
@@ -520,6 +515,16 @@ class FrontControllerCore extends Controller
 	public function display()
 	{
 		Tools::safePostVars();
+		// Automatically add js files from js/autoload directory in the template
+		if (@filemtime($this->getThemeDir().'js/autoload/'))
+			foreach (scandir($this->getThemeDir().'js/autoload/', 0) as $file)
+				if (preg_match('/^[^.].*\.js$/', $file))
+					$this->addJS($this->getThemeDir().'js/autoload/'.$file);
+		// Automatically add css files from css/autoload directory in the template
+		if (@filemtime($this->getThemeDir().'css/autoload/'))
+			foreach (scandir($this->getThemeDir().'css/autoload', 0) as $file)
+				if (preg_match('/^[^.].*\.css$/', $file))
+					$this->addCSS($this->getThemeDir().'css/autoload/'.$file);
 
 		// assign css_files and js_files at the very last time
 		if ((Configuration::get('PS_CSS_THEME_CACHE') || Configuration::get('PS_JS_THEME_CACHE')) && is_writable(_PS_THEME_DIR_.'cache'))
@@ -528,21 +533,21 @@ class FrontControllerCore extends Controller
 			if (Configuration::get('PS_CSS_THEME_CACHE'))
 				$this->css_files = Media::cccCSS($this->css_files);
 			//JS compressor management
-			if (Configuration::get('PS_JS_THEME_CACHE') && !$this->context->getMobileDevice())
+			if (Configuration::get('PS_JS_THEME_CACHE') && !$this->useMobileTheme())
 				$this->js_files = Media::cccJs($this->js_files);
 		}
 
-		$this->context->smarty->assign('css_files', $this->css_files);
-		$this->context->smarty->assign('js_files', array_unique($this->js_files));
 		$this->context->smarty->assign(array(
+			'css_files' => $this->css_files,
+			'js_files' => array(), // assign moved to smartyOutputContent since 1.6
 			'errors' => $this->errors,
 			'display_header' => $this->display_header,
 			'display_footer' => $this->display_footer,
 		));
 		
 		$live_edit_content = '';
-		// Don't use live edit if on mobile device
-		if (!$this->context->getMobileDevice() && $this->checkLiveEditAccess())
+		// Don't use live edit if on mobile theme
+		if (!$this->useMobileTheme() && $this->checkLiveEditAccess())
 			$live_edit_content = $this->getLiveEditFooter();
 		
 		$layout = $this->getLayout();
@@ -562,7 +567,6 @@ class FrontControllerCore extends Controller
 		}
 		else
 		{
-			// BEGIN - 1.4 retrocompatibility - will be removed in 1.6
 			Tools::displayAsDeprecated('layout.tpl is missing in your theme directory');
 			if ($this->display_header)
 				$this->smartyOutputContent(_PS_THEME_DIR_.'header.tpl');
@@ -574,9 +578,7 @@ class FrontControllerCore extends Controller
 
 			if ($this->display_footer)
 				$this->smartyOutputContent(_PS_THEME_DIR_.'footer.tpl');
-			// END - 1.4 retrocompatibility - will be removed in 1.6
 		}
-				
 		return true;
 	}
 
@@ -595,8 +597,7 @@ class FrontControllerCore extends Controller
 					'HOOK_MAINTENANCE' => Hook::exec('displayMaintenance', array()),
 				));
 
-				$template_dir = ($this->context->getMobileDevice() == true ? _PS_THEME_MOBILE_DIR_ : _PS_THEME_DIR_);
-				$this->smartyOutputContent($template_dir.'maintenance.tpl');
+				$this->smartyOutputContent($this->getTemplatePath($this->getThemeDir().'maintenance.tpl'));
 				exit;
 			}
 		}
@@ -607,7 +608,7 @@ class FrontControllerCore extends Controller
 	{
 		header('HTTP/1.1 503 temporarily overloaded');
 		$this->context->smarty->assign('favicon_url', _PS_IMG_.Configuration::get('PS_FAVICON'));
-		$this->smartyOutputContent(_PS_THEME_DIR_.'restricted-country.tpl');
+		$this->smartyOutputContent($this->getTemplatePath($this->getThemeDir().'restricted-country.tpl'));
 		exit;
 	}
 
@@ -647,7 +648,8 @@ class FrontControllerCore extends Controller
 			if (defined('_PS_MODE_DEV_') && _PS_MODE_DEV_ && $_SERVER['REQUEST_URI'] != __PS_BASE_URI__)
 				die('[Debug] This page has moved<br />Please use the following URL instead: <a href="'.$final_url.'">'.$final_url.'</a>');
 
-			header('HTTP/1.0 301 Moved');
+			$redirect_type = Configuration::get('PS_CANONICAL_REDIRECT') == 2 ? '301' : '302';
+			header('HTTP/1.0 '.$redirect_type.' Moved');
 			header('Cache-Control: no-cache');
 			Tools::redirectLink($final_url);
 		}
@@ -715,37 +717,45 @@ class FrontControllerCore extends Controller
 
 	/**
 	 * Specific medias for mobile device.
+	 * if autoload directory is present in the mobile theme, these files will not be loaded
 	 */
 	public function setMobileMedia()
 	{
 		$this->addjquery();
-		$this->addJS(_THEME_MOBILE_JS_DIR_.'jquery.mobile-1.3.0.min.js');
-		$this->addJS(_THEME_MOBILE_JS_DIR_.'jqm-docs.js');
-		$this->addJS(_PS_JS_DIR_.'tools.js');
-		$this->addJS(_THEME_MOBILE_JS_DIR_.'global.js');
-		$this->addjqueryPlugin('fancybox');
 
-		$this->addCSS(_THEME_MOBILE_CSS_DIR_.'jquery.mobile-1.3.0.min.css', 'all');
-		$this->addCSS(_THEME_MOBILE_CSS_DIR_.'jqm-docs.css', 'all');
-		$this->addCSS(_THEME_MOBILE_CSS_DIR_.'global.css', 'all');
+		if (!file_exists($this->getThemeDir().'js/autoload/'))
+		{
+			$this->addJS(_THEME_MOBILE_JS_DIR_.'jquery.mobile-1.3.0.min.js');
+			$this->addJS(_THEME_MOBILE_JS_DIR_.'jqm-docs.js');
+			$this->addJS(_PS_JS_DIR_.'tools.js');
+			$this->addJS(_THEME_MOBILE_JS_DIR_.'global.js');
+			$this->addjqueryPlugin('fancybox');
+		}
+
+		if (!file_exists($this->getThemeDir().'js/autoload/'))
+		{
+			$this->addCSS(_THEME_MOBILE_CSS_DIR_.'jquery.mobile-1.3.0.min.css', 'all');
+			$this->addCSS(_THEME_MOBILE_CSS_DIR_.'jqm-docs.css', 'all');
+			$this->addCSS(_THEME_MOBILE_CSS_DIR_.'global.css', 'all');
+		}
 	}
 
 	public function setMedia()
 	{
 		// if website is accessed by mobile device
 		// @see FrontControllerCore::setMobileMedia()
-		if ($this->context->getMobileDevice() != false)
+		if ($this->useMobileTheme())
 		{
 			$this->setMobileMedia();
 			return true;
 		}
 
-		if (Tools::file_exists_cache(_PS_ROOT_DIR_.Tools::str_replace_once(__PS_BASE_URI__, DIRECTORY_SEPARATOR, _THEME_CSS_DIR_.'grid_prestashop.css')))
-			$this->addCSS(_THEME_CSS_DIR_.'grid_prestashop.css', 'all');
+		$this->addCSS(_THEME_CSS_DIR_.'grid_prestashop.css', 'all');  // retro compat themes 1.5
 		$this->addCSS(_THEME_CSS_DIR_.'global.css', 'all');
 		$this->addjquery();
 		$this->addjqueryPlugin('easing');
 		$this->addJS(_PS_JS_DIR_.'tools.js');
+		$this->addJS(_THEME_JS_DIR_.'global.js');
 
 		if (Tools::isSubmit('live_edit') && Tools::getValue('ad') && Tools::getAdminToken('AdminModulesPositions'.(int)Tab::getIdFromClassName('AdminModulesPositions').(int)Tools::getValue('id_employee')))
 		{
@@ -761,8 +771,9 @@ class FrontControllerCore extends Controller
 			$this->addjqueryPlugin('fancybox');
 			$this->addJS(_THEME_JS_DIR_.'quick-view.js');
 		}
+
 		if (Configuration::get('PS_COMPARATOR_MAX_ITEM') > 0)
-				$this->addJS(_THEME_JS_DIR_.'products-comparison.js');
+			$this->addJS(_THEME_JS_DIR_.'products-comparison.js');
 
 		// Execute Hook FrontController SetMedia
 		Hook::exec('actionFrontControllerSetMedia', array());
@@ -804,7 +815,7 @@ class FrontControllerCore extends Controller
 			return false;
 		if (Tools::getValue('liveToken') != Tools::getAdminToken('AdminModulesPositions'.(int)Tab::getIdFromClassName('AdminModulesPositions').(int)Tools::getValue('id_employee')))
 			return false;
-		return is_dir(_PS_ROOT_DIR_.DIRECTORY_SEPARATOR.Tools::getValue('ad'));
+		return is_dir(_PS_CORE_DIR_.DIRECTORY_SEPARATOR.Tools::getValue('ad'));
 	}
 	
 	public function getLiveEditFooter()
@@ -958,6 +969,58 @@ class FrontControllerCore extends Controller
 		return (strcasecmp(Tools::getToken(false), Tools::getValue('token')) == 0);
 	}
 
+	public function addMedia($media_uri, $css_media_type = null, $offset = null, $remove = false)
+	{
+
+		if (!is_array($media_uri))
+		{
+			if ($css_media_type)
+				$media_uri = array($media_uri => $css_media_type);
+			else
+				$media_uri = array($media_uri);
+		}
+
+		$list_uri = array();
+		foreach ($media_uri as $file => $media)
+		{
+			if (!preg_match('/^http(s?):\/\//i', $media))
+			{
+				$different = 0;
+				$type = 'css';
+				if (!$css_media_type)
+				{
+					$type = 'js';
+					$file = $media;
+				}
+				$override_path = str_replace(__PS_BASE_URI__.'modules/', _PS_ROOT_DIR_.'/themes/'._THEME_NAME_.'/'.$type.'/modules/', $file, $different);
+				if ($different && file_exists($override_path))
+					$file = str_replace(__PS_BASE_URI__.'modules/', __PS_BASE_URI__.'themes/'._THEME_NAME_.'/'.$type.'/modules/', $file, $different);
+				if ($css_media_type)
+					$list_uri[$file] = $media;
+				else
+					$list_uri[] = $file;
+			}
+			else
+				$list_uri[$file] = $media;
+		}
+
+		if ($remove)
+		{
+			if ($css_media_type)
+				return parent::removeCSS($list_uri, $css_media_type);
+			return parent::removeJS($list_uri);
+		}
+
+		if ($css_media_type)
+			return parent::addCSS($list_uri, $css_media_type, $offset);
+		return parent::addJS($list_uri);
+	}
+
+	public function removeMedia($media_uri, $css_media_type = null)
+	{
+		Frontcontroller::addMedia($media_uri, $css_media_type, null, true);
+	}
+
 	/**
 	 * Add one or several CSS for front, checking if css files are overriden in theme/css/modules/ directory
 	 *
@@ -965,20 +1028,12 @@ class FrontControllerCore extends Controller
 	 */
 	public function addCSS($css_uri, $css_media_type = 'all', $offset = null)
 	{
-		if (!is_array($css_uri))
-			$css_uri = array($css_uri => $css_media_type);
+		return Frontcontroller::addMedia($css_uri, $css_media_type, $offset = null);
+	}
 
-		$list_uri = array();
-		foreach ($css_uri as $file => $media)
-		{
-			$different = 0;
-			$override_path = str_replace(__PS_BASE_URI__.'modules/', _PS_ROOT_DIR_.'/themes/'._THEME_NAME_.'/css/modules/', $file, $different);
-			if ($different && file_exists($override_path))
-				$file = str_replace(__PS_BASE_URI__.'modules/', __PS_BASE_URI__.'themes/'._THEME_NAME_.'/css/modules/', $file, $different);
-			$list_uri[$file] = $media;
-		}
-
-		return parent::addCSS($list_uri, $css_media_type, $offset);
+	public function removeCSS($css_uri, $css_media_type = 'all')
+	{
+		return Frontcontroller::removeMedia($css_uri, $css_media_type);
 	}
 
 	/**
@@ -988,21 +1043,12 @@ class FrontControllerCore extends Controller
 	 */
 	public function addJS($js_uri)
 	{
-		if (!is_array($js_uri))
-			$js_uri = array($js_uri);
+		return Frontcontroller::addMedia($js_uri);
+	}
 
-		foreach ($js_uri as $key => &$file)
-		{
-			if (!preg_match('/^http(s?):\/\//i', $file))
-			{
-				$different = 0;
-				$override_path = str_replace(__PS_BASE_URI__.'modules/', _PS_ROOT_DIR_.'/themes/'._THEME_NAME_.'/js/modules/', $file, $different);
-				if ($different && file_exists($override_path))
-					$file = str_replace(__PS_BASE_URI__.'modules/', __PS_BASE_URI__.'themes/'._THEME_NAME_.'/js/modules/', $file, $different);
-			}
-		}
-
-		return parent::addJS($js_uri);
+	public function removeJS($js_uri)
+	{
+		return Frontcontroller::removeMedia($js_uri);
 	}
 
 	protected function recoverCart()
@@ -1015,10 +1061,13 @@ class FrontControllerCore extends Controller
 				$customer = new Customer((int)$cart->id_customer);
 				if (Validate::isLoadedObject($customer))
 				{
+					$customer->logged = 1;
+					$this->context->customer = $customer;
 					$this->context->cookie->id_customer = (int)$customer->id;
 					$this->context->cookie->customer_lastname = $customer->lastname;
 					$this->context->cookie->customer_firstname = $customer->firstname;
 					$this->context->cookie->logged = 1;
+					$this->context->cookie->check_cgv = 1;
 					$this->context->cookie->is_guest = $customer->isGuest();
 					$this->context->cookie->passwd = $customer->passwd;
 					$this->context->cookie->email = $customer->email;
@@ -1036,7 +1085,7 @@ class FrontControllerCore extends Controller
 	 */
 	public function setTemplate($default_template)
 	{
-		if ($this->context->getMobileDevice() != false)
+		if ($this->useMobileTheme())
 			$this->setMobileTemplate($default_template);
 		else
 		{
@@ -1059,7 +1108,28 @@ class FrontControllerCore extends Controller
 	{
 		return Hook::exec('DisplayOverrideTemplate', array('controller' => $this));
 	}
+	
+	protected function useMobileTheme()
+	{
+		static $use_mobile_template = null;
 
+		// The mobile theme must have a layout to be used
+		if ($use_mobile_template === null)
+			$use_mobile_template = ($this->context->getMobileDevice() && file_exists(_PS_THEME_MOBILE_DIR_.'layout.tpl'));
+
+		return $use_mobile_template;
+	}
+	
+	protected function getThemeDir()
+	{
+		return $this->useMobileTheme() ? _PS_THEME_MOBILE_DIR_ : _PS_THEME_DIR_;
+	}
+	
+	protected function getOverrideThemeDir()
+	{
+		return $this->useMobileTheme() ? _PS_THEME_MOBILE_OVERRIDE_DIR_ : _PS_THEME_MOBILE_DIR_;
+	}
+	
 	/**
 	 * Returns the layout corresponding to the current page by using the override system
 	 * Ex:
@@ -1074,16 +1144,11 @@ class FrontControllerCore extends Controller
 	 */
 	public function getLayout()
 	{
-		$entity = Tools::getValue('controller');
+		$entity = $this->php_self;
 		$id_item = (int)Tools::getValue('id_'.$entity);
 
-		$layout_dir = _PS_THEME_DIR_;
-		$layout_override_dir  = _PS_THEME_OVERRIDE_DIR_;
-		if ($this->context->getMobileDevice() != false)
-		{
-			$layout_dir = _PS_THEME_MOBILE_DIR_;
-			$layout_override_dir = _PS_THEME_MOBILE_OVERRIDE_DIR_;
-		}
+		$layout_dir = $this->getThemeDir();
+		$layout_override_dir  = $this->getOverrideThemeDir();
 
 		$layout = false;
 		if ($entity)
@@ -1100,6 +1165,28 @@ class FrontControllerCore extends Controller
 		return $layout;
 	}
 
+	public function getTemplatePath($template)
+	{
+		if (!$this->useMobileTheme())
+			return $template;
+
+		$tpl_file = basename($template);
+		$dirname = dirname($template).(substr(dirname($template), -1, 1) == '/' ? '' : '/');
+
+		if ($dirname == _PS_THEME_DIR_)
+		{
+			if (file_exists(_PS_THEME_MOBILE_DIR_.$tpl_file))
+				$template = _PS_THEME_MOBILE_DIR_.$tpl_file;
+		}
+		elseif ($dirname == _PS_THEME_MOBILE_DIR_)
+		{
+			if (!file_exists(_PS_THEME_MOBILE_DIR_.$tpl_file) && file_exists(_PS_THEME_DIR_.$tpl_file))
+				$template = _PS_THEME_DIR_.$tpl_file;
+		}
+		
+		return $template;
+	}
+	
 	/**
 	 * This checks if the template set is available for mobile themes,
 	 * otherwise the front template is choosen.
@@ -1120,22 +1207,10 @@ class FrontControllerCore extends Controller
 		$this->context->smarty->assign('id_cgv', Configuration::get('PS_CONDITIONS_CMS_ID'));
 		$this->context->smarty->assign('PS_SHOP_NAME', Configuration::get('PS_SHOP_NAME'));
 
-		$mobile_template = '';
-		$tpl_file = basename($template);
-		$dirname = dirname($template).(substr(dirname($template), -1, 1) == '/' ? '' : '/');
+		$template = $this->getTemplatePath($template);
 
-		if ($dirname == _PS_THEME_DIR_)
-		{
-			if (file_exists(_PS_THEME_MOBILE_DIR_.$tpl_file))
-				$template = _PS_THEME_MOBILE_DIR_.$tpl_file;
-		}
-		elseif ($dirname == _PS_THEME_MOBILE_DIR_)
-		{
-			if (!file_exists(_PS_THEME_MOBILE_DIR_.$tpl_file) && file_exists(_PS_THEME_DIR_.$tpl_file))
-				$template = _PS_THEME_DIR_.$tpl_file;
-		}
 		$assign = array();
-		$assign['tpl_file'] = basename($tpl_file, '.tpl');
+		$assign['tpl_file'] = basename($template, '.tpl');
 		if (isset($this->php_self))
 			$assign['controller_name'] = $this->php_self;
 
@@ -1153,12 +1228,11 @@ class FrontControllerCore extends Controller
 	public function initLogoAndFavicon()
 	{
 		$mobile_device = $this->context->getMobileDevice();
-		$logo = _PS_IMG_.Configuration::get('PS_LOGO').'?'.Configuration::get('PS_IMG_UPDATE_TIME');
 		
 		if ($mobile_device && Configuration::get('PS_LOGO_MOBILE'))
-			$logo = _PS_IMG_.Configuration::get('PS_LOGO_MOBILE').'?'.Configuration::get('PS_IMG_UPDATE_TIME');
+			$logo = self::$link->getMediaLink(_PS_IMG_.Configuration::get('PS_LOGO_MOBILE').'?'.Configuration::get('PS_IMG_UPDATE_TIME'));
 		else
-			$logo = _PS_IMG_.Configuration::get('PS_LOGO').'?'.Configuration::get('PS_IMG_UPDATE_TIME');
+			$logo = self::$link->getMediaLink(_PS_IMG_.Configuration::get('PS_LOGO').'?'.Configuration::get('PS_IMG_UPDATE_TIME'));
 		
 		return array(
  				'favicon_url' => _PS_IMG_.Configuration::get('PS_FAVICON'),

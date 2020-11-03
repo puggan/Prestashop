@@ -1,5 +1,5 @@
 {*
-* 2007-2013 PrestaShop
+* 2007-2014 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -18,7 +18,7 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *	@author PrestaShop SA <contact@prestashop.com>
-*	@copyright	2007-2013 PrestaShop SA
+*	@copyright	2007-2014 PrestaShop SA
 *	@license		http://opensource.org/licenses/afl-3.0.php	Academic Free License (AFL 3.0)
 *	International Registered Trademark & Property of PrestaShop SA
 *}
@@ -40,6 +40,7 @@
 	var currency_sign = '{$currency_sign}';
 	var PS_WEIGHT_UNIT = '{$PS_WEIGHT_UNIT}';
 	var invalid_range = '{l s='This range is not valid' js=1}';
+	var overlapping_range = '{l s='Ranges are overlapping' js=1}';
 	var range_is_overlapping = '{l s='Ranges are overlapping' js=1}';
 	var multistore_enable = '{$multistore_enable}';
 </script>

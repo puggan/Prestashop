@@ -1,5 +1,5 @@
 {*
-* 2007-2013 PrestaShop
+* 2007-2014 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -18,7 +18,7 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author PrestaShop SA <contact@prestashop.com>
-*  @copyright  2007-2013 PrestaShop SA
+*  @copyright  2007-2014 PrestaShop SA
 *  @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 *}
@@ -48,17 +48,6 @@
 {elseif $PS_CATALOG_MODE}
 	<p class="alert alert-warning">{l s='This store has not accepted your new order.'}</p>
 {else}
-	<script type="text/javascript">
-		// <![CDATA[
-		var currencySign = '{$currencySign|html_entity_decode:2:"UTF-8"}';
-		var currencyRate = '{$currencyRate|floatval}';
-		var currencyFormat = '{$currencyFormat|intval}';
-		var currencyBlank = '{$currencyBlank|intval}';
-		var txtProduct = "{l s='product' js=1}";
-		var txtProducts = "{l s='products' js=1}";
-		var deliveryAddress = {$cart->id_address_delivery|intval};
-		// ]]>
-	</script>
 	<p style="display:none" id="emptyCartWarning" class="alert alert-warning">{l s='Your shopping cart is empty.'}</p>
 	{if isset($lastProductAdded) AND $lastProductAdded}
 		<div class="cart_last_product">
@@ -305,7 +294,11 @@
 			</tfoot>
 			<tbody>
 				{assign var='odd' value=0}
+				{assign var='have_non_virtual_products' value=false}
 				{foreach $products as $product}
+					{if $product.is_virtual == 0}
+						{assign var='have_non_virtual_products' value=true}						
+					{/if}
 					{assign var='productId' value=$product.id_product}
 					{assign var='productAttributeId' value=$product.id_product_attribute}
 					{assign var='quantityDisplayed' value=0}
@@ -455,15 +448,6 @@
 	</p>
 	{/if}
 
-	{if !$opc}
-		{if Configuration::get('PS_ALLOW_MULTISHIPPING')}
-			<p class="enable-multishipping checkbox">
-				<input type="checkbox" {if $multi_shipping}checked="checked"{/if} id="enable-multishipping" />
-				<label for="enable-multishipping">{l s='I would like to specify a delivery address for each individual product.'}</label>
-			</p>
-		{/if}
-	{/if}
-
 	{* Define the style if it doesn't exist in the PrestaShop version*}
 	{* Will be deleted for 1.5 version and more *}
 	{if !isset($addresses_style)}
@@ -484,7 +468,7 @@
 		<div class="order_delivery clearfix row">
 			{if !isset($formattedAddresses) || (count($formattedAddresses.invoice) == 0 && count($formattedAddresses.delivery) == 0) || (count($formattedAddresses.invoice.formated) == 0 && count($formattedAddresses.delivery.formated) == 0)}
 				{if $delivery->id}
-					<div class="col-xs-12 col-sm-6">
+					<div class="col-xs-12 col-sm-6"{if !$have_non_virtual_products} style="display: none;"{/if}>
 						<ul id="delivery_address" class="address item box">
 							<li><h3 class="page-subheading">{l s='Delivery address'}&nbsp;<span class="address_alias">({$delivery->alias})</span></h3></li>
 							{if $delivery->company}<li class="address_company">{$delivery->company|escape:'html':'UTF-8'}</li>{/if}
@@ -511,7 +495,7 @@
 				{/if}
 			{else}
 				{foreach from=$formattedAddresses key=k item=address}
-					<div class="col-xs-12 col-sm-6">
+					<div class="col-xs-12 col-sm-6"{if $k == 'delivery' && !$have_non_virtual_products} style="display: none;"{/if}>
 						<ul class="address {if $address@last}last_item{elseif $address@first}first_item{/if} {if $address@index % 2}alternate_item{else}item{/if} box">
 							<li>
 								<h3 class="page-subheading">
@@ -556,14 +540,6 @@
 				title="{l s='Proceed to checkout'}">
 				<span>{l s='Proceed to checkout'}<i class="icon-chevron-right right"></i></span>
 			</a>
-			{if Configuration::get('PS_ALLOW_MULTISHIPPING')}
-				<a
-					href="{if $back}{$link->getPageLink('order', true, NULL, 'step=1&amp;back={$back}')|escape:'html':'UTF-8'}{else}{$link->getPageLink('order', true, NULL, 'step=1')|escape:'html':'UTF-8'}{/if}&amp;multi-shipping=1"
-					class="multishipping-button multishipping-checkout button btn btn-default button-medium"
-					title="{l s='Proceed to checkout'}">
-					<span>{l s='Proceed to checkout'}<i class="icon-chevron-right right"></i></span>
-				</a>
-			{/if}
 		{/if}
 		<a
 			href="{if (isset($smarty.server.HTTP_REFERER) && strstr($smarty.server.HTTP_REFERER, 'order.php')) || isset($smarty.server.HTTP_REFERER) && strstr($smarty.server.HTTP_REFERER, 'order-opc') || !isset($smarty.server.HTTP_REFERER)}{$link->getPageLink('index')}{else}{$smarty.server.HTTP_REFERER|escape:'html':'UTF-8'|secureReferrer}{/if}"
@@ -578,4 +554,13 @@
 			<div id="HOOK_SHOPPING_CART_EXTRA">{$HOOK_SHOPPING_CART_EXTRA}</div>
 		</div>
 	{/if}
+{strip}
+{addJsDef currencySign=$currencySign|html_entity_decode:2:"UTF-8"}
+{addJsDef currencyRate=$currencyRate|floatval}
+{addJsDef currencyFormat=$currencyFormat|intval}
+{addJsDef currencyBlank=$currencyBlank|intval}
+{addJsDef deliveryAddress=$cart->id_address_delivery|intval}
+{addJsDefL name=txtProduct}{l s='product' js=1}{/addJsDefL}
+{addJsDefL name=txtProducts}{l s='products' js=1}{/addJsDefL}
+{/strip}
 {/if}

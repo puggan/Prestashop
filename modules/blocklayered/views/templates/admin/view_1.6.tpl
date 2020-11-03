@@ -5,6 +5,22 @@
 <div id="ajax-message-ko" class="error ajax-message alert alert-danger" style="display: none">
 	<span class="message"></span>
 </div>
+{if !empty($limit_warning)}
+	<div class="alert alert-danger">
+		{if $limit_warning['error_type'] == 'suhosin'}
+			{l s='Warning! Your hosting provider is using the Suhosin patch for PHP, which limits the maximum number of fields allowed in a form:'}
+
+			<b>{$limit_warning['post.max_vars']}</b> {l s='for suhosin.post.max_vars.'}<br/>
+			<b>{$limit_warning['request.max_vars']}</b> {l s='for suhosin.request.max_vars.'}<br/>
+			{l s='Please ask your hosting provider to increase the Suhosin limit to'}
+		{else}
+			{l s='Warning! Your PHP configuration limits the maximum number of fields allowed in a form:'}<br/>
+			<b>{$limit_warning['max_input_vars']}</b> {l s='for max_input_vars.'}<br/>
+			{l s='Please ask your hosting provider to increase this limit to'}
+		{/if}
+		{l s='%s at least, or you will have to edit the translation files manually.' sprintf=$limit_warning['needed_limit']}
+	</div>
+{/if}
 <div class="panel">
 	<h3><i class="icon-cogs"></i> {l s='Indexes and caches' mod='blocklayered'}</h3>
 	<div id="indexing-warning" class="alert alert-warning" style="display: none">
@@ -61,6 +77,7 @@
 					<td class="center">{(int)$template['n_categories']}</td>
 					<td>{Tools::displayDate($template['date_add'],null , true)}</td>
 					<td>
+						{if empty($limit_warning)}
 						<div class="btn-group-action">
 							<div class="btn-group pull-right">
 								<a href="{$current_url}&edit_filters_template=1&id_layered_filter={(int)$template['id_layered_filter']}" class="btn btn-default">
@@ -79,6 +96,7 @@
 								</ul>
 							</div>
 						</div>
+						{/if}
 					</td>
 				</tr>
 				{/foreach}
@@ -89,9 +107,11 @@
 	{else}
 		<div class="row alert alert-warning">{l s='No filter template found.' mod='blocklayered'}</div>
 	{/if}
-	<div class="row">
-		<a class="btn btn-default" href="{$current_url}&add_new_filters_template=1"><i class="icon-plus"></i> {l s='Add new filters template' mod='blocklayered'}</a>
+	{if empty($limit_warning)}
+	<div class="panel-footer">
+		<a class="btn btn-default pull-right" href="{$current_url}&add_new_filters_template=1"><i class="process-icon-plus"></i> {l s='Add new template' mod='blocklayered'}</a>
 	</div>
+	{/if}
 </div>
 <div class="panel">
 	<h3><i class="icon-cogs"></i> {l s='Configuration' mod='blocklayered'}</h3>
@@ -104,13 +124,13 @@
 						<span class="switch prestashop-switch">
 							<input type="radio" name="ps_layered_hide_0_values" id="ps_layered_hide_0_values_on" value="1"{if $hide_values} checked="checked"{/if}>
 							<label for="ps_layered_hide_0_values_on" class="radioCheck">
-								<i class="icon-check-sign color_success"></i> {l s='Yes' mod='blocklayered'}
+								<i class="color_success"></i> {l s='Yes' mod='blocklayered'}
 							</label>
 							<input type="radio" name="ps_layered_hide_0_values" id="ps_layered_hide_0_values_off" value="0"{if !$hide_values} checked="checked"{/if}>
 							<label for="ps_layered_hide_0_values_off" class="radioCheck">
-								<i class="icon-ban-circle color_danger"></i> {l s='No' mod='blocklayered'}
+								<i class="color_danger"></i> {l s='No' mod='blocklayered'}
 							</label>
-							<a class="slide-button btn btn-default"></a>
+							<a class="slide-button btn"></a>
 						</span>
 					</div>
 				</div>
@@ -124,13 +144,13 @@
 						<span class="switch prestashop-switch">
 							<input type="radio" name="ps_layered_show_qties" id="ps_layered_show_qties_on" value="1"{if $show_quantities} checked="checked"{/if}>
 							<label for="ps_layered_show_qties_on" class="radioCheck">
-								<i class="icon-check-sign color_success"></i> {l s='Yes' mod='blocklayered'}
+								<i class="color_success"></i> {l s='Yes' mod='blocklayered'}
 							</label>
 							<input type="radio" name="ps_layered_show_qties" id="ps_layered_show_qties_off" value="0"{if !$show_quantities} checked="checked"{/if}>
 							<label for="ps_layered_show_qties_off" class="radioCheck">
-								<i class="icon-ban-circle color_danger"></i> {l s='No' mod='blocklayered'}
+								<i class="color_danger"></i> {l s='No' mod='blocklayered'}
 							</label>
-							<a class="slide-button btn btn-default"></a>
+							<a class="slide-button btn"></a>
 						</span>
 					</div>
 				</div>
@@ -144,13 +164,13 @@
 						<span class="switch prestashop-switch">
 							<input type="radio" name="ps_layered_full_tree" id="ps_layered_full_tree_on" value="1"{if $full_tree} checked="checked"{/if}>
 							<label for="ps_layered_full_tree_on" class="radioCheck">
-								<i class="icon-check-sign color_success"></i> {l s='Yes' mod='blocklayered'}
+								<i class="color_success"></i> {l s='Yes' mod='blocklayered'}
 							</label>
 							<input type="radio" name="ps_layered_full_tree" id="ps_layered_full_tree_off" value="0"{if !$full_tree} checked="checked"{/if}>
 							<label for="ps_layered_full_tree_off" class="radioCheck">
-								<i class="icon-ban-circle color_danger"></i> {l s='No' mod='blocklayered'}
+								<i class="color_danger"></i> {l s='No' mod='blocklayered'}
 							</label>
-							<a class="slide-button btn btn-default"></a>
+							<a class="slide-button btn"></a>
 						</span>
 					</div>
 				</div>
@@ -170,13 +190,13 @@
 						<span class="switch prestashop-switch">
 							<input type="radio" name="ps_layered_filter_price_usetax" id="ps_layered_filter_price_usetax_on" value="1"{if $price_use_tax} checked="checked"{/if}>
 							<label for="ps_layered_filter_price_usetax_on" class="radioCheck">
-								<i class="icon-check-sign color_success"></i> {l s='Yes' mod='blocklayered'}
+								<i class="color_success"></i> {l s='Yes' mod='blocklayered'}
 							</label>
 							<input type="radio" name="ps_layered_filter_price_usetax" id="ps_layered_filter_price_usetax_off" value="0"{if !$price_use_tax} checked="checked"{/if}>
 							<label for="ps_layered_filter_price_usetax_off" class="radioCheck">
-								<i class="icon-ban-circle color_danger"></i> {l s='No' mod='blocklayered'}
+								<i class="color_danger"></i> {l s='No' mod='blocklayered'}
 							</label>
-							<a class="slide-button btn btn-default"></a>
+							<a class="slide-button btn"></a>
 						</span>
 					</div>
 				</div>
@@ -190,13 +210,13 @@
 						<span class="switch prestashop-switch">
 							<input type="radio" name="ps_layered_filter_index_condition" id="ps_layered_filter_index_condition_on" value="1"{if $index_cdt} checked="checked"{/if}>
 							<label for="ps_layered_filter_index_condition_on" class="radioCheck">
-								<i class="icon-check-sign color_success"></i> {l s='Yes' mod='blocklayered'}
+								<i class="color_success"></i> {l s='Yes' mod='blocklayered'}
 							</label>
 							<input type="radio" name="ps_layered_filter_index_condition" id="ps_layered_filter_index_condition_off" value="0"{if !$index_cdt} checked="checked"{/if}>
 							<label for="ps_layered_filter_index_condition_off" class="radioCheck">
-								<i class="icon-ban-circle color_danger"></i> {l s='No' mod='blocklayered'}
+								<i class="color_danger"></i> {l s='No' mod='blocklayered'}
 							</label>
-							<a class="slide-button btn btn-default"></a>
+							<a class="slide-button btn"></a>
 						</span>
 					</div>
 				</div>
@@ -210,13 +230,13 @@
 						<span class="switch prestashop-switch">
 							<input type="radio" name="ps_layered_filter_index_availability" id="ps_layered_filter_index_availability_on" value="1"{if $index_qty} checked="checked"{/if}>
 							<label for="ps_layered_filter_index_availability_on" class="radioCheck">
-								<i class="icon-check-sign color_success"></i> {l s='Yes' mod='blocklayered'}
+								<i class="color_success"></i> {l s='Yes' mod='blocklayered'}
 							</label>
 							<input type="radio" name="ps_layered_filter_index_availability" id="ps_layered_filter_index_availability_off" value="0"{if !$index_qty} checked="checked"{/if}>
 							<label for="ps_layered_filter_index_availability_off" class="radioCheck">
-								<i class="icon-ban-circle color_danger"></i> {l s='No' mod='blocklayered'}
+								<i class="color_danger"></i> {l s='No' mod='blocklayered'}
 							</label>
-							<a class="slide-button btn btn-default"></a>
+							<a class="slide-button btn"></a>
 						</span>
 					</div>
 				</div>
@@ -230,13 +250,13 @@
 						<span class="switch prestashop-switch">
 							<input type="radio" name="ps_layered_filter_index_manufacturer" id="ps_layered_filter_index_manufacturer_on" value="1"{if $index_mnf} checked="checked"{/if}>
 							<label for="ps_layered_filter_index_manufacturer_on" class="radioCheck">
-								<i class="icon-check-sign color_success"></i> {l s='Yes' mod='blocklayered'}
+								<i class="color_success"></i> {l s='Yes' mod='blocklayered'}
 							</label>
 							<input type="radio" name="ps_layered_filter_index_manufacturer" id="ps_layered_filter_index_manufacturer_off" value="0"{if !$index_mnf} checked="checked"{/if}>
 							<label for="ps_layered_filter_index_manufacturer_off" class="radioCheck">
-								<i class="icon-ban-circle color_danger"></i> {l s='No' mod='blocklayered'}
+								<i class="color_danger"></i> {l s='No' mod='blocklayered'}
 							</label>
-							<a class="slide-button btn btn-default"></a>
+							<a class="slide-button btn"></a>
 						</span>
 					</div>
 				</div>
@@ -250,22 +270,20 @@
 						<span class="switch prestashop-switch">
 							<input type="radio" name="ps_layered_filter_index_category" id="ps_layered_filter_index_category_on" value="1"{if $index_cat} checked="checked"{/if}>
 							<label for="ps_layered_filter_index_category_on" class="radioCheck">
-								<i class="icon-check-sign color_success"></i> {l s='Yes' mod='blocklayered'}
+								<i class="color_success"></i> {l s='Yes' mod='blocklayered'}
 							</label>
 							<input type="radio" name="ps_layered_filter_index_category" id="ps_layered_filter_index_category_off" value="0"{if !$index_cat} checked="checked"{/if}>
 							<label for="ps_layered_filter_index_category_off" class="radioCheck">
-								<i class="icon-ban-circle color_danger"></i> {l s='No' mod='blocklayered'}
+								<i class="color_danger"></i> {l s='No' mod='blocklayered'}
 							</label>
-							<a class="slide-button btn btn-default"></a>
+							<a class="slide-button btn"></a>
 						</span>
 					</div>
 				</div>
 			</div>
 		</div>
-		<div class="row">
-			<div class="col-lg-9 col-lg-offset-3">
-				<button type="submit" class="btn btn-default" name="submitLayeredSettings"><i class="icon-save"></i> {l s='Save configuration' mod='blocklayered'}</button>
-			</div>
+		<div class="panel-footer">
+			<button type="submit" class="btn btn-default pull-right" name="submitLayeredSettings"><i class="process-icon-save"></i> {l s='Save' mod='blocklayered'}</button>
 		</div>
 	</form>
 </div>

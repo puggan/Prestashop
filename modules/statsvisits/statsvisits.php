@@ -1,6 +1,6 @@
 <?php
 /*
-* 2007-2013 PrestaShop
+* 2007-2014 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -19,7 +19,7 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author PrestaShop SA <contact@prestashop.com>
-*  @copyright  2007-2013 PrestaShop SA
+*  @copyright  2007-2014 PrestaShop SA
 *  @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
@@ -30,9 +30,7 @@ if (!defined('_PS_VERSION_'))
 class StatsVisits extends ModuleGraph
 {
 	private $html = '';
-	private $_query = '';
-	private $_query2 = '';
-	private $_option;
+	private $query = '';
 
 	public function __construct()
 	{
@@ -45,7 +43,7 @@ class StatsVisits extends ModuleGraph
 		parent::__construct();
 
 		$this->displayName = $this->l('Visits and Visitors');
-		$this->description = $this->l('Displays statistics about your visits and visitors.');
+		$this->description = $this->l('Adds statistics about your visits and visitors tot the Stats dashboard.');
 	}
 
 	public function install()
@@ -59,6 +57,7 @@ class StatsVisits extends ModuleGraph
 				FROM `'._DB_PREFIX_.'connections` c
 				WHERE c.`date_add` BETWEEN '.ModuleGraph::getDateBetween().'
 					'.Shop::addSqlRestriction(false, 'c');
+
 		return Db::getInstance(_PS_USE_SQL_SLAVE_)->getValue($sql);
 	}
 
@@ -68,28 +67,33 @@ class StatsVisits extends ModuleGraph
 				FROM `'._DB_PREFIX_.'connections` c
 				WHERE c.`date_add` BETWEEN '.ModuleGraph::getDateBetween().'
 					'.Shop::addSqlRestriction(false, 'c');
+
 		return Db::getInstance(_PS_USE_SQL_SLAVE_)->getValue($sql);
 	}
 
-	public function hookAdminStatsModules($params)
+	public function hookAdminStatsModules()
 	{
-		$graphParams = array(
-			'layers' => 	2,
-			'type' => 		'line',
-			'option' => 	3,
+		$graph_params = array(
+			'layers' => 2,
+			'type' => 'line',
+			'option' => 3,
 		);
 
-		$totalVisits = $this->getTotalVisits();
-		$totalGuests = $this->getTotalGuests();
+		$total_visits = $this->getTotalVisits();
+		$total_guests = $this->getTotalGuests();
 		if (Tools::getValue('export'))
-			$this->csvExport(array('layers' => 2, 'type' => 'line', 'option' => 3));
+			$this->csvExport(array(
+				'layers' => 2,
+				'type' => 'line',
+				'option' => 3
+			));
 		$this->html = '
 		<div class="panel-heading">
 			'.$this->displayName.'
 		</div>
 		<h4>'.$this->l('Guide').'</h4>
 			<div class="alert alert-warning">
-				<h4>'.$this->l('Determine the interest of a visit.').'</h4>
+				<h4>'.$this->l('Determine the interest of a visit').'</h4>
 				<p>
 					'.$this->l('The visitors\' evolution graph strongly resembles the visits\' graph, but provides additional information:').'<br />
 				</p>
@@ -108,12 +112,12 @@ class StatsVisits extends ModuleGraph
 			<div class="row row-margin-bottom">
 				<div class="col-lg-12">
 					<div class="col-lg-8">
-						'.($totalVisits ? $this->engine($graphParams).'
+						'.($total_visits ? $this->engine($graph_params).'
 					</div>
 					<div class="col-lg-4">
 						<ul class="list-unstyled">
-							<li>'.$this->l('Total visits:').' <span class="totalStats">'.$totalVisits.'</span></li>
-							<li>'.$this->l('Total visitors:').' <span class="totalStats">'.$totalGuests.'</span></li>
+							<li>'.$this->l('Total visits:').' <span class="totalStats">'.$total_visits.'</span></li>
+							<li>'.$this->l('Total visitors:').' <span class="totalStats">'.$total_guests.'</span></li>
 						</ul>
 						<hr/>
 						<a class="btn btn-default export-csv" href="'.Tools::safeOutput($_SERVER['REQUEST_URI']).'&export=1">
@@ -134,12 +138,12 @@ class StatsVisits extends ModuleGraph
 				$this->_titles['main'][0] = $this->l('Number of visits and unique visitors');
 				$this->_titles['main'][1] = $this->l('Visits');
 				$this->_titles['main'][2] = $this->l('Visitors');
-				$this->_query[0] = 'SELECT date_add, COUNT(`date_add`) as total
+				$this->query[0] = 'SELECT date_add, COUNT(`date_add`) as total
 					FROM `'._DB_PREFIX_.'connections`
 					WHERE 1
 						'.Shop::addSqlRestriction().'
 						AND `date_add` BETWEEN ';
-				$this->_query[1] = 'SELECT date_add, COUNT(DISTINCT `id_guest`) as total
+				$this->query[1] = 'SELECT date_add, COUNT(DISTINCT `id_guest`) as total
 					FROM `'._DB_PREFIX_.'connections`
 					WHERE 1
 						'.Shop::addSqlRestriction().'
@@ -157,9 +161,9 @@ class StatsVisits extends ModuleGraph
 	{
 		for ($i = 0; $i < $layers; $i++)
 		{
-			$result = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($this->_query[$i].$this->getDate().' GROUP BY LEFT(date_add, 4)');
+			$result = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($this->query[$i].$this->getDate().' GROUP BY LEFT(date_add, 4)');
 			foreach ($result as $row)
-				$this->_values[$i][(int)substr($row['date_add'], 0, 4)] = (int)$row['total'];
+				$this->_values[$i][(int)Tools::substr($row['date_add'], 0, 4)] = (int)$row['total'];
 		}
 	}
 
@@ -167,9 +171,9 @@ class StatsVisits extends ModuleGraph
 	{
 		for ($i = 0; $i < $layers; $i++)
 		{
-			$result = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($this->_query[$i].$this->getDate().' GROUP BY LEFT(date_add, 7)');
+			$result = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($this->query[$i].$this->getDate().' GROUP BY LEFT(date_add, 7)');
 			foreach ($result as $row)
-				$this->_values[$i][(int)substr($row['date_add'], 5, 2)] = (int)$row['total'];
+				$this->_values[$i][(int)Tools::substr($row['date_add'], 5, 2)] = (int)$row['total'];
 		}
 	}
 
@@ -177,9 +181,9 @@ class StatsVisits extends ModuleGraph
 	{
 		for ($i = 0; $i < $layers; $i++)
 		{
-			$result = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($this->_query[$i].$this->getDate().' GROUP BY LEFT(date_add, 10)');
+			$result = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($this->query[$i].$this->getDate().' GROUP BY LEFT(date_add, 10)');
 			foreach ($result as $row)
-				$this->_values[$i][(int)substr($row['date_add'], 8, 2)] = (int)$row['total'];
+				$this->_values[$i][(int)Tools::substr($row['date_add'], 8, 2)] = (int)$row['total'];
 		}
 	}
 
@@ -187,11 +191,9 @@ class StatsVisits extends ModuleGraph
 	{
 		for ($i = 0; $i < $layers; $i++)
 		{
-			$result = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($this->_query[$i].$this->getDate().' GROUP BY LEFT(date_add, 13)');
+			$result = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($this->query[$i].$this->getDate().' GROUP BY LEFT(date_add, 13)');
 			foreach ($result as $row)
-				$this->_values[$i][(int)substr($row['date_add'], 11, 2)] = (int)$row['total'];
+				$this->_values[$i][(int)Tools::substr($row['date_add'], 11, 2)] = (int)$row['total'];
 		}
 	}
 }
-
-

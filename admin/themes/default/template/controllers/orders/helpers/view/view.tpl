@@ -1,5 +1,5 @@
 {*
-* 2007-2013 PrestaShop
+* 2007-2014 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -18,7 +18,7 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author PrestaShop SA <contact@prestashop.com>
-*  @copyright  2007-2013 PrestaShop SA
+*  @copyright  2007-2014 PrestaShop SA
 *  @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 *}
@@ -39,7 +39,6 @@
 	var currency_blank = "{$currency->blank}";
 	var priceDisplayPrecision = 2;
 	var use_taxes = {if $order->getTaxCalculationMethod() == $smarty.const.PS_TAX_INC}true{else}false{/if};
-	var token = "{$smarty.get.token|escape:'html':'UTF-8'}";
 	var stock_management = {$stock_management|intval};
 	var txt_add_product_stock_issue = "{l s='Are you sure you want to add this quantity?' js=1}";
 	var txt_add_product_new_invoice = "{l s='Are you sure you want to create a new invoice?' js=1}";
@@ -63,22 +62,22 @@
 
 	<div class="panel">
 		<div class="row">
-			<div class="col-lg-3 box-stats color3" >
+			<div class="col-sm-6 col-lg-3 box-stats color3" >
 				<i class="icon-calendar-empty"></i>
 				<span class="title">{l s='Date'}<br /><small>&nbsp;</small></span>
 				<span class="value">{dateFormat date=$order->date_add full=false}</span>
 			</div>
-			<div class="col-lg-3 box-stats color2" >
+			<div class="col-sm-6 col-lg-3 box-stats color2" >
 				<i class="icon-comments"></i>
 				<span class="title">{l s='Messages'}<br /><small>&nbsp;</small></span>
 				<span class="value"><a href="{$link->getAdminLink('AdminCustomerThreads')|escape:'html':'UTF-8'}">{sizeof($customer_thread_message)}</a></span>
 			</div>
-			<div class="col-lg-3 box-stats color1" >
-				<i class="icon-ok"></i>
+			<div class="col-sm-6 col-lg-3 box-stats color1" >
+				<i class="icon-book"></i>
 				<span class="title">{l s='Products'}<br /><small>&nbsp;</small></span>
 				<span class="value">{sizeof($products)}</span>
 			</div>
-			<div class="col-lg-3 box-stats color4" >
+			<div class="col-sm-6 col-lg-3 box-stats color4" >
 				<i class="icon-money"></i>
 				<span class="title">{l s='Total'}<br /><small>&nbsp;</small></span>
 				<span class="value">{displayPrice price=$order->total_paid_tax_incl currency=$currency->id}</span>
@@ -91,16 +90,21 @@
 	<div class="row">
 		<div class="col-lg-6">
 			<div class="panel">
-				<h3 class="text-center">
-					<a class="btn btn-default pull-left" href="{$link->getAdminLink('AdminOrders')|escape:'html':'UTF-8'}&vieworder&id_order={$previousOrder}" {if !$previousOrder}disabled{/if}>
-						<i class="icon-chevron-left"></i>
-						{l s='Prev'}
+				<h3>
+					<i class="icon-credit-card"></i>
+					{l s='Order'}
+					<span class="badge">#{$order->id}</span>
+					<span class="badge">{$order->reference}</span>
+					<div class="btn-group pull-right">
+						<a class="btn btn-default" href="{$link->getAdminLink('AdminOrders')|escape:'html':'UTF-8'}&vieworder&id_order={$previousOrder}" {if !$previousOrder}disabled{/if}>
+							<i class="icon-chevron-left"></i>
+							{l s='Prev'}
 						</a>
-					{l s='Order'} : <strong>#{$order->id} - {$order->reference}</strong>
-					<a class="btn btn-default pull-right" href="{$link->getAdminLink('AdminOrders')|escape:'html':'UTF-8'}&vieworder&id_order={$nextOrder}" {if !$nextOrder}disabled{/if}>
-						{l s='Next'}
-						<i class="icon-chevron-right"></i>
-					</a> 
+						<a class="btn btn-default" href="{$link->getAdminLink('AdminOrders')|escape:'html':'UTF-8'}&vieworder&id_order={$nextOrder}" {if !$nextOrder}disabled{/if}>
+							{l s='Next'}
+							<i class="icon-chevron-right"></i>
+						</a>
+					</div>
 				</h3>
 				<!-- Orders Actions -->
 				<div class="well">
@@ -111,9 +115,9 @@
 							{l s='View invoice'}
 						</a>
 						{else}
-							<span class="icon-stack">
-								<i class="icon-file"></i>
-								<i class="icon-ban-circle icon-stack-base text-danger"></i>
+							<span class="icon-stack icon-lg">
+								<i class="icon-file icon-stack-1x"></i>
+								<i class="icon-ban-circle icon-stack-2x text-danger"></i>
 							</span>
 							{l s='No invoice'}
 						{/if}
@@ -123,9 +127,9 @@
 							{l s='View delivery slip'}
 						</a>
 						{else}
-							<span class="icon-stack">
-								<i class="icon-truck"></i>
-								<i class="icon-ban-circle icon-stack-base text-danger"></i>
+							<span class="icon-stack icon-lg">
+								<i class="icon-truck icon-stack-1x"></i>
+								<i class="icon-ban-circle icon-stack-2x text-danger"></i>
 							</span>
 							{l s='No delivery slip'}
 						{/if}
@@ -136,7 +140,7 @@
 					</div>
 					<div class="row">
 						{if Configuration::get('PS_ORDER_RETURN')}
-						<a class="btn btn-default" id="desc-order-standard_refund" href="">
+						<a id="desc-order-standard_refund" class="btn btn-default" href="#refundForm">
 							<i class="icon-exchange"></i>
 							{if $order->hasBeenShipped()}
 								{l s='Return products'}
@@ -148,7 +152,7 @@
 						</a>
 						{/if}
 						{if $order->hasInvoice()}
-						<a class="btn btn-default" id="desc-order-partial_refund" href="">
+						<a id="desc-order-partial_refund" class="btn btn-default" href="#refundForm">
 							<i class="icon-exchange"></i>
 							{l s='Partial refund'}
 						</a>
@@ -180,7 +184,7 @@
 								<div class="col-lg-9">
 									<select id="id_order_state" name="id_order_state">
 									{foreach from=$states item=state}
-										<option value="{$state['id_order_state']}"{if $state['id_order_state'] == $currentState->id} selected="selected" disabled="disabled"{/if}>{$state['name']|stripslashes}</option>
+										<option value="{$state['id_order_state']|intval}"{if $state['id_order_state'] == $currentState->id} selected="selected" disabled="disabled"{/if}>{$state['name']|escape}</option>
 									{/foreach}
 									</select>
 									<input type="hidden" name="id_order" value="{$order->id}" />
@@ -374,16 +378,21 @@
 				{if $customer->id}
 				<h3>
 					<i class="icon-user"></i>
-					{l s='Customer'} :
-					<a href="?tab=AdminCustomers&id_customer={$customer->id}&viewcustomer&token={getAdminToken tab='AdminCustomers'}">
-						{$gender->name|escape:'html':'UTF-8'}
-						{$customer->firstname}
-						{$customer->lastname}
-					</a>
-					<small>
-						({l s='#'}{$customer->id}) - 
+					{l s='Customer'}
+					<span class="badge">
+						<a href="?tab=AdminCustomers&id_customer={$customer->id}&viewcustomer&token={getAdminToken tab='AdminCustomers'}">
+							{if Configuration::get('PS_B2B_ENABLE')}{$customer->company} - {/if}
+							{$gender->name|escape:'html':'UTF-8'}
+							{$customer->firstname}
+							{$customer->lastname}
+						</a>
+					</span>
+					<span class="badge">
+						{l s='#'}{$customer->id}
+					</span>
+					<span class="badge">
 						<a href="mailto:{$customer->email}">{$customer->email}</a>
-					</small>
+					</span>
 				</h3>
 				{if ($customer->isGuest())}
 					{l s='This order has been placed by a guest.'}
@@ -405,6 +414,10 @@
 						<li>{l s='Account registered:'} <strong>{dateFormat date=$customer->date_add full=true}</strong></li>
 						<li>{l s='Valid orders placed:'} <strong>{$customerStats['nb_orders']}</strong></li>
 						<li>{l s='Total spent since registration:'} <strong>{displayPrice price=Tools::ps_round(Tools::convertPrice($customerStats['total_orders'], $currency), 2) currency=$currency->id}</strong></li>
+						{if Configuration::get('PS_B2B_ENABLE')}
+							<li>{l s='Siret:'} <strong>{$customer->siret}</strong></li>
+							<li>{l s='APE:'} <strong>{$customer->ape}</strong></li>
+						{/if}
 					</ul>
 					{/if}
 				{/if}
@@ -469,7 +482,7 @@
 									<hr />{$addresses.delivery->other}<br />
 								{/if}
 							</div>
-							<img src="http://maps.googleapis.com/maps/api/staticmap?center={$addresses.delivery->address1} {$addresses.delivery->postcode} {$addresses.delivery->city} {if ($addresses.delivery->id_state)} {$addresses.deliveryState->name}{/if}&markers={$addresses.delivery->address1} {$addresses.delivery->postcode} {$addresses.delivery->city} {if ($addresses.delivery->id_state)} {$addresses.deliveryState->name}{/if}&zoom=7&size=600x200&scale=2&sensor=false" class="thumbnail">
+							<img src="http://maps.googleapis.com/maps/api/staticmap?center={$addresses.delivery->address1} {$addresses.delivery->postcode} {$addresses.delivery->city} {if ($addresses.delivery->id_state)} {$addresses.deliveryState->name}{/if} {$addresses.delivery->country}&markers={$addresses.delivery->address1} {$addresses.delivery->postcode} {$addresses.delivery->city} {if ($addresses.delivery->id_state)} {$addresses.deliveryState->name}{/if} {$addresses.delivery->country}&zoom=7&size=600x200&scale=2&sensor=false" class="img-thumbnail">
 						{/if}
 					</div>
 					<div class="tab-pane" id="addressInvoice">
@@ -512,7 +525,7 @@
 								<hr />{$addresses.invoice->other}<br />
 							{/if}
 						</div>
-						<img src="http://maps.googleapis.com/maps/api/staticmap?center={$addresses.invoice->address1} {$addresses.invoice->postcode} {$addresses.invoice->city} {if ($addresses.invoice->id_state)} {$addresses.deliveryState->name}{/if}&markers={$addresses.invoice->address1} {$addresses.invoice->postcode} {$addresses.invoice->city} {if ($addresses.invoice->id_state)} {$addresses.deliveryState->name}{/if}&zoom=7&size=600x200&scale=2&sensor=false" class="thumbnail">
+						<img src="http://maps.googleapis.com/maps/api/staticmap?center={$addresses.invoice->address1} {$addresses.invoice->postcode} {$addresses.invoice->city} {if ($addresses.invoice->id_state) && isset($addresses.deliveryState)} {$addresses.deliveryState->name}{/if}&markers={$addresses.invoice->address1} {$addresses.invoice->postcode} {$addresses.invoice->city} {if ($addresses.invoice->id_state) && isset($addresses.deliveryState)} {$addresses.deliveryState->name}{/if}&zoom=7&size=600x200&scale=2&sensor=false" class="img-thumbnail">
 					</div>
 				</div>
 				<script>
@@ -556,7 +569,7 @@
 												<i class="icon-ban-circle text-danger"></i>
 												{l s='No'}
 											</label>
-											<a class="slide-button btn btn-default"></a>
+											<a class="slide-button btn"></a>
 										</span>
 									</div>
 								</div>				
@@ -647,8 +660,8 @@
 							{foreach from=$order->getOrderPaymentCollection() item=payment}
 							<tr>
 								<td>{dateFormat date=$payment->date_add full=true}</td>
-								<td>{$payment->payment_method}</td>
-								<td>{$payment->transaction_id}</td>
+								<td>{$payment->payment_method|escape:'html':'UTF-8'}</td>
+								<td>{$payment->transaction_id|escape:'html':'UTF-8'}</td>
 								<td>{displayPrice price=$payment->amount currency=$payment->id_currency}</td>
 								<td>
 								{if $invoice = $payment->getOrderInvoice($order->id)}
@@ -885,7 +898,7 @@
 							<span class="title_box ">{l s='Unit Price'}</span>
 							<small class="text-muted">{$smarty.capture.TaxMethod}</small>
 						</th>
-						<th><span class="title_box ">{l s='Qty'}</th>
+						<th><span class="title_box ">{l s='Qty'}</span></th>
 						{if $display_warehouse}<th><span class="title_box ">{l s='Warehouse'}</span></th>{/if}
 						{if ($order->hasBeenPaid())}<th><span class="title_box ">{l s='Refunded'}</span></th>{/if}
 						{if ($order->hasBeenDelivered() || $order->hasProductReturned())}
@@ -931,7 +944,7 @@
 			</table>
 
 			{if $can_edit}
-			<div class="row-margin-bottom order_action">
+			<div class="row-margin-bottom row-margin-top order_action">
 			{if !$order->hasBeenDelivered()}
 				<button type="button" id="add_product" class="btn btn-default">
 					<i class="icon-plus-sign"></i>
@@ -1052,39 +1065,41 @@
 					</div>
 				</div>
 			</div>
-			<div style="display: none;" class="standard_refund_fields form-horizontal">
-				{if ($order->hasBeenDelivered() && Configuration::get('PS_ORDER_RETURN'))}
-				<p class="checkbox">
-					<label for="reinjectQuantities">
-						<input type="checkbox" name="reinjectQuantities"/>
-						{l s='Re-stock products'}
-					</label>
-				</p>
-				{/if}
-
-				{if ((!$order->hasBeenDelivered() && $order->hasBeenPaid()) || ($order->hasBeenDelivered() && Configuration::get('PS_ORDER_RETURN')))}
-				<p class="checkbox">
-					<label for="generateCreditSlip">
-						<input type="checkbox" id="generateCreditSlip" name="generateCreditSlip" onclick="toggleShippingCost(this)" />
-						{l s='Generate a credit card slip'}
-					</label>
-				</p>
-				<p class="checkbox">
-					<label for="generateDiscount">
-						<input type="checkbox" id="generateDiscount" name="generateDiscount" onclick="toggleShippingCost(this)" />
-						{l s='Generate a voucher'}
-					</label>
-				</p>
-				<p class="checkbox" id="spanShippingBack" style="display:none;">
-					<label for="shippingBack" style="float:none">
-						<input type="checkbox" id="shippingBack" name="shippingBack" />
-						{l s='Repay shipping costs'}
-					</label>
-				</p>
-				{/if}
-
+			<div style="display: none;" class="standard_refund_fields form-horizontal panel">
+				<div class="form-group">
+					{if ($order->hasBeenDelivered() && Configuration::get('PS_ORDER_RETURN'))}
+					<p class="checkbox">
+						<label for="reinjectQuantities">
+							<input type="checkbox" id="reinjectQuantities" name="reinjectQuantities" />
+							{l s='Re-stock products'}
+						</label>
+					</p>
+					{/if}
+					{if ((!$order->hasBeenDelivered() && $order->hasBeenPaid()) || ($order->hasBeenDelivered() && Configuration::get('PS_ORDER_RETURN')))}
+					<p class="checkbox">
+						<label for="generateCreditSlip">
+							<input type="checkbox" id="generateCreditSlip" name="generateCreditSlip" onclick="toggleShippingCost(this)" />
+							{l s='Generate a credit card slip'}
+						</label>
+					</p>
+					<p class="checkbox">
+						<label for="generateDiscount">
+							<input type="checkbox" id="generateDiscount" name="generateDiscount" onclick="toggleShippingCost(this)" />
+							{l s='Generate a voucher'}
+						</label>
+					</p>
+					<p class="checkbox" id="spanShippingBack" style="display:none;">
+						<label for="shippingBack">
+							<input type="checkbox" id="shippingBack" name="shippingBack" />
+							{l s='Repay shipping costs'}
+						</label>
+					</p>
+					{/if}
+				</div>
 				{if (!$order->hasBeenDelivered() || ($order->hasBeenDelivered() && Configuration::get('PS_ORDER_RETURN')))}
-				<input type="submit" name="cancelProduct" value="{if $order->hasBeenDelivered()}{l s='Return products'}{elseif $order->hasBeenPaid()}{l s='Refund products'}{else}{l s='Cancel products'}{/if}" class="btn btn-default" />
+				<div class="row">
+					<input type="submit" name="cancelProduct" value="{if $order->hasBeenDelivered()}{l s='Return products'}{elseif $order->hasBeenPaid()}{l s='Refund products'}{else}{l s='Cancel products'}{/if}" class="btn btn-default" />
+				</div>
 				{/if}
 			</div>
 			<div style="display:none;" class="partial_refund_fields">
@@ -1100,7 +1115,7 @@
 						{l s='Generate a voucher'}
 					</label>
 				</p>
-				<button type="submit" name="partialRefund" class="btn btn-default" />
+				<button type="submit" name="partialRefund" class="btn btn-default">
 					<i class="icon-ok"></i>
 					{l s='Partial refund'}
 				</button>
@@ -1133,7 +1148,9 @@
 	{/if}
 
 	<script type="text/javascript">
-		$(".textarea-autosize").autosize();
+		$(document).ready(function(){
+			$(".textarea-autosize").autosize();
+		});
  	</script>
 
 {/block}

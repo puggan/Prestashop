@@ -1,6 +1,6 @@
 <?php
 /*
-* 2007-2013 PrestaShop
+* 2007-2014 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -19,7 +19,7 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author PrestaShop SA <contact@prestashop.com>
-*  @copyright  2007-2013 PrestaShop SA
+*  @copyright  2007-2014 PrestaShop SA
 *  @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
@@ -98,13 +98,13 @@ class AdminPerformanceControllerCore extends AdminController
 						array(
 							'id' => 'smarty_console_none',
 							'value' => 0,
-							'label' => $this->l('Do not open console')
+							'label' => $this->l('Do not open console.')
 						),
 						array(
 							'id' => 'smarty_console_url',
 							'value' => 1,
 							'label' => $this->l('Open console with URL parameter (SMARTY_DEBUG)'),
-							'hint' => $this->l('To open the debug console, you simply pass the SMARTY_DEBUG parameter in the URL.')
+							'hint' => $this->l('To open the debug console, simply pass the SMARTY_DEBUG=1 parameter in the URL.')
 						),
 						array(
 							'id' => 'smarty_console_open',
@@ -116,10 +116,13 @@ class AdminPerformanceControllerCore extends AdminController
 				),
 				array(
 					'type' => 'text',
-					'label' => $this->l('Debug console Key'),
+					'label' => $this->l('Debug console key'),
 					'name' => 'smarty_console_key',
-					'hint' => $this->l('SMARTY_DEBUG parameter in the URL.')
+					'hint' => $this->l('You can change the URL parameter for the console (default is SMARTY_DEBUG).')
 				),
+			),
+			'submit' => array(
+				'title' => $this->l('Save')
 			)
 		);
 
@@ -175,8 +178,11 @@ class AdminPerformanceControllerCore extends AdminController
 							'label' => $this->l('Disabled')
 						)
 					),
-					'hint' => $this->l('Enable or disable all classes and controllers overrides')
+					'hint' => $this->l('Enable or disable all classes and controllers overrides.')
 				),
+			),
+			'submit' => array(
+				'title' => $this->l('Save')
 			)
 		);
 
@@ -215,7 +221,8 @@ class AdminPerformanceControllerCore extends AdminController
 							'label' => $this->l('No')
 						)
 					),
-					'hint' => $this->l('These features will be disabled')
+					'hint' => $this->l('Choose "No" to disable Product Combinations.'),
+					'desc' => Combination::isCurrentlyUsed() ? $this->l('You cannot set this parameter to No when combinations are already used by some of your products') : null
 				),
 				array(
 					'type' => 'switch',
@@ -234,7 +241,7 @@ class AdminPerformanceControllerCore extends AdminController
 							'label' => $this->l('No')
 						)
 					),
-					'hint' => $this->l('These features will be disabled')
+					'hint' => $this->l('Choose "No" to disable Product Features.')
 				),
 				array(
 					'type' => 'switch',
@@ -254,8 +261,11 @@ class AdminPerformanceControllerCore extends AdminController
 							'label' => $this->l('No')
 						)
 					),
-					'hint' => $this->l('These features will be disabled')
+					'hint' => $this->l('Choose "No" to disable Customer Groups.')
 				)
+			),
+			'submit' => array(
+				'title' => $this->l('Save')
 			)
 		);
 
@@ -285,7 +295,7 @@ class AdminPerformanceControllerCore extends AdminController
 						array(
 							'id' => 'PS_CSS_THEME_CACHE_1',
 							'value' => 1,
-							'label' => $this->l('Use CCC for CSS.')
+							'label' => $this->l('Use CCC for CSS')
 						),
 						array(
 							'id' => 'PS_CSS_THEME_CACHE_0',
@@ -302,7 +312,7 @@ class AdminPerformanceControllerCore extends AdminController
 						array(
 							'id' => 'PS_JS_THEME_CACHE_1',
 							'value' => 1,
-							'label' => $this->l('Use CCC for JavaScript.')
+							'label' => $this->l('Use CCC for JavaScript')
 						),
 						array(
 							'id' => 'PS_JS_THEME_CACHE_0',
@@ -319,7 +329,7 @@ class AdminPerformanceControllerCore extends AdminController
 						array(
 							'id' => 'PS_HTML_THEME_COMPRESSION_1',
 							'value' => 1,
-							'label' => $this->l('Minify HTML after "smarty compile" execution.')
+							'label' => $this->l('Minify HTML after "Smarty compile" execution')
 						),
 						array(
 							'id' => 'PS_HTML_THEME_COMPRESSION_0',
@@ -336,7 +346,7 @@ class AdminPerformanceControllerCore extends AdminController
 						array(
 							'id' => 'PS_JS_HTML_THEME_COMPRESSION_1',
 							'value' => 1,
-							'label' => $this->l('Compress inline JavaScript in HTML after "smarty compile" execution.')
+							'label' => $this->l('Compress inline JavaScript in HTML after "Smarty compile" execution')
 						),
 						array(
 							'id' => 'PS_JS_HTML_THEME_COMPRESSION_0',
@@ -363,6 +373,9 @@ class AdminPerformanceControllerCore extends AdminController
 						),
 					),
 				)
+			),
+			'submit' => array(
+				'title' => $this->l('Save')
 			)
 		);
 
@@ -405,6 +418,9 @@ class AdminPerformanceControllerCore extends AdminController
 					'name' => '_MEDIA_SERVER_3_',
 					'hint' => $this->l('Name of the fourth domain of your shop, (e.g. myshop-media-server-3.com). If you do not have another domain, leave this field blank.')
 				),
+			),
+			'submit' => array(
+				'title' => $this->l('Save')
 			)
 		);
 
@@ -437,7 +453,7 @@ class AdminPerformanceControllerCore extends AdminController
 					'type' => 'radio',
 					'label' => $this->l('Algorithm'),
 					'name' => 'PS_CIPHER_ALGORITHM',
-					'hint' => $this->l('Mcrypt is faster than our custom BlowFish class, but requires the PHP extension "mcrypt". If you change this configuration, all cookies will be reset.'),
+					'hint' => $this->l('Mcrypt is faster than our custom BlowFish class, but requires the "mcrypt" PHP extension. If you change this configuration, all cookies will be reset.'),
 					'values' => array(
 						array(
 							'id' => 'PS_CIPHER_ALGORITHM_1',
@@ -453,9 +469,8 @@ class AdminPerformanceControllerCore extends AdminController
 				)
 			),
 			'submit' => array(
-				'title' => $this->l('   Save   '),
-				'class' => 'button'
-			),
+				'title' => $this->l('Save')
+			)
 		);
 
 		$this->fields_value['PS_CIPHER_ALGORITHM'] = Configuration::get('PS_CIPHER_ALGORITHM');
@@ -543,6 +558,9 @@ class AdminPerformanceControllerCore extends AdminController
 					'name' => 'ps_cache_fs_directory_depth'
 				),
 			),
+			'submit' => array(
+				'title' => $this->l('Save')
+			),
 			'memcachedServers' => true
 		);
 
@@ -590,7 +608,9 @@ class AdminPerformanceControllerCore extends AdminController
 			'url_post' => self::$currentIndex.'&token='.$this->token,			
 			'show_page_header_toolbar' => $this->show_page_header_toolbar,
 			'page_header_toolbar_title' => $this->page_header_toolbar_title,
-			'page_header_toolbar_btn' => $this->page_header_toolbar_btn
+			'page_header_toolbar_btn' => $this->page_header_toolbar_btn,
+			'title' => $this->page_header_toolbar_title,
+			'toolbar_btn' => $this->page_header_toolbar_btn
 		));
 	}
 
@@ -724,6 +744,8 @@ class AdminPerformanceControllerCore extends AdminController
 					else
 						Configuration::updateValue('PS_MEDIA_SERVERS', 0);
 					rewriteSettingsFile($base_urls, null, null);
+					Tools::clearSmartyCache();
+					Media::clearCache();
 					Tools::generateHtaccess(null, null, null, '', null, array($base_urls['_MEDIA_SERVER_1_'], $base_urls['_MEDIA_SERVER_2_'], $base_urls['_MEDIA_SERVER_3_']));
 					unset($this->_fieldsGeneral['_MEDIA_SERVER_1_']);
 					unset($this->_fieldsGeneral['_MEDIA_SERVER_2_']);
@@ -744,7 +766,7 @@ class AdminPerformanceControllerCore extends AdminController
 				if ($algo)
 				{
 					if (!function_exists('mcrypt_encrypt'))
-						$this->errors[] = Tools::displayError('The PHP "Mcrypt" extension is not activated on this server.');
+						$this->errors[] = Tools::displayError('The "Mcrypt" PHP extension is not activated on this server.');
 					else
 					{
 						if (!strstr($new_settings, '_RIJNDAEL_KEY_'))
@@ -822,11 +844,14 @@ class AdminPerformanceControllerCore extends AdminController
 					elseif ($caching_system == 'CacheXcache' && !ini_get('xcache.var_size'))
 						$this->errors[] = Tools::displayError('To use Xcache, you must configure "xcache.var_size" for the Xcache extension (recommended value 16M to 64M).').'
 							<a href="http://xcache.lighttpd.net/wiki/XcacheIni">http://xcache.lighttpd.net/wiki/XcacheIni</a>';						
-					elseif ($caching_system == 'CacheFs' && !is_writable(_PS_CACHEFS_DIRECTORY_))
-						$this->errors[] = sprintf(
-							Tools::displayError('To use CacheFS, the directory %s must be writable.'),
-							realpath(_PS_CACHEFS_DIRECTORY_)
-						);
+					elseif ($caching_system == 'CacheFs')
+						if (!is_dir(_PS_CACHEFS_DIRECTORY_))
+							@mkdir(_PS_CACHEFS_DIRECTORY_, 0777, true);
+						elseif  (!is_writable(_PS_CACHEFS_DIRECTORY_))
+							$this->errors[] = sprintf(
+								Tools::displayError('To use CacheFS, the directory %s must be writable.'),
+								realpath(_PS_CACHEFS_DIRECTORY_)
+							);
 
 					if ($caching_system == 'CacheFs')
 					{
@@ -864,7 +889,9 @@ class AdminPerformanceControllerCore extends AdminController
 		{
 			$redirectAdmin = true;
 			Tools::clearSmartyCache();
-			Autoload::getInstance()->generateIndex();
+			Tools::clearXMLCache();
+			Media::clearCache();
+			PrestaShopAutoload::getInstance()->generateIndex();
 		}
 
 		if (Tools::isSubmit('submitAddconfiguration') && _PS_MODE_DEV_)
@@ -873,9 +900,9 @@ class AdminPerformanceControllerCore extends AdminController
 			Configuration::updateGlobalValue('PS_DISABLE_OVERRIDES', (int)Tools::getValue('overrides'));
 
 			if (Tools::getValue('overrides'))
-				Autoload::getInstance()->_include_override_path = false;
+				PrestaShopAutoload::getInstance()->_include_override_path = false;
 
-			Autoload::getInstance()->generateIndex();
+			PrestaShopAutoload::getInstance()->generateIndex();
 		}
 
 		if ($redirectAdmin && (!isset($this->errors) || !count($this->errors)))

@@ -1,6 +1,6 @@
 <?php
 /*
-* 2007-2013 PrestaShop
+* 2007-2014 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -19,7 +19,7 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author PrestaShop SA <contact@prestashop.com>
-*  @copyright  2007-2013 PrestaShop SA
+*  @copyright  2007-2014 PrestaShop SA
 *  @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
@@ -160,7 +160,7 @@ class AdminFeaturesControllerCore extends AdminController
 			'input' => array(
 				array(
 					'type' => 'text',
-					'label' => $this->l('Name:'),
+					'label' => $this->l('Name'),
 					'name' => 'name',
 					'lang' => true,
 					'size' => 33,
@@ -174,14 +174,13 @@ class AdminFeaturesControllerCore extends AdminController
 		{
 			$this->fields_form['input'][] = array(
 				'type' => 'shop',
-				'label' => $this->l('Shop association:'),
+				'label' => $this->l('Shop association'),
 				'name' => 'checkBoxShopAsso',
 			);
 		}
 
 		$this->fields_form['submit'] = array(
-			'title' => $this->l('   Save   '),
-			'class' => 'button'
+			'title' => $this->l('Save'),
 		);
 
 		return parent::renderForm();
@@ -192,14 +191,14 @@ class AdminFeaturesControllerCore extends AdminController
 		if (empty($this->display))
 		{
 			$this->page_header_toolbar_btn['new_feature'] = array(
-				'href' => self::$currentIndex.'&amp;addfeature&amp;token='.$this->token,
-				'desc' => $this->l('Add new feature'),
+				'href' => self::$currentIndex.'&addfeature&token='.$this->token,
+				'desc' => $this->l('Add new feature', null, null, false),
 				'icon' => 'process-icon-new'
 			);
 
 			$this->page_header_toolbar_btn['new_feature_value'] = array(
 				'href' => self::$currentIndex.'&addfeature_value&id_feature='.(int)Tools::getValue('id_feature').'&token='.$this->token,
-				'desc' => $this->l('Add new feature value'),
+				'desc' => $this->l('Add new feature value', null, null, false),
 				'icon' => 'process-icon-new'
 			);
 		}
@@ -207,7 +206,7 @@ class AdminFeaturesControllerCore extends AdminController
 		if ($this->display == 'view')
 			$this->page_header_toolbar_btn['new_feature_value'] = array(
 				'href' => self::$currentIndex.'&addfeature_value&id_feature='.(int)Tools::getValue('id_feature').'&token='.$this->token,
-				'desc' => $this->l('Add new feature value'),
+				'desc' => $this->l('Add new feature value', null, null, false),
 				'icon' => 'process-icon-new'
 			);
 
@@ -319,7 +318,7 @@ class AdminFeaturesControllerCore extends AdminController
 			'input' => array(
 				array(
 					'type' => 'select',
-					'label' => $this->l('Feature:'),
+					'label' => $this->l('Feature'),
 					'name' => 'id_feature',
 					'options' => array(
 						'query' => Feature::getFeatures($this->context->language->id),
@@ -330,7 +329,7 @@ class AdminFeaturesControllerCore extends AdminController
 				),
 				array(
 					'type' => 'text',
-					'label' => $this->l('Value:'),
+					'label' => $this->l('Value'),
 					'name' => 'value',
 					'lang' => true,
 					'size' => 33,
@@ -339,8 +338,7 @@ class AdminFeaturesControllerCore extends AdminController
 				),
 			),
 			'submit' => array(
-				'title' => $this->l('   Save   '),
-				'class' => 'button'
+				'title' => $this->l('Save'),
 			)
 		);
 
@@ -355,6 +353,15 @@ class AdminFeaturesControllerCore extends AdminController
 
 		$this->getlanguages();
 		$helper = new HelperForm();
+		$helper->show_cancel_button = true;
+
+		$back = Tools::safeOutput(Tools::getValue('back', ''));
+		if (empty($back))
+			$back = self::$currentIndex.'&token='.$this->token;
+		if (!Validate::isCleanHtml($back))
+			die(Tools::displayError());
+
+		$helper->back_url = $back;
 		$helper->currentIndex = self::$currentIndex;
 		$helper->token = $this->token;
 		$helper->table = $this->table;

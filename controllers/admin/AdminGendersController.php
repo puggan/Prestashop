@@ -1,6 +1,6 @@
 <?php
 /*
-* 2007-2013 PrestaShop
+* 2007-2014 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -19,7 +19,7 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author PrestaShop SA <contact@prestashop.com>
-*  @copyright  2007-2013 PrestaShop SA
+*  @copyright  2007-2014 PrestaShop SA
 *  @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
@@ -89,8 +89,8 @@ class AdminGendersControllerCore extends AdminController
 	{
 		if(empty($this->display))
 			$this->page_header_toolbar_btn['new_gender'] = array(
-				'href' => self::$currentIndex.'&amp;addgender&amp;token='.$this->token,
-				'desc' => $this->l('Add new title'),
+				'href' => self::$currentIndex.'&addgender&token='.$this->token,
+				'desc' => $this->l('Add new title', null, null, false),
 				'icon' => 'process-icon-new'
 			);
 
@@ -107,7 +107,7 @@ class AdminGendersControllerCore extends AdminController
 			'input' => array(
 				array(
 					'type' => 'text',
-					'label' => $this->l('Name:'),
+					'label' => $this->l('Name'),
 					'name' => 'name',
 					'lang' => true,
 					'col' => 4,
@@ -116,7 +116,7 @@ class AdminGendersControllerCore extends AdminController
 				),
 				array(
 					'type' => 'radio',
-					'label' => $this->l('Type:'),
+					'label' => $this->l('Type'),
 					'name' => 'type',
 					'required' => false,
 					'class' => 't',
@@ -140,21 +140,21 @@ class AdminGendersControllerCore extends AdminController
 				),
 				array(
 					'type' => 'file',
-					'label' => $this->l('Image:'),
+					'label' => $this->l('Image'),
 					'name' => 'image',
 					'col' => 6,
 					'value' => true
 				),
 				array(
 					'type' => 'text',
-					'label' => $this->l('Image Width:'),
+					'label' => $this->l('Image Width'),
 					'name' => 'img_width',
 					'col' => 2,
 					'hint' => $this->l('Image width in pixels. Enter "0" to use the original size.')
 				),
 				array(
 					'type' => 'text',
-					'label' => $this->l('Image Height:'),
+					'label' => $this->l('Image Height'),
 					'name' => 'img_height',
 					'col' => 2,
 					'hint' => $this->l('Image height in pixels. Enter "0" to use the original size.')
@@ -162,7 +162,6 @@ class AdminGendersControllerCore extends AdminController
 			),
 			'submit' => array(
 				'title' => $this->l('Save'),
-				'class' => 'btn btn-default'
 			)
 		);
 

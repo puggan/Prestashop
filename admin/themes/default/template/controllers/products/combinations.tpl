@@ -1,5 +1,5 @@
 {*
-* 2007-2013 PrestaShop
+* 2007-2014 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -18,7 +18,7 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author PrestaShop SA <contact@prestashop.com>
-*  @copyright  2007-2013 PrestaShop SA
+*  @copyright  2007-2014 PrestaShop SA
 *  @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 *}
@@ -135,16 +135,18 @@
 			<label class="control-label col-lg-3" for="attribute_wholesale_price">
 				{include file="controllers/products/multishop/checkbox.tpl" field="attribute_wholesale_price" type="default"}
 				<span class="label-tooltip" data-toggle="tooltip"
-					title="{l s='Leave blank if the price does not change'}">
+					title="{l s='Set to zero if the price does not change'}">
 					{l s='Wholesale price:'}
 				</span>
 			</label>
-			<div class="input-group col-lg-2">
-				<span class="input-group-addon">
-					{if $currency->format % 2 != 0}{$currency->sign}{/if}
-					{if $currency->format % 2 == 0}{$currency->sign}{/if}
-				</span>
-				<input type="text" name="attribute_wholesale_price" id="attribute_wholesale_price" value="" onKeyUp="if (isArrowKey(event)) return ;this.value = this.value.replace(/,/g, '.');" />
+			<div class="col-lg-9">
+				<div class="input-group col-lg-2">
+					<span class="input-group-addon">
+						{if $currency->format % 2 != 0}{$currency->sign}{/if}
+						{if $currency->format % 2 == 0}{$currency->sign}{/if}
+					</span>
+					<input type="text" name="attribute_wholesale_price" id="attribute_wholesale_price" value="0" onKeyUp="if (isArrowKey(event)) return ;this.value = this.value.replace(/,/g, '.');" />
+				</div>
 			</div>
 			<span style="display:none;" id="attribute_wholesale_price_full">({l s='Overrides wholesale price on "Information" tab'})</span>
 		</div>
@@ -163,9 +165,9 @@
 						</select>
 					</div>
 					<div id="span_impact" class="col-lg-8">
-						<div class="row">
+						<div class="form-group">
 							<label class="control-label col-lg-1" for="attribute_price">
-								{l s='of'}			
+								{l s='of'}
 							</label>
 							<div class="input-group col-lg-5">
 								<div class="input-group-addon">
@@ -179,6 +181,8 @@
 
 								<input type="text" id="attribute_price" value="0.00" onkeyup="$('#attribute_priceTEReal').val(this.value.replace(/,/g, '.')); if (isArrowKey(event)) return ;this.value = this.value.replace(/,/g, '.'); calcImpactPriceTI();"/>
 							</div>
+						</div>
+						<div class="form-group">
 							<label class="control-label col-lg-1" for="attribute_priceTI">
 									{l s='or'}
 							</label>
@@ -289,9 +293,11 @@
 					{l s='Minimum quantity:'}
 				</span>
 			</label>
-			<div class="input-group col-lg-2">
-				<div class="input-group-addon">&times;</div>
-				<input maxlength="6" name="attribute_minimal_quantity" id="attribute_minimal_quantity" type="text" value="{$minimal_quantity}" />
+			<div class="col-lg-9">
+				<div class="input-group col-lg-2">
+					<div class="input-group-addon">&times;</div>
+					<input maxlength="6" name="attribute_minimal_quantity" id="attribute_minimal_quantity" type="text" value="{$minimal_quantity}" />
+				</div>
 			</div>
 		</div>
 		<div class="form-group">
@@ -302,10 +308,12 @@
 					{l s='Available date:'}
 				</span>
 			</label>
-			<div class="input-group col-lg-3">
-				<input class="datepicker" id="available_date_attribute" name="available_date_attribute" value="{$available_date}" type="text" />
-				<div class="input-group-addon">
-					<i class="icon-calendar-empty"></i>
+			<div class="col-lg-9">
+				<div class="input-group col-lg-3">
+					<input class="datepicker" id="available_date_attribute" name="available_date_attribute" value="{$available_date}" type="text" />
+					<div class="input-group-addon">
+						<i class="icon-calendar-empty"></i>
+					</div>
 				</div>
 			</div>
 		</div>
@@ -348,5 +356,11 @@
 		</div>
 	</div>
 	{$list}
+	<div class="panel-footer">
+		<a href="{$link->getAdminLink('AdminProducts')}" class="btn btn-default"><i class="process-icon-cancel"></i> {l s='Cancel'}</a>
+		<button type="submit" name="submitAddproduct" class="btn btn-default pull-right"><i class="process-icon-save"></i> {l s='Save'}</button>
+		<button type="submit" name="submitAddproductAndStay" class="btn btn-default pull-right"><i class="process-icon-save"></i> {l s='Save and stay'}</button>
+		<a href="#" id="desc-product-newCombination" class="btn btn-default pull-right"><i class="process-icon-new"></i> <span>{l s="New combination"}</span></a>
+	</div>
 </div>
 {/if}

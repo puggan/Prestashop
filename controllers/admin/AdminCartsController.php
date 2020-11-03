@@ -1,6 +1,6 @@
 <?php
 /*
-* 2007-2013 PrestaShop
+* 2007-2014 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -19,7 +19,7 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author PrestaShop SA <contact@prestashop.com>
-*  @copyright  2007-2013 PrestaShop SA
+*  @copyright  2007-2014 PrestaShop SA
 *  @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
@@ -66,9 +66,9 @@ class AdminCartsControllerCore extends AdminController
 				'callback' => 'getOrderTotalUsingTaxCalculationMethod',
 				'orderby' => false,
 				'search' => false,
-				'align' => 'right',
-				'prefix' => '<b>',
-				'suffix' => '</b>',
+				'align' => 'text-right',
+				'prefix' => '<span class="badge">',
+				'suffix' => '</span>',
 			),
 			'carrier' => array(
 				'title' => $this->l('Carrier'),
@@ -99,8 +99,8 @@ class AdminCartsControllerCore extends AdminController
 	{
 		if (empty($this->display))
 			$this->page_header_toolbar_btn['export_cart'] = array(
-				'href' => self::$currentIndex.'&amp;exportcart&amp;token='.$this->token,
-				'desc' => $this->l('Export carts'),
+				'href' => self::$currentIndex.'&exportcart&token='.$this->token,
+				'desc' => $this->l('Export carts', null, null, false),
 				'icon' => 'process-icon-export'
 			);
 
@@ -579,30 +579,7 @@ class AdminCartsControllerCore extends AdminController
 		if (count($summary['discounts']))
 			foreach ($summary['discounts'] as &$voucher)
 				$voucher['value_real'] = Tools::displayPrice($voucher['value_real'], $currency);
-		$summary['total_products'] = str_replace(
-			$currency->sign, '',
-			Tools::displayPrice($summary['total_products'], $currency)
-		);
-		$summary['total_discounts_tax_exc'] = str_replace(
-			$currency->sign, '',
-			Tools::displayPrice($summary['total_discounts_tax_exc'], $currency)
-		);
-		$summary['total_shipping_tax_exc'] = str_replace(
-			$currency->sign, '',
-			Tools::displayPrice($summary['total_shipping_tax_exc'], $currency)
-		);
-		$summary['total_tax'] = str_replace(
-			$currency->sign, '',
-			Tools::displayPrice($summary['total_tax'], $currency)
-		);
-		$summary['total_price_without_tax'] = str_replace(
-			$currency->sign, '',
-			Tools::displayPrice($summary['total_price_without_tax'], $currency)
-		);
-		$summary['total_price'] = str_replace(
-			$currency->sign, '',
-			Tools::displayPrice($summary['total_price'], $currency)
-		);
+
 		if (isset($summary['gift_products']) && count($summary['gift_products']))
 			foreach ($summary['gift_products'] as &$product)
 			{
@@ -702,12 +679,21 @@ class AdminCartsControllerCore extends AdminController
 					$free_shipping = true;
 					break;
 				}
+
+		$addresses = $this->context->customer->getAddresses((int)$this->context->cart->id_lang);
+
+		foreach ($addresses as &$data)
+		{
+			$address = new Address((int)$data['id_address']);
+			$data['formated_address'] = AddressFormat::generateAddress($address, array(), "<br />");
+		}
+
 		return array(
 			'summary' => $this->getCartSummary(),
 			'delivery_option_list' => $this->getDeliveryOptionList(),
 			'cart' => $this->context->cart,
 			'currency' => new Currency($this->context->cart->id_currency),
-			'addresses' => $this->context->customer->getAddresses((int)$this->context->cart->id_lang),
+			'addresses' => $addresses,
 			'id_cart' => $id_cart,
 			'order_message' => $message_content,
 			'link_order' => $this->context->link->getPageLink(

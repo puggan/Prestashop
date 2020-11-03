@@ -1,6 +1,6 @@
 <?php
 /*
-* 2007-2013 PrestaShop
+* 2007-2014 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -19,7 +19,7 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author PrestaShop SA <contact@prestashop.com>
-*  @copyright  2007-2013 PrestaShop SA
+*  @copyright  2007-2014 PrestaShop SA
 *  @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
@@ -37,15 +37,16 @@ class AdminLoginControllerCore extends AdminController
 		$this->meta_title = $this->l('Administration panel');
 
 		parent::__construct();
+
+		if (!headers_sent())
+			header('Login: true');
 	}
 
 	public function setMedia()
 	{
-		$admin_webpath = str_ireplace(_PS_ROOT_DIR_, '', _PS_ADMIN_DIR_);
-		$admin_webpath = preg_replace('/^'.preg_quote(DIRECTORY_SEPARATOR, '/').'/', '', $admin_webpath);
 		$this->addJquery();
-		$this->addCSS('/'.$admin_webpath.'/themes/'.$this->bo_theme.'/css/admin-theme.css');
-		$this->addJS(_PS_JS_DIR_.'vendor/jquery.validate.js');
+		$this->addjqueryPlugin('validate');
+		$this->addCSS(__PS_BASE_URI__.$this->admin_webpath.'/themes/'.$this->bo_theme.'/css/admin-theme.css');
 		$this->addJS(_PS_JS_DIR_.'vendor/spin.js');
 		$this->addJS(_PS_JS_DIR_.'vendor/ladda.js');
 		$this->addJS(_PS_JS_DIR_.'login.js');
@@ -53,7 +54,7 @@ class AdminLoginControllerCore extends AdminController
 	
 	public function initContent()
 	{
-		if ((empty($_SERVER['HTTPS']) || strtolower($_SERVER['HTTPS']) == 'off') && Configuration::get('PS_SSL_ENABLED'))
+		if (Tools::usingSecureMode() && Configuration::get('PS_SSL_ENABLED'))
 		{
 			// You can uncomment these lines if you want to force https even from localhost and automatically redirect
 			// header('HTTP/1.1 301 Moved Permanently');

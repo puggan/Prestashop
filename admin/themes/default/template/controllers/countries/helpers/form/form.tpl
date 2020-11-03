@@ -1,5 +1,5 @@
 {*
-* 2007-2013 PrestaShop
+* 2007-2014 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -18,7 +18,7 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author PrestaShop SA <contact@prestashop.com>
-*  @copyright  2007-2013 PrestaShop SA
+*  @copyright  2007-2014 PrestaShop SA
 *  @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 *}
@@ -56,21 +56,21 @@
 
 {block name="input_row"}
 	{if $input.name == 'standardization'}
-		<div class="row" id="TAASC" style="display: none;">
+		<div class="form-group" id="TAASC" style="display: none;">
 			<label for="{$input.name}" class="control-label col-lg-3 ">{$input.label}</label>
 			<div class="col-lg-9">
 				<div class="row">
 					<div class="input-group col-lg-2">
 						<span class="switch prestashop-switch">
 							<input type="radio" name="{$input.name}" id="{$input.name}_on" value="1">
-							<label class="radio" for="{$input.name}_on">
-								<i class="icon-check-sign color_success"></i> {l s='Yes'}
+							<label for="{$input.name}_on">
+								{l s='Yes'}
 							</label>
 							<input type="radio" name="{$input.name}" id="{$input.name}_off" value="0" checked="checked">
-							<label class="radio" for="{$input.name}_off">
-								<i class="icon-ban-circle color_danger"></i> {l s='No'}
+							<label for="{$input.name}_off">
+								{l s='No'}
 							</label>
-							<a class="slide-button btn btn-default"></a>
+							<a class="slide-button btn"></a>
 						</span>
 					</div>
 				</div>

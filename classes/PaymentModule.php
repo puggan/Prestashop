@@ -1,6 +1,6 @@
 <?php
 /*
-* 2007-2013 PrestaShop
+* 2007-2014 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -19,7 +19,7 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author PrestaShop SA <contact@prestashop.com>
-*  @copyright  2007-2013 PrestaShop SA
+*  @copyright  2007-2014 PrestaShop SA
 *  @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
@@ -179,7 +179,11 @@ abstract class PaymentModuleCore extends Module
 
 			$order_list = array();
 			$order_detail_list = array();
-			$reference = Order::generateReference();
+			
+			do
+				$reference = Order::generateReference();
+			while(Order::getByReference($reference)->count());
+			
 			$this->currentOrderReference = $reference;
 
 			$order_creation_failed = false;
@@ -384,22 +388,142 @@ abstract class PaymentModuleCore extends Module
 							$customization_quantity = (int)$product['customization_quantity'];
 							$products_list .=
 							'<tr>
-								<td>'.$product['reference'].'</td>
-								<td width="30%"><strong>'.$product['name'].(isset($product['attributes']) ? ' - '.$product['attributes'] : '').' - '.Tools::displayError('Customized').(!empty($customization_text) ? ' - '.$customization_text : '').'</strong></td>
-								<td>'.Tools::displayPrice(Product::getTaxCalculationMethod() == PS_TAX_EXC ?  Tools::ps_round($price, 2) : $price_wt, $this->context->currency, false).'</td>
-								<td>'.$customization_quantity.'</td>
-								<td>'.Tools::displayPrice($customization_quantity * (Product::getTaxCalculationMethod() == PS_TAX_EXC ? Tools::ps_round($price, 2) : $price_wt), $this->context->currency, false).'</td>
+								<td style="border:1px solid #D6D4D4;">
+									<table class="table">
+										<tr>
+											<td width="10">&nbsp;</td>
+											<td>
+												<font size="2" face="Open-sans, sans-serif" color="#555454">
+													'.$product['reference'].'
+												</font>
+											</td>
+											<td width="10">&nbsp;</td>
+										</tr>
+									</table>
+								</td>
+								<td style="border:1px solid #D6D4D4;">
+									<table class="table">
+											<tr>
+												<td width="10">&nbsp;</td>
+												<td>
+													<font size="2" face="Open-sans, sans-serif" color="#555454">
+														<strong>'.$product['name'].(isset($product['attributes']) ? ' - '.$product['attributes'] : '').' - '.Tools::displayError('Customized').(!empty($customization_text) ? ' - '.$customization_text : '').'</strong>
+													</font>
+												</td>
+											<td width="10">&nbsp;</td>
+										</tr>
+									</table>
+								</td>
+								<td style="border:1px solid #D6D4D4;">
+									<table class="table">
+										<tr>
+											<td width="10">&nbsp;</td>
+											<td align="right">
+												<font size="2" face="Open-sans, sans-serif" color="#555454">
+													'.Tools::displayPrice(Product::getTaxCalculationMethod() == PS_TAX_EXC ?  Tools::ps_round($price, 2) : $price_wt, $this->context->currency, false).'
+												</font>
+											</td>
+											<td width="10">&nbsp;</td>
+										</tr>
+									</table>
+								</td>
+								<td style="border:1px solid #D6D4D4;">
+									<table class="table">
+										<tr>
+											<td width="10">&nbsp;</td>
+											<td align="right">
+												<font size="2" face="Open-sans, sans-serif" color="#555454">
+													'.$customization_quantity.'
+												</font>
+											</td>
+											<td width="10">&nbsp;</td>
+										</tr>
+									</table>
+								</td>
+								<td style="border:1px solid #D6D4D4;">
+									<table class="table">
+										<tr>
+											<td width="10">&nbsp;</td>
+											<td align="right">
+												<font size="2" face="Open-sans, sans-serif" color="#555454">
+													'.Tools::displayPrice($customization_quantity * (Product::getTaxCalculationMethod() == PS_TAX_EXC ? Tools::ps_round($price, 2) : $price_wt), $this->context->currency, false).'
+												</font>
+											</td>
+											<td width="10">&nbsp;</td>
+										</tr>
+									</table>
+								</td>
 							</tr>';
 						}
 
 						if (!$customization_quantity || (int)$product['cart_quantity'] > $customization_quantity)
 							$products_list .=
 							'<tr>
-								<td>'.$product['reference'].'</td>
-								<td width="30%"><strong>'.$product['name'].(isset($product['attributes']) ? ' - '.$product['attributes'] : '').'</strong></td>
-								<td>'.Tools::displayPrice(Product::getTaxCalculationMethod((int)$this->context->customer->id) == PS_TAX_EXC ? Tools::ps_round($price, 2) : $price_wt, $this->context->currency, false).'</td>
-								<td>'.((int)$product['cart_quantity'] - $customization_quantity).'</td>
-								<td>'.Tools::displayPrice(((int)$product['cart_quantity'] - $customization_quantity) * (Product::getTaxCalculationMethod() == PS_TAX_EXC ? Tools::ps_round($price, 2) : $price_wt), $this->context->currency, false).'</td>
+								<td style="border:1px solid #D6D4D4;">
+									<table class="table">
+										<tr>
+											<td width="10">&nbsp;</td>
+											<td>
+												<font size="2" face="Open-sans, sans-serif" color="#555454">
+													'.$product['reference'].'
+												</font>
+											</td>
+											<td width="10">&nbsp;</td>
+										</tr>
+									</table>
+								</td>
+								<td style="border:1px solid #D6D4D4;">
+									<table class="table">
+										<tr>
+											<td width="10">&nbsp;</td>
+											<td>
+												<font size="2" face="Open-sans, sans-serif" color="#555454">
+													<strong>'.$product['name'].(isset($product['attributes']) ? ' - '.$product['attributes'] : '').'</strong>
+												</font>
+											</td>
+											<td width="10">&nbsp;</td>
+										</tr>
+									</table>
+								</td>
+								<td style="border:1px solid #D6D4D4;">
+									<table class="table">
+										<tr>
+											<td width="10">&nbsp;</td>
+												<td align="right">
+													<font size="2" face="Open-sans, sans-serif" color="#555454">
+														'.Tools::displayPrice(Product::getTaxCalculationMethod((int)$this->context->customer->id) == PS_TAX_EXC ? Tools::ps_round($price, 2) : $price_wt, $this->context->currency, false).'
+													</font>
+												</td>
+											<td width="10">&nbsp;</td>
+										</tr>
+									</table>
+								</td>
+								<td style="border:1px solid #D6D4D4;">
+									<table class="table">
+										<tr>
+											<td width="10">&nbsp;</td>
+											<td align="right">
+												<font size="2" face="Open-sans, sans-serif" color="#555454">
+													'.((int)$product['cart_quantity'] - $customization_quantity).'
+												</font>
+											</td>
+											<td width="10">&nbsp;</td>
+										</tr>
+									</table>
+								</td>
+								<td style="border:1px solid #D6D4D4;">
+									<table class="table">
+										<tr>
+											<td width="10">&nbsp;</td>
+											<td align="right">
+												<font size="2" face="Open-sans, sans-serif" color="#555454">
+													'.Tools::displayPrice(((int)$product['cart_quantity'] - $customization_quantity) * (Product::getTaxCalculationMethod() == PS_TAX_EXC ? Tools::ps_round($price, 2) : $price_wt), $this->context->currency, false).'
+												</font>
+											</td>
+											<td width="10">&nbsp;</td>
+										</tr>
+									</table>
+								</td>
 							</tr>';
 
 						// Check if is not a virutal product for the displaying of shipping
@@ -445,9 +569,21 @@ abstract class PaymentModuleCore extends Module
 
 							// Set the new voucher value
 							if ($voucher->reduction_tax)
-								$voucher->reduction_amount = $values['tax_incl'] - ($order->total_products_wt - $total_reduction_value_ti) - ($voucher->free_shipping == 1 ? $order->total_shipping_tax_incl : 0);
+							{
+								$voucher->reduction_amount = $values['tax_incl'] - ($order->total_products_wt - $total_reduction_value_ti);
+
+								// Add total shipping amout only if reduction amount > total shipping
+								if ($voucher->free_shipping == 1 && $voucher->reduction_amount >= $order->total_shipping_tax_incl)
+									$voucher->reduction_amount -= $order->total_shipping_tax_incl;
+							}
 							else
-								$voucher->reduction_amount = $values['tax_excl'] - ($order->total_products - $total_reduction_value_tex) - ($voucher->free_shipping == 1 ? $order->total_shipping_tax_excl : 0);
+							{
+								$voucher->reduction_amount = $values['tax_excl'] - ($order->total_products - $total_reduction_value_tex);
+
+								// Add total shipping amout only if reduction amount > total shipping
+								if ($voucher->free_shipping == 1 && $voucher->reduction_amount >= $order->total_shipping_tax_excl)
+									$voucher->reduction_amount -= $order->total_shipping_tax_excl;
+							}
 
 							$voucher->id_customer = $order->id_customer;
 							$voucher->quantity = 1;
@@ -671,7 +807,7 @@ abstract class PaymentModuleCore extends Module
 				else
 				{
 					$error = Tools::displayError('Order creation failed');
-					Logger::addLog($error, 4, '0000002', 'Cart', intval($order->id_cart));
+					PrestaShopLogger::addLog($error, 4, '0000002', 'Cart', intval($order->id_cart));
 					die($error);
 				}
 			} // End foreach $order_detail_list
@@ -682,7 +818,7 @@ abstract class PaymentModuleCore extends Module
 		else
 		{
 			$error = Tools::displayError('Cart cannot be loaded or an order has already been placed using this cart');
-			Logger::addLog($error, 4, '0000001', 'Cart', intval($this->context->cart->id));
+			PrestaShopLogger::addLog($error, 4, '0000001', 'Cart', intval($this->context->cart->id));
 			die($error);
 		}
 	}

@@ -1,5 +1,5 @@
 /*
-* 2007-2013 PrestaShop
+* 2007-2014 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -18,7 +18,7 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author PrestaShop SA <contact@prestashop.com>
-*  @copyright  2007-2013 PrestaShop SA
+*  @copyright  2007-2014 PrestaShop SA
 *  @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
@@ -634,7 +634,6 @@ function init()
 					jAlert(data.error);
 			}
 		});
-
 		return false;
 	});
 
@@ -862,48 +861,33 @@ var flagRefund = '';
 
 $(document).ready(function() {
 	$('#desc-order-standard_refund').click(function() {
-
 		$('.cancel_product_change_link:visible').trigger('click');
 		closeAddProduct();
-
-		$.scrollTo('#refundForm', 1200, {offset: -100});
-
-		if (flagRefund == 'standard')
-		{
+		if (flagRefund == 'standard') {
 			flagRefund = '';
 			$('.partial_refund_fields').hide();
 			$('.standard_refund_fields').hide();
 		}
-		else
-		{
+		else {
 			flagRefund = 'standard';
 			$('.partial_refund_fields').hide();
 			$('.standard_refund_fields').fadeIn();
 		}
-		return false;
 	});
-
 	$('#desc-order-partial_refund').click(function() {
-
 		$('.cancel_product_change_link:visible').trigger('click');
 		closeAddProduct();
-
-		$.scrollTo('#refundForm', 1200, {offset: -100});
-
-		if (flagRefund == 'partial')
-		{
+		if (flagRefund == 'partial') {
 			flagRefund = '';
 			$('.partial_refund_fields').hide();
 			$('.standard_refund_fields').hide();
 		}
-		else
-		{
+		else {
 			flagRefund = 'partial';
 			$('.standard_refund_fields, .product_action, .order_action').hide();
 			$('.product_action').hide();
 			$('.partial_refund_fields').fadeIn();
 		}
-		return false;
 	});
 });
 

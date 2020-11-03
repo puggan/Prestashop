@@ -1,6 +1,6 @@
 <?php
 /*
-* 2007-2013 PrestaShop
+* 2007-2014 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -19,7 +19,7 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author PrestaShop SA <contact@prestashop.com>
-*  @copyright  2007-2013 PrestaShop SA
+*  @copyright  2007-2014 PrestaShop SA
 *  @license	http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
@@ -239,6 +239,9 @@ class OrderCore extends ObjectModel
 					'product_attribute_id' => array('required' => true),
 					'product_quantity' => array('required' => true),
 					'product_name' => array('setter' => false),
+					'product_reference' => array('setter' => false),
+					'product_ean13' => array('setter' => false),
+					'product_upc' => array('setter' => false),
 					'product_price' => array('setter' => false),
 					'unit_price_tax_incl' => array('setter' => false),
 					'unit_price_tax_excl' => array('setter' => false),
@@ -1137,9 +1140,9 @@ class OrderCore extends ObjectModel
 			$order_invoice = new OrderInvoice();
 			$order_invoice->id_order = $this->id;
 			$order_invoice->number = 0;
-			$invoice_address = new Address((int)$this->id_address_invoice);
+			$address = new Address((int)$this->{Configuration::get('PS_TAX_ADDRESS_TYPE')});
 			$carrier = new Carrier((int)$this->id_carrier);
-			$tax_calculator = $carrier->getTaxCalculator($invoice_address);
+			$tax_calculator = $carrier->getTaxCalculator($address);
 
 			$order_invoice->total_discount_tax_excl = $this->total_discounts_tax_excl;
 			$order_invoice->total_discount_tax_incl = $this->total_discounts_tax_incl;
@@ -1296,7 +1299,7 @@ class OrderCore extends ObjectModel
 	 */
 	public static function getByReference($reference)
 	{
-		$orders = new Collection('Order');
+		$orders = new PrestaShopCollection('Order');
 		$orders->where('reference', '=', $reference);
 		return $orders;
 	}
@@ -1354,9 +1357,22 @@ class OrderCore extends ObjectModel
 
 	public function getWsOrderRows()
 	{
-		$query = 'SELECT id_order_detail as `id`, `product_id`, `product_price`, `id_order`, `product_attribute_id`, `product_quantity`, `product_name`, `unit_price_tax_incl`, `unit_price_tax_excl`
-		FROM `'._DB_PREFIX_.'order_detail`
-		WHERE id_order = '.(int)$this->id;
+		$query = '
+			SELECT 
+			`id_order_detail` as `id`, 
+			`product_id`, 
+			`product_price`, 
+			`id_order`, 
+			`product_attribute_id`, 
+			`product_quantity`, 
+			`product_name`, 
+			`product_reference`,
+			`product_ean13`,
+			`product_upc`,
+			`unit_price_tax_incl`, 
+			`unit_price_tax_excl`
+			FROM `'._DB_PREFIX_.'order_detail`
+			WHERE id_order = '.(int)$this->id;
 		$result = Db::getInstance()->executeS($query);
 		return $result;
 	}
@@ -1484,7 +1500,7 @@ class OrderCore extends ObjectModel
 	 */
 	public function getOrderPaymentCollection()
 	{
-		$order_payments = new Collection('OrderPayment');
+		$order_payments = new PrestaShopCollection('OrderPayment');
 		$order_payments->where('order_reference', '=', $this->reference);
 		return $order_payments;
 	}
@@ -1608,7 +1624,7 @@ class OrderCore extends ObjectModel
 	 */
 	public function getOrderSlipsCollection()
 	{
-		$order_slips = new Collection('OrderSlip');
+		$order_slips = new PrestaShopCollection('OrderSlip');
 		$order_slips->where('id_order', '=', $this->id);
 		return $order_slips;
 	}
@@ -1621,7 +1637,7 @@ class OrderCore extends ObjectModel
 	 */
 	public function getInvoicesCollection()
 	{
-		$order_invoices = new Collection('OrderInvoice');
+		$order_invoices = new PrestaShopCollection('OrderInvoice');
 		$order_invoices->where('id_order', '=', $this->id);
 		return $order_invoices;
 	}
@@ -1634,7 +1650,7 @@ class OrderCore extends ObjectModel
 	 */
 	public function getDeliverySlipsCollection()
 	{
-		$order_invoices = new Collection('OrderInvoice');
+		$order_invoices = new PrestaShopCollection('OrderInvoice');
 		$order_invoices->where('id_order', '=', $this->id);
 		$order_invoices->where('delivery_number', '!=', '0');
 		return $order_invoices;
@@ -1897,7 +1913,7 @@ class OrderCore extends ObjectModel
 	 */
 	public function getBrother()
 	{
-		$collection = new Collection('order');
+		$collection = new PrestaShopCollection('order');
 		$collection->where('reference', '=', $this->reference);
 		$collection->where('id_order', '<>', $this->id);
 		return $collection;

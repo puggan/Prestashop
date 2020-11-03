@@ -1,6 +1,6 @@
 <?php
 /*
-* 2007-2013 PrestaShop
+* 2007-2014 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -19,7 +19,7 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author PrestaShop SA <contact@prestashop.com>
-*  @copyright  2007-2013 PrestaShop SA
+*  @copyright  2007-2014 PrestaShop SA
 *  @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
@@ -101,6 +101,8 @@ class AdminAttributesGroupsControllerCore extends AdminController
 			$this->table      = 'attribute';
 			$this->className  = 'Attribute';
 			$this->identifier = 'id_attribute';
+			$this->position_identifier = 'id_attribute';
+			$this->position_group_identifier = 'id_attribute_group';
 			$this->list_id    = 'attribute_values';
 			$this->lang       = true;
 
@@ -223,8 +225,7 @@ class AdminAttributesGroupsControllerCore extends AdminController
 		}
 
 		$this->fields_form['submit'] = array(
-			'title' => $this->l('Save   '),
-			'class' => 'button'
+			'title' => $this->l('Save'),
 		);
 
 		if (!($obj = $this->loadObject(true)))
@@ -240,6 +241,7 @@ class AdminAttributesGroupsControllerCore extends AdminController
 		$this->table = 'attribute';
 		$this->identifier = 'id_attribute';
 
+		$this->show_form_cancel_button = true;
 		$this->fields_form = array(
 			'legend' => array(
 				'title' => $this->l('Values'),
@@ -319,8 +321,17 @@ class AdminAttributesGroupsControllerCore extends AdminController
 		);
 
 		$this->fields_form['submit'] = array(
-			'title' => $this->l('Save   '),
-			'class' => 'button'
+			'title' => $this->l('Save'),
+		);
+
+		$this->fields_form['buttons'] = array(
+			'save-and-stay' => array(
+				'title' => $this->l('Save then add another value'),
+				'name' => 'submitAdd'.$this->table.'AndStay',
+				'type' => 'submit',
+				'class' => 'btn btn-default pull-right',
+				'icon' => 'process-icon-save'
+			)
 		);
 
 		$this->fields_value['id_attribute_group'] = (int)Tools::getValue('id_attribute_group');
@@ -375,6 +386,18 @@ class AdminAttributesGroupsControllerCore extends AdminController
 	 */
 	public function processAdd()
 	{
+		if ($this->table == 'attribute')
+		{
+			$object = new $this->className();
+			foreach (Language::getLanguages(false) as $language)
+				if ($object->isAttribute(Tools::getValue('name_'.$language['id_lang']), $language['id_lang']))
+					$this->errors['name_'.$language['id_lang']] = sprintf(Tools::displayError('The attribute value "%1$s" already exist for %2$s language'),
+						Tools::getValue('name_'.$language['id_lang']), $language['name']);
+
+			if (!empty($this->errors))
+				return $object;
+		}
+
 		$object = parent::processAdd();
 
 		if (Tools::isSubmit('submitAdd'.$this->table.'AndStay') && !count($this->errors))
@@ -469,21 +492,21 @@ class AdminAttributesGroupsControllerCore extends AdminController
 		if (empty($this->display))
 		{
 			$this->page_header_toolbar_btn['new_attribute_group'] = array(
-				'href' => self::$currentIndex.'&amp;addattribute_group&amp;token='.$this->token,
-				'desc' => $this->l('Add new attribute'),
+				'href' => self::$currentIndex.'&addattribute_group&token='.$this->token,
+				'desc' => $this->l('Add new attribute', null, null, false),
 				'icon' => 'process-icon-new'
 			);
 			$this->page_header_toolbar_btn['new_value'] = array(
-				'href' => self::$currentIndex.'&amp;updateattribute&id_attribute_group='.(int)Tools::getValue('id_attribute_group').'&amp;token='.$this->token,
-				'desc' => $this->l('Add new value'),
+				'href' => self::$currentIndex.'&updateattribute&id_attribute_group='.(int)Tools::getValue('id_attribute_group').'&token='.$this->token,
+				'desc' => $this->l('Add new value', null, null, false),
 				'icon' => 'process-icon-new'
 			);
 		}
 
 		if ($this->display == 'view')
 			$this->page_header_toolbar_btn['new_value'] = array(
-				'href' => self::$currentIndex.'&amp;updateattribute&id_attribute_group='.(int)Tools::getValue('id_attribute_group').'&amp;token='.$this->token,
-				'desc' => $this->l('Add new value'),
+				'href' => self::$currentIndex.'&updateattribute&id_attribute_group='.(int)Tools::getValue('id_attribute_group').'&token='.$this->token,
+				'desc' => $this->l('Add new value', null, null, false),
 				'icon' => 'process-icon-new'
 			);
 
@@ -508,36 +531,36 @@ class AdminAttributesGroupsControllerCore extends AdminController
 					$this->toolbar_btn['save-and-stay'] = array(
 						'short' => 'SaveAndStay',
 						'href' => '#',
-						'desc' => $this->l('Save then add another value'),
+						'desc' => $this->l('Save then add another value', null, null, false),
 						'force_desc' => true,
 					);
 
 				$this->toolbar_btn['back'] = array(
 					'href' => self::$currentIndex.'&token='.$this->token,
-					'desc' => $this->l('Back to list')
+					'desc' => $this->l('Back to list', null, null, false)
 				);
 				break;
 			case 'view':
 				$this->toolbar_btn['newAttributes'] = array(
-						'href' => self::$currentIndex.'&amp;updateattribute&id_attribute_group='.(int)Tools::getValue('id_attribute_group').'&amp;token='.$this->token,
-						'desc' => $this->l('Add New Values'),
+						'href' => self::$currentIndex.'&updateattribute&id_attribute_group='.(int)Tools::getValue('id_attribute_group').'&token='.$this->token,
+						'desc' => $this->l('Add New Values', null, null, false),
 						'class' => 'toolbar-new'
 					);
 
 				$this->toolbar_btn['back'] = array(
 					'href' => self::$currentIndex.'&token='.$this->token,
-					'desc' => $this->l('Back to list')
+					'desc' => $this->l('Back to list', null, null, false)
 				);
 				break;
 			default: // list
 				$this->toolbar_btn['new'] = array(
-					'href' => self::$currentIndex.'&amp;add'.$this->table.'&amp;token='.$this->token,
-					'desc' => $this->l('Add New Attributes')
+					'href' => self::$currentIndex.'&add'.$this->table.'&token='.$this->token,
+					'desc' => $this->l('Add New Attributes', null, null, false)
 				);
 		}
 			$this->toolbar_btn['import'] = array(
 					'href' => $this->context->link->getAdminLink('AdminImport', true).'&import_type=combinations',
-					'desc' => $this->l('Import')
+					'desc' => $this->l('Import', null, null, false)
 				);
 	}
 
@@ -621,6 +644,32 @@ class AdminAttributesGroupsControllerCore extends AdminController
 			if ($this->display == 'edit')
 				$this->display = 'editAttributes';
 		}
+	}
+
+	public function processPosition()
+	{
+		if (Tools::getIsset('viewattribute_group'))
+		{
+			$object = new Attribute((int)Tools::getValue('id_attribute'));
+			self::$currentIndex = self::$currentIndex.'&viewattribute_group';
+		}
+		else
+			$object = new AttributeGroup((int)Tools::getValue('id_attribute_group'));
+
+		if (!Validate::isLoadedObject($object))
+		{
+			$this->errors[] = Tools::displayError('An error occurred while updating the status for an object.').
+				' <b>'.$this->table.'</b> '.Tools::displayError('(cannot load object)');
+		}
+		elseif (!$object->updatePosition((int)Tools::getValue('way'), (int)Tools::getValue('position')))
+			$this->errors[] = Tools::displayError('Failed to update the position.');
+		else
+		{
+			$id_identifier_str = ($id_identifier = (int)Tools::getValue($this->identifier)) ? '&'.$this->identifier.'='.$id_identifier : '';
+			$redirect = self::$currentIndex.'&'.$this->table.'Orderby=position&'.$this->table.'Orderway=asc&conf=5'.$id_identifier_str.'&token='.$this->token;
+			$this->redirect_after = $redirect;
+		}
+		return $object;
 	}
 
 	/**
@@ -844,7 +893,7 @@ class AdminAttributesGroupsControllerCore extends AdminController
 			{
 				$pos = explode('_', $value);
 
-				if ((isset($pos[1]) && isset($pos[2])) && ($pos[1] == $id_attribute_group && (int)$pos[2] === $id_attribute))
+				if ((isset($pos[1]) && isset($pos[2])) && (int)$pos[2] === $id_attribute)
 				{
 					if ($attribute = new Attribute((int)$pos[2]))
 						if (isset($position) && $attribute->updatePosition($way, $position))

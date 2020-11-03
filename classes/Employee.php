@@ -1,6 +1,6 @@
 <?php
 /*
-* 2007-2013 PrestaShop
+* 2007-2014 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -19,7 +19,7 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author PrestaShop SA <contact@prestashop.com>
-*  @copyright  2007-2013 PrestaShop SA
+*  @copyright  2007-2014 PrestaShop SA
 *  @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
@@ -63,6 +63,9 @@ class EmployeeCore extends ObjectModel
 
 	/** @var string employee's chosen theme */
 	public $bo_theme;
+	
+	/** @var string employee's chosen css file */
+	public $bo_css = 'admin-theme.css';
 
 	/** @var integer employee desired screen width */
 	public $bo_width;
@@ -96,6 +99,7 @@ class EmployeeCore extends ObjectModel
 			'bo_color' => 			  array('type' => self::TYPE_STRING, 'validate' => 'isColor', 'size' => 32),
 			'default_tab' => 		  array('type' => self::TYPE_INT, 'validate' => 'isInt'),
 			'bo_theme' => 			  array('type' => self::TYPE_STRING, 'validate' => 'isGenericName', 'size' => 32),
+			'bo_css' => 			  array('type' => self::TYPE_STRING, 'validate' => 'isGenericName', 'size' => 64),
 			'bo_width' => 			  array('type' => self::TYPE_INT, 'validate' => 'isUnsignedInt'),
 			'bo_menu' => 			  array('type' => self::TYPE_BOOL, 'validate' => 'isBool'),
 			'stats_date_from' => 	  array('type' => self::TYPE_DATE, 'validate' => 'isDate'),
@@ -139,14 +143,14 @@ class EmployeeCore extends ObjectModel
 	 */
 	public function getFields()
 	{
-		if (empty($this->stats_date_from))
-			$this->stats_date_from = date('Y-m-d 00:00:00', strtotime("-1 month"));
+		if (empty($this->stats_date_from) || $this->stats_date_from == '0000-00-00')
+			$this->stats_date_from = date('Y-m-d', strtotime("-1 month"));
 
 		if (empty($this->stats_compare_from) || $this->stats_compare_from == '0000-00-00')
 			$this->stats_compare_from = null;
 
-		if (empty($this->stats_date_to))
-			$this->stats_date_to = date('Y-m-d 23:59:59');
+		if (empty($this->stats_date_to) || $this->stats_date_to == '0000-00-00')
+			$this->stats_date_to = date('Y-m-d');
 
 		if (empty($this->stats_compare_to) || $this->stats_compare_to == '0000-00-00')
 			$this->stats_compare_to = null;
@@ -158,6 +162,15 @@ class EmployeeCore extends ObjectModel
 	{
 		$this->last_passwd_gen = date('Y-m-d H:i:s', strtotime('-'.Configuration::get('PS_PASSWD_TIME_BACK').'minutes'));
 	 	return parent::add($autodate, $null_values);
+	}
+
+	public function update($null_values = false)
+	{
+		if (empty($this->stats_date_from) || $this->stats_date_from == '0000-00-00')
+			$this->stats_date_from = date('Y-m-d');
+		if (empty($this->stats_date_to) || $this->stats_date_to == '0000-00-00')
+			$this->stats_date_to = date('Y-m-d');
+	 	return parent::update($null_values);
 	}
 
 	/**

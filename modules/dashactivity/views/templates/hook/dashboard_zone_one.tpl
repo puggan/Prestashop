@@ -1,5 +1,5 @@
 {*
-* 2007-2013 PrestaShop
+* 2007-2014 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -18,7 +18,7 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author PrestaShop SA <contact@prestashop.com>
-*  @copyright  2007-2013 PrestaShop SA
+*  @copyright  2007-2014 PrestaShop SA
 *  @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 *}
@@ -44,7 +44,7 @@
 				<span class="data_label size_l">
 					{l s='Online Visitors' mod='dashactivity'}
 					<small class="text-muted"><br/>
-						{l s='In the last 30 minutes' mod='dashactivity'}
+						{l s='In the last  %d minutes:' sprintf=$DASHACTIVITY_VISITOR_ONLINE|intval mod='dashactivity'}
 					</small>
 				</span>
 				<span class="data_value size_xxl">
@@ -55,7 +55,7 @@
 				<span class="data_label size_l">
 					{l s='Active Shopping Carts' mod='dashactivity'}
 					<small class="text-muted"><br/>
-						{l s='In the last 30 minutes' mod='dashactivity'}
+						{l s='In the last  %d minutes:' sprintf=$DASHACTIVITY_CART_ACTIVE|intval mod='dashactivity'}
 					</small>
 				</span>
 				<span class="data_value size_xxl">
@@ -111,7 +111,7 @@
 		</ul>
 	</section>
 	<section id="dash_customers" class="loading">
-		<header><i class="icon-user"></i> {l s='Customers & Newsletters' mod='dashactivity'} <span class="subtitle small" id="customers-newsletters-subtitle"><span></header>
+		<header><i class="icon-user"></i> {l s='Customers & Newsletters' mod='dashactivity'} <span class="subtitle small" id="customers-newsletters-subtitle"></span></header>
 		<ul class="data_list">
 			<li>
 				<span class="data_label">{l s='New Customers' mod='dashactivity'}</span>
@@ -135,7 +135,7 @@
 	</section>
 	<section id="dash_traffic" class="loading">
 		<header>
-			<i class="icon-globe"></i> {l s='Traffic' mod='dashactivity'}  <span class="subtitle small" id="traffic-subtitle"><span>
+			<i class="icon-globe"></i> {l s='Traffic' mod='dashactivity'} <span class="subtitle small" id="traffic-subtitle"></span>
 		</header>
 		<ul class="data_list">
 			{if $gapi_mode}

@@ -1,6 +1,6 @@
 <?php
 /*
-* 2007-2013 PrestaShop
+* 2007-2014 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -19,7 +19,7 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author PrestaShop SA <contact@prestashop.com>
-*  @copyright  2007-2013 PrestaShop SA
+*  @copyright  2007-2014 PrestaShop SA
 *  @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
@@ -56,7 +56,6 @@ class AdminCurrenciesControllerCore extends AdminController
 				'description' => $this->l('Use PrestaShop\'s webservice to update your currency exchange rates. Please use caution, however, rates are provided as-is.'),
 				'submit' => array(
 					'title' => $this->l('Update currency rates'),
-					'class' => 'btn btn-default',
 					'name' => 'SubmitExchangesRates'
 				)
 			),
@@ -89,13 +88,13 @@ class AdminCurrenciesControllerCore extends AdminController
 	{
 		$this->fields_form = array(
 			'legend' => array(
-				'title' => $this->l('Currencies:'),
+				'title' => $this->l('Currencies'),
 				'icon' => 'icon-money'
 			),
 			'input' => array(
 				array(
 					'type' => 'text',
-					'label' => $this->l('Currency name:'),
+					'label' => $this->l('Currency name'),
 					'name' => 'name',
 					'size' => 30,
 					'maxlength' => 32,
@@ -104,43 +103,43 @@ class AdminCurrenciesControllerCore extends AdminController
 				),
 				array(
 					'type' => 'text',
-					'label' => $this->l('ISO code:'),
+					'label' => $this->l('ISO code'),
 					'name' => 'iso_code',
 					'maxlength' => 32,
 					'required' => true,
-					'hint' => $this->l('ISO code (e.g. USD for Dollars, EUR for Euros)').'...',
+					'hint' => $this->l('ISO code (e.g. USD for Dollars, EUR for Euros, etc.).')
 				),
 				array(
 					'type' => 'text',
-					'label' => $this->l('Numeric ISO code:'),
+					'label' => $this->l('Numeric ISO code'),
 					'name' => 'iso_code_num',
 					'maxlength' => 32,
 					'required' => true,
-					'hint' => $this->l('Numeric ISO code (e.g. 840 for Dollars, 978 for Euros)').'...',
+					'hint' => $this->l('Numeric ISO code (e.g. 840 for Dollars, 978 for Euros, etc.).')
 				),
 				array(
 					'type' => 'text',
-					'label' => $this->l('Symbol:'),
+					'label' => $this->l('Symbol'),
 					'name' => 'sign',
 					'maxlength' => 8,
 					'required' => true,
-					'hint' => $this->l('Will appear in Front Office (e.g. $, &euro;)').'...',
+					'hint' => $this->l('Will appear in Front Office (e.g. $, &euro;, etc.)')
 				),
 				array(
 					'type' => 'text',
-					'label' => $this->l('Exchange rate:'),
+					'label' => $this->l('Exchange rate'),
 					'name' => 'conversion_rate',
 					'maxlength' => 11,
 					'required' => true,
-					'hint' => $this->l('Exchange rates are calculated from one unit of your shop\'s default currency. For example, if the default currency is euros and your chosen currency is dollars, type "1.20"').' 1&euro; = $1.20',
+					'hint' => $this->l('Exchange rates are calculated from one unit of your shop\'s default currency. For example, if the default currency is euros and your chosen currency is dollars, type "1.20" (1&euro; = $1.20).')
 				),
 				array(
 					'type' => 'select',
-					'label' => $this->l('Currency format:'),
+					'label' => $this->l('Currency format'),
 					'name' => 'format',
 					'maxlength' => 11,
 					'required' => true,
-					'hint' =>$this->l('Applies to all prices, e.g.').' $1,240.15',
+					'hint' =>$this->l('Applies to all prices (e.g. $1,240.15).'),
 					'options' => array(
 						'query' => array(
 							array('key' => 1, 'name' => 'X0,000.00 ('.$this->l('as with Dollars').')'),
@@ -155,11 +154,11 @@ class AdminCurrenciesControllerCore extends AdminController
 				),
 				array(
 					'type' => 'switch',
-					'label' => $this->l('Decimals:'),
+					'label' => $this->l('Decimals'),
 					'name' => 'decimals',
 					'required' => false,
 					'is_bool' => true,
-					'hint' => $this->l('Display decimals in prices'),
+					'hint' => $this->l('Display decimals in prices.'),
 					'values' => array(
 						array(
 							'id' => 'decimals_on',
@@ -175,11 +174,11 @@ class AdminCurrenciesControllerCore extends AdminController
 				),
 				array(
 					'type' => 'switch',
-					'label' => $this->l('Spacing:'),
+					'label' => $this->l('Spacing'),
 					'name' => 'blank',
 					'required' => false,
 					'is_bool' => true,
-					'hint' => $this->l('Include a space between symbol and price, e.g.').'$1,240.15 -> $ 1,240.15',
+					'hint' => $this->l('Include a space between symbol and price (e.g. $1,240.15 -> $ 1,240.15).'),
 					'values' => array(
 						array(
 							'id' => 'blank_on',
@@ -195,7 +194,7 @@ class AdminCurrenciesControllerCore extends AdminController
 				),
 				array(
 					'type' => 'switch',
-					'label' => $this->l('Enable:'),
+					'label' => $this->l('Enable'),
 					'name' => 'active',
 					'required' => false,
 					'is_bool' => true,
@@ -219,14 +218,13 @@ class AdminCurrenciesControllerCore extends AdminController
 		{
 			$this->fields_form['input'][] = array(
 				'type' => 'shop',
-				'label' => $this->l('Shop association:'),
+				'label' => $this->l('Shop association'),
 				'name' => 'checkBoxShopAsso',
 			);
 		}
 
 		$this->fields_form['submit'] = array(
 			'title' => $this->l('Save'),
-			'class' => 'btn btn-default'
 		);
 
 		return parent::renderForm();
@@ -348,8 +346,8 @@ class AdminCurrenciesControllerCore extends AdminController
 	{
 		if (empty($this->display))
 			$this->page_header_toolbar_btn['new_currency'] = array(
-				'href' => self::$currentIndex.'&amp;addcurrency&amp;token='.$this->token,
-				'desc' => $this->l('Add new currency'),
+				'href' => self::$currentIndex.'&addcurrency&token='.$this->token,
+				'desc' => $this->l('Add new currency', null, null, false),
 				'icon' => 'process-icon-new'
 			);
 

@@ -1,6 +1,6 @@
 <?php
 /*
-* 2007-2013 PrestaShop
+* 2007-2014 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -19,7 +19,7 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author PrestaShop SA <contact@prestashop.com>
-*  @copyright  2007-2013 PrestaShop SA
+*  @copyright  2007-2014 PrestaShop SA
 *  @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
@@ -93,7 +93,7 @@ class AdminStatusesControllerCore extends AdminController
 				'title' => $this->l('Send email to customer'),
 				'align' => 'center',
 				'icon' => array(
-					'1' => 'icon-ok text-success',
+					'1' => 'icon-check text-success',
 					'0' => 'icon-ban-circle text-danger'
 				),
 				'type' => 'bool',
@@ -104,7 +104,7 @@ class AdminStatusesControllerCore extends AdminController
 				'title' => $this->l('Delivery'),
 				'align' => 'center',
 				'icon' => array(
-					'1' => 'icon-ok text-success',
+					'1' => 'icon-check text-success',
 					'0' => 'icon-ban-circle text-danger'
 				),
 				'type' => 'bool',
@@ -116,7 +116,7 @@ class AdminStatusesControllerCore extends AdminController
 				'title' => $this->l('Invoice'),
 				'align' => 'center',
 				'icon' => array(
-					'1' => 'icon-ok text-success',
+					'1' => 'icon-check text-success',
 					'0' => 'icon-ban-circle text-danger'
 				),
 				'type' => 'bool',
@@ -198,13 +198,13 @@ class AdminStatusesControllerCore extends AdminController
 		if (empty($this->display))
 		{
 			$this->page_header_toolbar_btn['new_order_state'] = array(
-				'href' => self::$currentIndex.'&amp;addorder_state&amp;token='.$this->token,
-				'desc' => $this->l('Add new order state'),
+				'href' => self::$currentIndex.'&addorder_state&token='.$this->token,
+				'desc' => $this->l('Add new order state', null, null, false),
 				'icon' => 'process-icon-new'
 			);
 			$this->page_header_toolbar_btn['new_order_return_state'] = array(
-				'href' => self::$currentIndex.'&amp;addorder_return_state&amp;token='.$this->token,
-				'desc' => $this->l('Add new order return state'),
+				'href' => self::$currentIndex.'&addorder_return_state&token='.$this->token,
+				'desc' => $this->l('Add new order return state', null, null, false),
 				'icon' => 'process-icon-new'
 			);
 		}
@@ -261,26 +261,26 @@ class AdminStatusesControllerCore extends AdminController
 			'input' => array(
 				array(
 					'type' => 'text',
-					'label' => $this->l('Status name:'),
+					'label' => $this->l('Status name'),
 					'name' => 'name',
 					'lang' => true,
 					'required' => true,
 					'hint' => array(
-						$this->l('Order status (e.g. \'Pending\')'),
-						$this->l('Invalid characters: numbers and').' !<>,;?=+()@#"�{}_$%:'
+						$this->l('Order status (e.g. \'Pending\').'),
+						$this->l('Invalid characters: numbers and').' !<>,;?=+()@#"{}_$%:'
 					)
 				),
 				array(
 					'type' => 'file',
-					'label' => $this->l('Icon:'),
+					'label' => $this->l('Icon'),
 					'name' => 'icon',
-					'hint' => $this->l('Upload an icon from your computer (File type: .gif, suggested size: 16x16)')
+					'hint' => $this->l('Upload an icon from your computer (File type: .gif, suggested size: 16x16).')
 				),
 				array(
 					'type' => 'color',
-					'label' => $this->l('Color:'),
+					'label' => $this->l('Color'),
 					'name' => 'color',
-					'hint' => $this->l('Status will be highlighted in this color. (HTML colors only)').' "lightblue", "#CC6600")'
+					'hint' => $this->l('Status will be highlighted in this color. HTML colors only.').' "lightblue", "#CC6600")'
 				),
 				array(
 					'type' => 'checkbox',
@@ -298,7 +298,7 @@ class AdminStatusesControllerCore extends AdminController
 					'name' => 'invoice',
 					'values' => array(
 						'query' => array(
-							array('id' => 'on', 'name' => $this->l('Allow a customer to download and view PDF versions of their invoice.'), 'val' => '1'),
+							array('id' => 'on', 'name' => $this->l('Allow a customer to download and view PDF versions of his/her invoices.'), 'val' => '1'),
 							),
 						'id' => 'id',
 						'name' => 'name'
@@ -309,7 +309,7 @@ class AdminStatusesControllerCore extends AdminController
 					'name' => 'hidden',
 					'values' => array(
 						'query' => array(
-							array('id' => 'on', 'name' => $this->l('Hide this state in all customer orders'), 'val' => '1'),
+							array('id' => 'on', 'name' => $this->l('Hide this status in all customer orders.'), 'val' => '1'),
 							),
 						'id' => 'id',
 						'name' => 'name'
@@ -331,7 +331,7 @@ class AdminStatusesControllerCore extends AdminController
 					'name' => 'shipped',
 					'values' => array(
 						'query' => array(
-							array('id' => 'on',  'name' => $this->l('Set the order as shipped'), 'val' => '1'),
+							array('id' => 'on',  'name' => $this->l('Set the order as shipped.'), 'val' => '1'),
 							),
 						'id' => 'id',
 						'name' => 'name'
@@ -342,7 +342,7 @@ class AdminStatusesControllerCore extends AdminController
 					'name' => 'paid',
 					'values' => array(
 						'query' => array(
-							array('id' => 'on', 'name' => $this->l('Set the order as paid'), 'val' => '1'),
+							array('id' => 'on', 'name' => $this->l('Set the order as paid.'), 'val' => '1'),
 							),
 						'id' => 'id',
 						'name' => 'name'
@@ -353,7 +353,7 @@ class AdminStatusesControllerCore extends AdminController
 					'name' => 'delivery',
 					'values' => array(
 						'query' => array(
-							array('id' => 'on', 'name' => $this->l('Show delivery PDF'), 'val' => '1'),
+							array('id' => 'on', 'name' => $this->l('Show delivery PDF.'), 'val' => '1'),
 							),
 						'id' => 'id',
 						'name' => 'name'
@@ -371,13 +371,12 @@ class AdminStatusesControllerCore extends AdminController
 					),
 					'hint' => array(
 						$this->l('Only letters, number and hashtags are allowed.'),
-						$this->l('Email template for both .html and .txt')
+						$this->l('Email template for both .html and .txt.')
 					)
 				)
 			),
 			'submit' => array(
 				'title' => $this->l('Save'),
-				'class' => 'button'
 			)
 		);
 	
@@ -410,6 +409,15 @@ class AdminStatusesControllerCore extends AdminController
 	protected function renderOrderReturnsForm()
 	{
 		$helper = $this->initOrderReturnsForm();
+		$helper->show_cancel_button = true;
+
+		$back = Tools::safeOutput(Tools::getValue('back', ''));
+		if (empty($back))
+			$back = self::$currentIndex.'&token='.$this->token;
+		if (!Validate::isCleanHtml($back))
+			die(Tools::displayError());
+
+		$helper->back_url = $back;
 			
 		$this->fields_form[0]['form'] = array(
 			'tinymce' => true,
@@ -420,25 +428,24 @@ class AdminStatusesControllerCore extends AdminController
 			'input' => array(
 				array(
 					'type' => 'text',
-					'label' => $this->l('Status name:'),
+					'label' => $this->l('Status name'),
 					'name' => 'name',
 					'lang' => true,
 					'required' => true,
 					'hint' => array(
-						$this->l('Order\'s return status name'),
+						$this->l('Order\'s return status name.'),
 						$this->l('Invalid characters: numbers and').' !<>,;?=+()@#"�{}_$%:'
 					)
 				),
 				array(
 					'type' => 'color',
-					'label' => $this->l('Color:'),
+					'label' => $this->l('Color'),
 					'name' => 'color',
-					'hint' => $this->l('Status will be highlighted in this color. (HTML colors only)').' "lightblue", "#CC6600")'
+					'hint' => $this->l('Status will be highlighted in this color. HTML colors only.').' "lightblue", "#CC6600")'
 				)
 			),
 			'submit' => array(
 				'title' => $this->l('Save'),
-				'class' => 'button'
 			)
 		);
 		return $helper->generateForm($this->fields_form);

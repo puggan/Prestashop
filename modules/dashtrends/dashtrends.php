@@ -1,6 +1,6 @@
 <?php
 /*
-* 2007-2013 PrestaShop
+* 2007-2014 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -19,7 +19,7 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author PrestaShop SA <contact@prestashop.com>
-*  @copyright  2007-2013 PrestaShop SA
+*  @copyright  2007-2014 PrestaShop SA
 *  @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
@@ -219,9 +219,9 @@ class Dashtrends extends Module
 		return array(
 			'data_value' => array(
 				'sales_score' => Tools::displayPrice(round($this->dashboard_data_sum['sales']), $currency),
-				'orders_score' => $this->dashboard_data_sum['orders'],
+				'orders_score' => number_format($this->dashboard_data_sum['orders'], 0, '.', ' '),
 				'cart_value_score' => Tools::displayPrice($this->dashboard_data_sum['average_cart_value'], $currency),
-				'visits_score' => $this->dashboard_data_sum['visits'],
+				'visits_score' => number_format($this->dashboard_data_sum['visits'], 0, '.', ' '),
 				'conversion_rate_score' => round(100 * $this->dashboard_data_sum['conversion_rate'], 2).'%',
 				'net_profits_score' => Tools::displayPrice(round($this->dashboard_data_sum['net_profits']), $currency),
 			),

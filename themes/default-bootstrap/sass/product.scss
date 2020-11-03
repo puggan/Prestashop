@@ -460,7 +460,7 @@ span.view_scroll_spacer {
 	padding: 19px 19px 17px;
 }
 .box-cart-bottom{
-	padding: 18px 7px 12px;	
+	padding: 0;	
 }
 
 .box-info-product {
@@ -669,7 +669,6 @@ table.table-produst-discounts{
 	line-height: 18px;
 	font-weight: 700;
 } 
-#quantityAvailableTxt, 
 #availability_value, 
 #last_quantities {
 	color: $light-text-color;
@@ -767,7 +766,7 @@ table.table-produst-discounts{
 
 .buttons_bottom_block {
 	clear: both;
-	padding-top: 13px;
+	padding: 13px 19px 0;
 	#wishlist_button {
 		font-weight: 700;	
 	}

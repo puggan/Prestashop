@@ -1,5 +1,5 @@
 {*
-* 2007-2013 PrestaShop
+* 2007-2014 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -18,7 +18,7 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author PrestaShop SA <contact@prestashop.com>
-*  @copyright  2007-2013 PrestaShop SA
+*  @copyright  2007-2014 PrestaShop SA
 *  @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 *}
@@ -34,17 +34,19 @@
 		<div class="panel" id="fieldset_{$f}">
 			{foreach $fieldset.form as $key => $field}
 				{if $key == 'legend'}
-					<h3>
-						{if isset($field.image)}<img src="{$field.image}" alt="{$field.title|escape:'html':'UTF-8'}" />{/if}
-						{if isset($field.icon)}<i class="{$field.icon}"></i>{/if}
-						{$field.title}
-					</h3>
+                    {block name="legend"}
+                        <h3>
+                            {if isset($field.image)}<img src="{$field.image}" alt="{$field.title|escape:'html':'UTF-8'}" />{/if}
+                            {if isset($field.icon)}<i class="{$field.icon}"></i>{/if}
+                            {$field.title}
+                        </h3>
+                    {/block}
 				{elseif $key == 'description' && $field}
 					<div class="alert alert-info">{$field}</div>
 				{elseif $key == 'input'}
 					{foreach $field as $input}
 						{block name="input_row"}
-						<div class="form-group {if $input.type == 'hidden'}hide{/if}" {if $input.name == 'id_state'}id="contains_states"{if !$contains_states}style="display:none;"{/if}{/if}>
+						<div class="form-group {if isset($input.form_group_class)} {$input.form_group_class} {/if}{if $input.type == 'hidden'}hide{/if}" {if $input.name == 'id_state'}id="contains_states"{if !$contains_states}style="display:none;"{/if}{/if}>
 						{if $input.type == 'hidden'}
 							<input type="hidden" name="{$input.name}" id="{$input.name}" value="{$fields_value[$input.name]|escape:'html':'UTF-8'}" />
 						{else}
@@ -293,13 +295,13 @@
 										{$input.required = false}
 										{$input.desc = null}
 									{else}
-										<select name="{$input.name}" class="{if isset($input.class)}{$input.class}{/if}"
-												id="{if isset($input.id)}{$input.id}{else}{$input.name}{/if}"
+										<select name="{$input.name|escape:'html':'utf-8'}" class="{if isset($input.class)}{$input.class|escape:'html':'utf-8'}{/if}"
+												id="{if isset($input.id)}{$input.id|escape:'html':'utf-8'}{else}{$input.name|escape:'html':'utf-8'}{/if}"
 												{if isset($input.multiple)}multiple="multiple" {/if}
-												{if isset($input.size)}size="{$input.size}"{/if}
-												{if isset($input.onchange)}onchange="{$input.onchange}"{/if}>
+												{if isset($input.size)}size="{$input.size|escape:'html':'utf-8'}"{/if}
+												{if isset($input.onchange)}onchange="{$input.onchange|escape:'html':'utf-8'}"{/if}>
 											{if isset($input.options.default)}
-												<option value="{$input.options.default.value}">{$input.options.default.label}</option>
+												<option value="{$input.options.default.value|escape:'html':'utf-8'}">{$input.options.default.label|escape:'html':'utf-8'}</option>
 											{/if}
 											{if isset($input.options.optiongroup)}
 												{foreach $input.options.optiongroup.query AS $optiongroup}
@@ -392,13 +394,13 @@
 													{/if}
 												>
 													{if $value.value == 1}
-														<i class="icon-check-sign color_success"></i> {l s='Yes'}
+														{l s='Yes'}
 													{else}
-														<i class="icon-ban-circle color_danger"></i> {l s='No'}
+														{l s='No'}
 													{/if}
 												</label>
 												{/foreach}
-												<a class="slide-button btn btn-default"></a>
+												<a class="slide-button btn"></a>
 											</span>
 										</div>
 									</div>
@@ -438,9 +440,25 @@
 									{/if}
 
 								{elseif $input.type == 'checkbox'}
+                                    {if isset($input.expand)}
+                                        <a class="btn btn-default show_checkbox{if $input.expand.default == 'hide'} hidden {/if}" href="#">
+                                            <i class="icon-{$input.expand.show.icon}"></i>
+                                            {$input.expand.show.text}
+                                            {if isset($input.expand.print_total) && $input.expand.print_total > 0}
+                                                <span class="badge">{$input.expand.print_total}</span>
+                                            {/if}
+                                        </a>
+                                        <a class="btn btn-default hide_checkbox{if $input.expand.default == 'show'} hidden {/if}" href="#">
+                                            <i class="icon-{$input.expand.show.icon}"></i>
+                                            {$input.expand.hide.text}
+                                            {if isset($input.expand.print_total) && $input.expand.print_total > 0}
+                                                <span class="badge">{$input.expand.print_total}</span>
+                                            {/if}
+                                        </a>
+                                    {/if}
 									{foreach $input.values.query as $value}
 										{assign var=id_checkbox value=$input.name|cat:'_'|cat:$value[$input.values.id]}
-										<div class="checkbox">
+										<div class="checkbox{if isset($input.expand) && $input.expand.default == 'show'} hidden {/if}">
 											<label for="{$id_checkbox}">
 												<input type="checkbox"
 													name="{$id_checkbox}"
@@ -588,28 +606,6 @@
 						{capture name=hookName assign=hookName}display{$smarty.get.controller|ucfirst|htmlentities}Form{/capture}
 						{hook h=$hookName fieldset=$f}
 					{/if}
-				{elseif $key == 'submit'}
-					<div class="form-group">
-						<div class="col-lg-9 col-lg-offset-3">
-							<button
-								type="submit"
-								id="{if isset($field.id)}{$field.id}{else}{$table}_form_submit_btn{/if}"
-								name="{if isset($field.name)}{$field.name}{else}{$submit_action}{/if}{if isset($field.stay) && $field.stay}AndStay{/if}"
-								{if isset($field.class)}class="{$field.class}"{/if}
-								>
-								{if isset($field.icon)}<i class="{$field.icon}"></i>{/if} {$field.title}
-							</button>
-							{if isset($field.reset)}
-							<button
-								type="reset"
-								id="{if isset($field.id)}{$field.id}{else}{$table}_form_reset_btn{/if}"
-								class="{if isset($field.reset.class)}{$field.reset.class}{else}btn btn-default{/if}"
-								>
-								{if isset($field.reset.icon)}<i class="{$field.reset.icon}"></i>{/if} {$field.reset.title}
-							</button>
-							{/if}
-						</div>
-					</div>
 				{elseif $key == 'desc'}
 					<p class="clear">
 						{if is_array($field)}
@@ -628,12 +624,42 @@
 				{/if}
 				{block name="other_input"}{/block}
 			{/foreach}
-<!-- {*if $required_fields}
-	<div class="small"><sup>*</sup> {l s='Required field'}</div>
-{/if*} -->
-		{block name="footer"}
-			{include file="footer_toolbar.tpl" submit_id_prefix=$table}
-		{/block}
+			{block name="footer"}
+				{if isset($fieldset['form']['submit']) || isset($fieldset['form']['buttons'])}
+					<div class="panel-footer">
+						{if isset($fieldset['form']['submit']) && !empty($fieldset['form']['submit'])}
+						<button
+							type="submit"
+							value="1"
+							id="{if isset($fieldset['form']['submit']['id'])}{$fieldset['form']['submit']['id']}{else}{$table}_form_submit_btn{/if}"
+							name="{if isset($fieldset['form']['submit']['name'])}{$fieldset['form']['submit']['name']}{else}{$submit_action}{/if}{if isset($fieldset['form']['submit']['stay']) && $fieldset['form']['submit']['stay']}AndStay{/if}"
+							class="{if isset($fieldset['form']['submit']['class'])}{$fieldset['form']['submit']['class']}{else}btn btn-default pull-right{/if}"
+							>
+							<i class="{if isset($fieldset['form']['submit']['icon'])}{$fieldset['form']['submit']['icon']}{else}process-icon-save{/if}"></i> {$fieldset['form']['submit']['title']}
+						</button>
+						{/if}
+						{if isset($show_cancel_button) && $show_cancel_button}
+						<a href="{$back_url}" class="btn btn-default" onclick="window.history.back()">
+							<i class="process-icon-cancel"></i> {l s='Cancel'}
+						</a>
+						{/if}
+						{if isset($fieldset['form']['reset'])}
+						<button
+							type="reset"
+							id="{if isset($fieldset['form']['reset']['id'])}{$fieldset['form']['reset']['id']}{else}{$table}_form_reset_btn{/if}"
+							class="{if isset($fieldset['form']['reset']['class'])}{$fieldset['form']['reset']['class']}{else}btn btn-default{/if}"
+							>
+							{if isset($fieldset['form']['reset']['icon'])}<i class="{$fieldset['form']['reset']['icon']}"></i> {/if} {$fieldset['form']['reset']['title']}
+						</button>
+						{/if}
+						{if isset($fieldset['form']['buttons'])}
+						{foreach from=$fieldset['form']['buttons'] item=btn key=k}
+							<button type="{if isset($btn['type'])}{$btn['type']}{else}button{/if}" {if isset($btn['id'])}id="{$btn['id']}"{/if} class="btn btn-default{if isset($btn['class'])} {$btn['class']}{/if}" name="{if isset($btn['name'])}{$btn['name']}{else}submitOptions{$table}{/if}"{if isset($btn.js) && $btn.js} onclick="{$btn.js}"{/if}>{if isset($btn['icon'])}<i class="{$btn['icon']}" ></i> {/if}{$btn.title}</button>
+						{/foreach}
+						{/if}
+					</div>
+				{/if}
+			{/block}
 		</div>
 		{/block}
 		{block name="other_fieldsets"}{/block}
@@ -643,11 +669,10 @@
 {block name="after"}{/block}
 
 {if isset($tinymce) && $tinymce}
-	<script type="text/javascript">
-
-	var iso = '{$iso}';
-	var pathCSS = '{$smarty.const._THEME_CSS_DIR_}';
-	var ad = '{$ad}';
+<script type="text/javascript">
+	var iso = '{$iso|addslashes}';
+	var pathCSS = '{$smarty.const._THEME_CSS_DIR_|addslashes}';
+	var ad = '{$ad|addslashes}';
 
 	$(document).ready(function(){
 		{block name="autoload_tinyMCE"}
@@ -656,7 +681,7 @@
 			});
 		{/block}
 	});
-	</script>
+</script>
 {/if}
 {if $firstCall}
 	<script type="text/javascript">
@@ -676,10 +701,23 @@
 		{/foreach}
 		// we need allowEmployeeFormLang var in ajax request
 		allowEmployeeFormLang = {$allowEmployeeFormLang|intval};
-		employee_token = '{getAdminToken tab='AdminEmployees'}';
 		displayFlags(languages, id_language, allowEmployeeFormLang);
 
 		$(document).ready(function() {
+
+            $(".show_checkbox").click(function () {
+                $(this).addClass('hidden')
+                $(this).siblings('.checkbox').removeClass('hidden');
+                $(this).siblings('.hide_checkbox').removeClass('hidden');
+                return false;
+            });
+            $(".hide_checkbox").click(function () {
+                $(this).addClass('hidden')
+                $(this).siblings('.checkbox').addClass('hidden');
+                $(this).siblings('.show_checkbox').removeClass('hidden');
+                return false;
+            });
+
 			{if isset($fields_value.id_state)}
 				if ($('#id_country') && $('#id_state'))
 				{

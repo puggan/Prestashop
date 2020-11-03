@@ -1,6 +1,6 @@
 <?php
 /*
-* 2007-2013 PrestaShop
+* 2007-2014 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -19,7 +19,7 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author PrestaShop SA <contact@prestashop.com>
-*  @copyright  2007-2013 PrestaShop SA
+*  @copyright  2007-2014 PrestaShop SA
 *  @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
@@ -62,7 +62,7 @@ class AdminCountriesControllerCore extends AdminController
 						'default' => '0'
 					)
 				),
-				'submit' => array()
+				'submit' => array('title' => $this->l('Save'))
 			)
 		);
 		
@@ -118,8 +118,8 @@ class AdminCountriesControllerCore extends AdminController
 	{
 		if (empty($this->display))
 			$this->page_header_toolbar_btn['new_country'] = array(
-				'href' => self::$currentIndex.'&amp;addcountry&amp;token='.$this->token,
-				'desc' => $this->l('Add new country'),
+				'href' => self::$currentIndex.'&addcountry&token='.$this->token,
+				'desc' => $this->l('Add new country', null, null, false),
 				'icon' => 'process-icon-new'
 			);
 
@@ -179,7 +179,7 @@ class AdminCountriesControllerCore extends AdminController
 			'input' => array(
 				array(
 					'type' => 'text',
-					'label' => $this->l('Country:'),
+					'label' => $this->l('Country'),
 					'name' => 'name',
 					'lang' => true,
 					'required' => true,
@@ -187,12 +187,12 @@ class AdminCountriesControllerCore extends AdminController
 				),
 				array(
 					'type' => 'text',
-					'label' => $this->l('ISO code:'),
+					'label' => $this->l('ISO code'),
 					'name' => 'iso_code',
 					'maxlength' => 3,
 					'class' => 'uppercase',
 					'required' => true,
-					'hint' => $this->l('Two -- or three -- letter ISO code (e.g. U.S. for United States)')
+					'hint' => $this->l('Two -- or three -- letter ISO code (e.g. U.S. for United States).')
 					 /* TO DO - ajouter les liens dans le hint ? */
 					/*'desc' => $this->l('Two -- or three -- letter ISO code (e.g. U.S. for United States)').'.
 							<a href="http://www.iso.org/iso/country_codes/iso_3166_code_lists/country_names_and_code_elements.htm" target="_blank">'.
@@ -201,41 +201,41 @@ class AdminCountriesControllerCore extends AdminController
 				),
 				array(
 					'type' => 'text',
-					'label' => $this->l('Call prefix:'),
+					'label' => $this->l('Call prefix'),
 					'name' => 'call_prefix',
 					'maxlength' => 3,
 					'class' => 'uppercase',
 					'required' => true,
-					'hint' => $this->l('International call prefix, (e.g. 1 for United States)')
+					'hint' => $this->l('International call prefix, (e.g. 1 for United States).')
 				),
 				array(
 					'type' => 'select',
-					'label' => $this->l('Default currency:'),
+					'label' => $this->l('Default currency'),
 					'name' => 'id_currency',
 					'options' => array(
 						'query' => Currency::getCurrencies(),
 						'id' => 'id_currency',
 						'name' => 'name',
 						'default' => array(
-							'label' => $this->l('Default store currency'),
+							'label' => $this->l('Default store currency.'),
 							'value' => 0
 						)
 					)
 				),
 				array(
 					'type' => 'select',
-					'label' => $this->l('Zone:'),
+					'label' => $this->l('Zone'),
 					'name' => 'id_zone',
 					'options' => array(
 						'query' => Zone::getZones(),
 						'id' => 'id_zone',
 						'name' => 'name'
 					),
-					'hint' => $this->l('Geographical region')
+					'hint' => $this->l('Geographical region.')
 				),
 				array(
 					'type' => 'switch',
-					'label' => $this->l('Need zip/postal code:'),
+					'label' => $this->l('Does it need zip/postal code?'),
 					'name' => 'need_zip_code',
 					'required' => false,
 					'is_bool' => true,
@@ -254,14 +254,14 @@ class AdminCountriesControllerCore extends AdminController
 				),
 				array(
 					'type' => 'text',
-					'label' => $this->l('Zip/post code format:'),
+					'label' => $this->l('Zip/post code format'),
 					'name' => 'zip_code_format',
 					'required' => true,
 					'hint' => $this->l('Zip Code format (L for a letter, N for a number and C for the ISO code). For example, NNNNN for the United States. No verification if undefined.')
 				),
 				array(
 					'type' => 'address_layout',
-					'label' => $this->l('Address format:'),
+					'label' => $this->l('Address format'),
 					'name' => 'address_layout',
 					'address_layout' => $address_layout,
 					'encoding_address_layout' => urlencode($address_layout),
@@ -270,7 +270,7 @@ class AdminCountriesControllerCore extends AdminController
 				),
 				array(
 					'type' => 'switch',
-					'label' => $this->l('Address Standardization:'),
+					'label' => $this->l('Address Standardization'),
 					'name' => 'standardization',
 					'required' => false,
 					'is_bool' => true,
@@ -289,7 +289,7 @@ class AdminCountriesControllerCore extends AdminController
 				),					
 				array(
 					'type' => 'switch',
-					'label' => $this->l('Active:'),
+					'label' => $this->l('Active'),
 					'name' => 'active',
 					'required' => false,
 					'is_bool' => true,
@@ -305,11 +305,11 @@ class AdminCountriesControllerCore extends AdminController
 							'label' => $this->l('Disabled')
 						)
 					),
-					'hint' => $this->l('Display this country to your customers (the selected country will always be displayed in the Back Office)')
+					'hint' => $this->l('Display this country to your customers (the selected country will always be displayed in the Back Office).')
 				),			
 				array(
 					'type' => 'switch',
-					'label' => $this->l('Contains following  states:'),
+					'label' => $this->l('Contains following  states'),
 					'name' => 'contains_states',
 					'required' => false,
 					'values' => array(
@@ -345,7 +345,7 @@ class AdminCountriesControllerCore extends AdminController
 				),
 				array(
 					'type' => 'switch',
-					'label' => $this->l('Display tax label (e.g. "Tax incl."):'),
+					'label' => $this->l('Display tax label (e.g. "Tax incl.")'),
 					'name' => 'display_tax_label',
 					'required' => false,
 					'values' => array(
@@ -369,20 +369,43 @@ class AdminCountriesControllerCore extends AdminController
 		{
 			$this->fields_form['input'][] = array(
 				'type' => 'shop',
-				'label' => $this->l('Shop association:'),
+				'label' => $this->l('Shop association'),
 				'name' => 'checkBoxShopAsso',
 			);
 		}
 
 		$this->fields_form['submit'] = array(
-			'title' => $this->l('Save   '),
-			'class' => 'btn btn-default'
+			'title' => $this->l('Save')
 		);
 		
 		if ($this->object->iso_code == 'US')
 			$this->object->standardization = Configuration::get('PS_TAASC');
 		
 		return parent::renderForm();
+	}
+	
+	public function processUpdate()
+	{
+		$country = $this->loadObject();
+		if (Validate::isLoadedObject($country) && Tools::getValue('id_zone'))
+		{
+			$old_id_zone = $country->id_zone;
+			//we change zone for states attached to this country, only if they have the same id zone before change
+			if (parent::processUpdate())
+			{
+				$results = Db::getInstance()->executeS('SELECT `id_state` FROM `'._DB_PREFIX_.'state` WHERE `id_country` = '.(int)$country->id.' AND `id_zone` = '.(int)$old_id_zone);
+				$ids = array();
+				foreach ($results as $res)
+					$ids[] = (int)$res['id_state'];
+				
+				Db::getInstance()->execute(
+					'UPDATE `'._DB_PREFIX_.'state` 
+					SET `id_zone` = '.(int)Tools::getValue('id_zone').' 
+					WHERE `id_state` IN ('.implode(',', $ids).')');
+			}
+		}
+		else
+			parent::processUpdate();
 	}
 
 	public function postProcess()
@@ -439,7 +462,6 @@ class AdminCountriesControllerCore extends AdminController
 			}
 			unset($tmp_addr_format);
 		}
-
 		return $res;
 	}
 	

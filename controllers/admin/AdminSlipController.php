@@ -1,6 +1,6 @@
 <?php
 /*
-* 2007-2013 PrestaShop
+* 2007-2014 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -19,7 +19,7 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author PrestaShop SA <contact@prestashop.com>
-*  @copyright  2007-2013 PrestaShop SA
+*  @copyright  2007-2014 PrestaShop SA
 *  @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
@@ -64,13 +64,13 @@ class AdminSlipControllerCore extends AdminController
 				'title' =>	$this->l('Credit slip options'),
 				'fields' =>	array(
 					'PS_CREDIT_SLIP_PREFIX' => array(
-						'title' => $this->l('Credit slip prefix:'),
-						'desc' => $this->l('Prefix used for credit slips'),
+						'title' => $this->l('Credit slip prefix'),
+						'desc' => $this->l('Prefix used for credit slips.'),
 						'size' => 6,
 						'type' => 'textLang'
 					)
 				),
-				'submit' => array()
+				'submit' => array('title' => $this->l('Save'))
 			)
 		);
 
@@ -80,8 +80,8 @@ class AdminSlipControllerCore extends AdminController
 	public function initPageHeaderToolbar()
 	{
 		$this->page_header_toolbar_btn['generate_pdf'] = array(
-			'href' => self::$currentIndex.'&amp;token='.$this->token,
-			'desc' => $this->l('Generate PDF'),
+			'href' => self::$currentIndex.'&token='.$this->token,
+			'desc' => $this->l('Generate PDF', null, null, false),
 			'icon' => 'process-icon-save-date'
 		);
 
@@ -98,26 +98,25 @@ class AdminSlipControllerCore extends AdminController
 			'input' => array(
 				array(
 					'type' => 'date',
-					'label' => $this->l('From:'),
+					'label' => $this->l('From'),
 					'name' => 'date_from',
 					'maxlength' => 10,
 					'required' => true,
-					'hint' => $this->l('Format: 2011-12-31 (inclusive)')
+					'hint' => $this->l('Format: 2011-12-31 (inclusive).')
 				),
 				array(
 					'type' => 'date',
-					'label' => $this->l('To:'),
+					'label' => $this->l('To'),
 					'name' => 'date_to',
 					'maxlength' => 10,
 					'required' => true,
-					'hint' => $this->l('Format: 2012-12-31 (inclusive)')
+					'hint' => $this->l('Format: 2012-12-31 (inclusive).')
 				)
 			),
 			'submit' => array(
 				'title' => $this->l('Generate PDF file'),
-				'class' => 'btn btn-default',
 				'id' => 'submitPrint',
-				'icon' => 'icon-download-alt'
+				'icon' => 'process-icon-download-alt'
 			)
 		);
 

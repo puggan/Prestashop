@@ -1,6 +1,6 @@
 <?php
 /*
-* 2007-2013 PrestaShop
+* 2007-2014 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -19,7 +19,7 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author PrestaShop SA <contact@prestashop.com>
-*  @copyright  2007-2013 PrestaShop SA
+*  @copyright  2007-2014 PrestaShop SA
 *  @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
@@ -60,7 +60,7 @@ class TabCore extends ObjectModel
 			'active' => 	array('type' => self::TYPE_BOOL, 'validate' => 'isBool'),
 
 			// Lang fields
-			'name' => 		array('type' => self::TYPE_STRING, 'lang' => true, 'required' => true, 'validate' => 'isGenericName', 'size' => 32),
+			'name' => 		array('type' => self::TYPE_STRING, 'lang' => true, 'required' => true, 'validate' => 'isTabName', 'size' => 64),
 		),
 	);
 
@@ -103,6 +103,12 @@ class TabCore extends ObjectModel
 			return Tab::initAccess($this->id);
 		}
 		return false;
+	}
+
+	public function save($null_values = false, $autodate = true)
+	{
+		self::$_getIdFromClassName = null;
+		return parent::save();
 	}
 
 	/** When creating a new tab $id_tab, this add default rights to the table access
@@ -273,7 +279,7 @@ class TabCore extends ObjectModel
 		if (self::$_getIdFromClassName === null)
 		{
 			self::$_getIdFromClassName = array();
-			$result = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS('SELECT id_tab, class_name FROM `'._DB_PREFIX_.'tab`');
+			$result = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS('SELECT id_tab, class_name FROM `'._DB_PREFIX_.'tab`', true, false);
 			foreach ($result as $row)
 				self::$_getIdFromClassName[strtolower($row['class_name'])] = $row['id_tab'];
 		}
@@ -295,7 +301,7 @@ class TabCore extends ObjectModel
 		if (!Validate::isModuleName($module))
 			return array();
 
-		$tabs = new Collection('Tab', (int)$id_lang);
+		$tabs = new PrestaShopCollection('Tab', (int)$id_lang);
 		$tabs->where('module', '=', $module);
 		return $tabs;
 	}

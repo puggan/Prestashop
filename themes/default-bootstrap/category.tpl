@@ -1,5 +1,5 @@
 {*
-* 2007-2013 PrestaShop
+* 2007-2014 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -18,13 +18,11 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author PrestaShop SA <contact@prestashop.com>
-*  @copyright  2007-2013 PrestaShop SA
+*  @copyright  2007-2014 PrestaShop SA
 *  @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 *}
-
 {include file="$tpl_dir./errors.tpl"}
-
 {if isset($category)}
 	{if $category->id AND $category->active}
     	{if $scenes || $category->description || $category->id_image}
@@ -50,14 +48,14 @@
                     <div class="content_scene_cat_bg" {if $category->id_image}style="background:url({$link->getCatImageLink($category->link_rewrite, $category->id_image, 'category_default')|escape:'html':'UTF-8'}) 0 bottom no-repeat; background-size:contain; min-height:{$categorySize.height}px;" {/if}>
                         {if $category->description}
                             <div class="cat_desc">
-                            <h1 class="category-name">
+                            <span class="category-name">
                                 {strip}
                                     {$category->name|escape:'html':'UTF-8'}
                                     {if isset($categoryNameComplement)}
                                         {$categoryNameComplement|escape:'html':'UTF-8'}
                                     {/if}
                                 {/strip}
-                            </h1>
+                            </span>
                             {if strlen($category->description) > 350}
                                 <div id="category_description_short">{$description_short}</div>
                                 <div id="category_description_full" style="display:none">{$category->description}</div>
@@ -72,17 +70,8 @@
                   {/if}
             </div>
 		{/if}
-		<h1 class="page-heading{if (isset($subcategories) && !$products) || (isset($subcategories) && $products) || !isset($subcategories) && $products} product-listing{/if}">
-			{strip}
-				{$category->name|escape:'html':'UTF-8'}
-				{if isset($categoryNameComplement)}
-					{$categoryNameComplement|escape:'html':'UTF-8'}
-				{/if}
-			{/strip}
-            <span class="heading-counter">{include file="$tpl_dir./category-count.tpl"}</span>
-		</h1>
-		
-
+		<h1 class="page-heading{if (isset($subcategories) && !$products) || (isset($subcategories) && $products) || !isset($subcategories) && $products} product-listing{/if}">{$category->name|escape:'html':'UTF-8'}{if isset($categoryNameComplement)}&nbsp;{$categoryNameComplement|escape:'html':'UTF-8'}{/if}</h1>
+		{include file="$tpl_dir./category-count.tpl"}
 		{if isset($subcategories)}
 		<!-- Subcategories -->
 		<div id="subcategories">
@@ -108,9 +97,8 @@
 			</ul>
 		</div>
 		{/if}
-
 		{if $products}
-			<div class="content_sortPagiBar">
+			<div class="content_sortPagiBar clearfix">
             	<div class="sortPagiBar clearfix">
             		{include file="./product-sort.tpl"}
                 	{include file="./nbr-product-page.tpl"}
@@ -120,9 +108,7 @@
 					{include file="$tpl_dir./pagination.tpl"}
                 </div>
 			</div>
-			
 			{include file="./product-list.tpl" products=$products}
-			
 			<div class="content_sortPagiBar">
 				<div class="bottom-pagination-content clearfix">
 					{include file="./product-compare.tpl" paginationId='bottom'}

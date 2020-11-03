@@ -1,6 +1,6 @@
 <?php
 /*
-* 2007-2013 PrestaShop
+* 2007-2014 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -19,7 +19,7 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author PrestaShop SA <contact@prestashop.com>
-*  @copyright  2007-2013 PrestaShop SA
+*  @copyright  2007-2014 PrestaShop SA
 *  @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
@@ -54,7 +54,8 @@ class AdminEmployeesControllerCore extends AdminController
 
 		$this->context = Context::getContext();
 
-	 	$this->bulk_actions = array('delete' => array('text' => $this->l('Delete selected'), 'confirm' => $this->l('Delete selected items?')));
+		$this->bulk_actions = array('delete' => array('text' => $this->l('Delete selected'),
+			'confirm' => $this->l('Delete selected items?')));
 		/*
 		check if there are more than one superAdmin
 		if it's the case then we can delete a superAdmin
@@ -81,8 +82,10 @@ class AdminEmployeesControllerCore extends AdminController
 			'lastname' => array('title' => $this->l('Last Name')),
 			'firstname' => array('title' => $this->l('First Name')),
 			'email' => array('title' => $this->l('Email address')),
-			'profile' => array('title' => $this->l('Profile'), 'type' => 'select', 'list' => $this->profiles_array, 'filter_key' => 'pl!name', 'class' => 'fixed-width-lg'),
-			'active' => array('title' => $this->l('Can log in'), 'align' => 'center', 'active' => 'status', 'type' => 'bool', 'class' => 'fixed-width-sm'),
+			'profile' => array('title' => $this->l('Profile'), 'type' => 'select', 'list' => $this->profiles_array,
+				'filter_key' => 'pl!name', 'class' => 'fixed-width-lg'),
+			'active' => array('title' => $this->l('Can log in'), 'align' => 'center', 'active' => 'status',
+				'type' => 'bool', 'class' => 'fixed-width-sm'),
 		);
 
 		$this->fields_options = array(
@@ -109,14 +112,21 @@ class AdminEmployeesControllerCore extends AdminController
 						)
 					), 'visibility' => Shop::CONTEXT_ALL)
 				),
-				'submit' => array()
+				'submit' => array('title' => $this->l('Save'))
 			)
 		);
 
-		$path = _PS_ADMIN_DIR_.'/themes/';
+		$path = _PS_ADMIN_DIR_.DIRECTORY_SEPARATOR.'themes'.DIRECTORY_SEPARATOR;
 		foreach (scandir($path) as $theme)
-			if ($theme[0] != '.' && is_dir($path.$theme) && (file_exists($path.$theme.'/css/admin-theme.css')))
-				$this->themes[] = $theme;
+			if ($theme[0] != '.' && is_dir($path.$theme) && (@filemtime($path.$theme.DIRECTORY_SEPARATOR.'css'
+				.DIRECTORY_SEPARATOR.'admin-theme.css')))
+			{
+				$this->themes[] = array('id' => $theme.'|admin-theme.css', 'name' => $theme.' - admin-theme.css');
+				if (file_exists($path.$theme.DIRECTORY_SEPARATOR.'css'.DIRECTORY_SEPARATOR.'schemes'))
+					foreach (scandir($path.$theme.DIRECTORY_SEPARATOR.'css'.DIRECTORY_SEPARATOR.'schemes') as $css)
+						if ($css[0] != '.' && preg_match('/\.css$/', $css))
+							$this->themes[] = array('id' => $theme.'|schemes/'.$css, 'name' => $theme.' - schemes/'.$css);
+			}
 
 		$home_tab = Tab::getInstanceFromClassName('AdminDashboard', $this->context->language->id);
 		$this->tabs_list[$home_tab->id] = array(
@@ -154,8 +164,8 @@ class AdminEmployeesControllerCore extends AdminController
 
 		if (empty($this->display))
 			$this->page_header_toolbar_btn['new_employee'] = array(
-				'href' => self::$currentIndex.'&amp;addemployee&amp;token='.$this->token,
-				'desc' => $this->l('Add new employee'),
+				'href' => self::$currentIndex.'&addemployee&token='.$this->token,
+				'desc' => $this->l('Add new employee', null, null, false),
 				'icon' => 'process-icon-new'
 			);
 
@@ -166,7 +176,8 @@ class AdminEmployeesControllerCore extends AdminController
 			{
 				array_pop($this->toolbar_title);
 				$this->toolbar_title[] = sprintf($this->l('Edit: %1$s %2$s'), $obj->lastname, $obj->firstname);
-				$this->page_header_toolbar_title = implode(' '.Configuration::get('PS_NAVIGATION_PIPE').' ', $this->toolbar_title);
+				$this->page_header_toolbar_title = implode(' '.Configuration::get('PS_NAVIGATION_PIPE').' ',
+					$this->toolbar_title);
 			}
 		}
 	}
@@ -175,7 +186,8 @@ class AdminEmployeesControllerCore extends AdminController
 	{
  		$this->_select = 'pl.`name` AS profile';
 		$this->_join = 'LEFT JOIN `'._DB_PREFIX_.'profile` p ON a.`id_profile` = p.`id_profile`
-		LEFT JOIN `'._DB_PREFIX_.'profile_lang` pl ON (pl.`id_profile` = p.`id_profile` AND pl.`id_lang` = '.(int)$this->context->language->id.')';
+		LEFT JOIN `'._DB_PREFIX_.'profile_lang` pl ON (pl.`id_profile` = p.`id_profile` AND pl.`id_lang` = '
+			.(int)$this->context->language->id.')';
 
 		return parent::renderList();
 	}
@@ -215,7 +227,8 @@ class AdminEmployeesControllerCore extends AdminController
 					'type' => 'file',
 					'label' => $this->l('Picture'),
 					'name' => 'image',
-					'image' => ImageManager::thumbnail($obj->getImage(), $this->table.'_'.(int)$obj->id.'.'.$this->imageType, 150, $this->imageType, true, true),
+					'image' => ImageManager::thumbnail($obj->getImage(), $this->table.'_'.(int)$obj->id.'.'
+						.$this->imageType, 150, $this->imageType, true, true),
 					'col' => 6,
 					'value' => true,
 					'display_image' => true,
@@ -227,13 +240,14 @@ class AdminEmployeesControllerCore extends AdminController
 					'required' => true,
 					'hint' => ($obj->id ?
 								$this->l('Leave this field blank if you do not want to change your password.') :
-									$this->l('Minimum of eight characters'))
+									$this->l('Minimum of eight characters.'))
 				),
 				array(
 					'type' => 'text',
 					'label' => $this->l('Email address'),
 					'name' => 'email',
-					'required' => true
+					'required' => true,
+					'autocomplete' => false
 				),
 				/*array(
 					'type' => 'color',
@@ -244,14 +258,14 @@ class AdminEmployeesControllerCore extends AdminController
 				),*/
 				array(
 					'type' => 'default_tab',
-					'label' => $this->l('Default page:'),
+					'label' => $this->l('Default page'),
 					'name' => 'default_tab',
-					'hint' => $this->l('This page will be displayed just after login'),
+					'hint' => $this->l('This page will be displayed just after login.'),
 					'options' => $this->tabs_list
 				),
 				array(
 					'type' => 'select',
-					'label' => $this->l('Language:'),
+					'label' => $this->l('Language'),
 					'name' => 'id_lang',
 					'required' => true,
 					'options' => array(
@@ -261,15 +275,20 @@ class AdminEmployeesControllerCore extends AdminController
 					)
 				),
 				array(
-					'type' => 'select_theme',
-					'label' => $this->l('Theme:'),
-					'name' => 'bo_theme',
-					'options' => array('query' => $this->themes),
-					'hint' => $this->l('Back Office theme')
+					'type' => 'select',
+					'label' => $this->l('Theme'),
+					'name' => 'bo_theme_css',
+					'options' => array(
+						'query' => $this->themes,
+						'id' => 'id',
+						'name' => 'name'
+					),
+					'onchange' => 'var value_array = $(this).val().split("|"); $("link").first().attr("href", "themes/" + value_array[0] + "/css/" + value_array[1]);',
+					'hint' => $this->l('Back Office theme.')
 				),
 				array(
 					'type' => 'radio',
-					'label' => $this->l('Display admin menu:'),
+					'label' => $this->l('Admin menu orientation'),
 					'name' => 'bo_menu',
 					'required' => false,
 					'is_bool' => true,
@@ -293,7 +312,7 @@ class AdminEmployeesControllerCore extends AdminController
 		{
 			$this->fields_form['input'][] = array(
 				'type' => 'switch',
-				'label' => $this->l('Status:'),
+				'label' => $this->l('Status'),
 				'name' => 'active',
 				'required' => false,
 				'is_bool' => true,
@@ -322,7 +341,7 @@ class AdminEmployeesControllerCore extends AdminController
 					}
 			$this->fields_form['input'][] = array(
 				'type' => 'select',
-				'label' => $this->l('Profile Permission:'),
+				'label' => $this->l('Permission profile'),
 				'name' => 'id_profile',
 				'required' => true,
 				'options' => array(
@@ -342,18 +361,18 @@ class AdminEmployeesControllerCore extends AdminController
 				$this->fields_form['input'][] = array(
 					'type' => 'shop',
 					'label' => $this->l('Shop association:'),
-					'hint' => $this->l('Select the shops the employee is allowed to access'),
+					'hint' => $this->l('Select the shops the employee is allowed to access.'),
 					'name' => 'checkBoxShopAsso',
 				);
 			}
 		}
 
 		$this->fields_form['submit'] = array(
-			'title' => $this->l('Save   '),
-			'class' => 'btn btn-default'
+			'title' => $this->l('Save'),
 		);
 
 		$this->fields_value['passwd'] = false;
+		$this->fields_value['bo_theme_css'] = $obj->bo_theme.'|'.$obj->bo_css;
 
 		if (empty($obj->id))
 			$this->fields_value['id_lang'] = $this->context->language->id;
@@ -366,7 +385,8 @@ class AdminEmployeesControllerCore extends AdminController
 		if (!($obj = $this->loadObject(true)))
 			return false;
 		$email = $this->getFieldValue($obj, 'email');
-		if (Validate::isEmail($email) && Employee::employeeExists($email) && (!Tools::getValue('id_employee') ||  ($employee = new Employee((int)Tools::getValue('id_employee'))) && $employee->email != $email))
+		if (Validate::isEmail($email) && Employee::employeeExists($email) && (!Tools::getValue('id_employee')
+			|| ($employee = new Employee((int)Tools::getValue('id_employee'))) && $employee->email != $email))
 			$this->errors[] = Tools::displayError('An account already exists for this email address:').' '.$email;
 	}
 
@@ -375,7 +395,8 @@ class AdminEmployeesControllerCore extends AdminController
 		if (Tools::isSubmit('deleteemployee') || Tools::isSubmit('status') || Tools::isSubmit('statusemployee'))
 		{
 			/* PrestaShop demo mode */
-			if (_PS_MODE_DEMO_ && $id_employee = Tools::getValue('id_employee') && (int)$id_employee == _PS_DEMO_MAIN_BO_ACCOUNT_)
+			if (_PS_MODE_DEMO_ && $id_employee = Tools::getValue('id_employee')
+				&& (int)$id_employee == _PS_DEMO_MAIN_BO_ACCOUNT_)
 			{
 				$this->errors[] = Tools::displayError('This functionality has been disabled.');
 				return;
@@ -398,13 +419,17 @@ class AdminEmployeesControllerCore extends AdminController
 			$warehouses = Warehouse::getWarehousesByEmployee((int)Tools::getValue('id_employee'));
 			if (Tools::isSubmit('deleteemployee') && count($warehouses) > 0)
 			{
-				$this->errors[] = Tools::displayError('You cannot delete this account because it manages warehouses. Check your warehouses first.');
+				$this->errors[] = Tools::displayError('You cannot delete this account because it manages warehouses. 
+					Check your warehouses first.');
 				return false;
 			}
 		}
 		elseif (Tools::isSubmit('submitAddemployee'))
 		{
 			$employee = new Employee((int)Tools::getValue('id_employee'));
+			
+			if (!Validate::isLoadedObject($employee) && !Validate::isPasswd(Tools::getvalue('passwd'), 8))
+				$this->errors[] = Tools::displayError('You must specify a password with a minimum of eight characters.');
 
 			// If the employee is editing its own account
 			if ($this->restrict_edition)
@@ -453,7 +478,8 @@ class AdminEmployeesControllerCore extends AdminController
 			{
 				if (Tools::getValue('id_profile') != (int)_PS_ADMIN_PROFILE_)
 				{
-					$this->errors[] = Tools::displayError('You should have at least one employee in the administrator group.');
+					$this->errors[] = Tools::displayError('You should have at least one employee in the administrator 
+						group.');
 					return false;
 				}
 
@@ -464,10 +490,17 @@ class AdminEmployeesControllerCore extends AdminController
 				}
 			}
 
-			if (!in_array(Tools::getValue('bo_theme'), $this->themes))
+			if (Tools::getValue('bo_theme_css'))
 			{
-				$this->errors[] = Tools::displayError('Invalid theme');
-				return false;
+				$bo_theme = explode('|', Tools::getValue('bo_theme_css'));
+				$_POST['bo_theme'] = $bo_theme[0];
+				if (!in_array($bo_theme[0], scandir(_PS_ADMIN_DIR_.DIRECTORY_SEPARATOR.'themes')))
+				{
+					$this->errors[] = Tools::displayError('Invalid theme');
+					return false;
+				}
+				if (isset($bo_theme[1]))
+					$_POST['bo_css'] = $bo_theme[1];
 			}
 
 			$assos = $this->getSelectedAssoShop($this->table);
@@ -475,6 +508,7 @@ class AdminEmployeesControllerCore extends AdminController
 				if (Shop::isFeatureActive() && _PS_ADMIN_PROFILE_ != $_POST['id_profile'])
 					$this->errors[] = Tools::displayError('The employee must be associated with at least one shop.');
 		}
+
 		return parent::postProcess();
 	}
 
@@ -490,7 +524,8 @@ class AdminEmployeesControllerCore extends AdminController
 	{
 		$res = parent::afterUpdate($object);
 		// Update cookie if needed
-		if (Tools::getValue('id_employee') == $this->context->employee->id && Tools::getValue('passwd') && $object->passwd != $this->context->employee->passwd)
+		if (Tools::getValue('id_employee') == $this->context->employee->id && Tools::getValue('passwd') 
+			&& $object->passwd != $this->context->employee->passwd)
 			$this->context->cookie->passwd = $this->context->employee->passwd = $object->passwd;
 
 		return $res;
@@ -504,6 +539,11 @@ class AdminEmployeesControllerCore extends AdminController
 		die ('Form language updated.');
 	}
 	
+	protected function ajaxProcessToggleMenu()
+	{
+		$this->context->cookie->collapse_menu = (int)Tools::getValue('collapse');
+		$this->context->cookie->write();
+	}
 	public function ajaxProcessGetTabByIdProfile()
 	{
 		$id_profile = Tools::getValue('id_profile');

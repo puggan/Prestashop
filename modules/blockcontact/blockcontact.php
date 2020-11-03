@@ -1,6 +1,6 @@
 <?php
 /*
-* 2007-2013 PrestaShop
+* 2007-2014 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -19,7 +19,7 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author PrestaShop SA <contact@prestashop.com>
-*  @copyright  2007-2013 PrestaShop SA
+*  @copyright  2007-2014 PrestaShop SA
 *  @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
@@ -45,8 +45,8 @@ class Blockcontact extends Module
 	public function install()
 	{
 		return parent::install()
-			&& Configuration::updateValue('blockcontact_telnumber', '')
-			&& Configuration::updateValue('blockcontact_email', '')
+			&& Configuration::updateValue('BLOCKCONTACT_TELNUMBER', '')
+			&& Configuration::updateValue('BLOCKCONTACT_EMAIL', '')
 			&& $this->registerHook('displayNav')
 			&& $this->registerHook('displayHeader');
 	}
@@ -54,7 +54,7 @@ class Blockcontact extends Module
 	public function uninstall()
 	{
 		// Delete configuration
-		return Configuration::deleteByName('blockcontact_telnumber') && Configuration::deleteByName('blockcontact_email') && parent::uninstall();
+		return Configuration::deleteByName('BLOCKCONTACT_TELNUMBER') && Configuration::deleteByName('BLOCKCONTACT_EMAIL') && parent::uninstall();
 	}
 	
 	public function getContent()
@@ -63,9 +63,10 @@ class Blockcontact extends Module
 		// If we try to update the settings
 		if (Tools::isSubmit('submitModule'))
 		{				
-			Configuration::updateValue('blockcontact_telnumber', Tools::getValue('blockcontact_telnumber'));
-			Configuration::updateValue('blockcontact_email', Tools::getValue('blockcontact_email'));
+			Configuration::updateValue('BLOCKCONTACT_TELNUMBER', Tools::getValue('blockcontact_telnumber'));
+			Configuration::updateValue('BLOCKCONTACT_EMAIL', Tools::getValue('blockcontact_email'));
 			$this->_clearCache('blockcontact.tpl');
+			$this->_clearCache('nav.tpl');
 			$html .= $this->displayConfirmation($this->l('Configuration updated'));
 		}
 
@@ -82,12 +83,15 @@ class Blockcontact extends Module
 	public function hookDisplayRightColumn($params)
 	{
 		global $smarty;
-		if (!$this->isCached('blockcontact.tpl', $this->getCacheId()))
+		$tpl = 'blockcontact';
+		if (isset($params['blockcontact_tpl']) && $params['blockcontact_tpl'])
+			$tpl = $params['blockcontact_tpl'];
+		if (!$this->isCached($tpl.'.tpl', $this->getCacheId()))
 			$smarty->assign(array(
 				'telnumber' => Configuration::get('blockcontact_telnumber'),
 				'email' => Configuration::get('blockcontact_email')
 			));
-		return $this->display(__FILE__, 'blockcontact.tpl', $this->getCacheId());
+		return $this->display(__FILE__, $tpl.'.tpl', $this->getCacheId());
 	}
 	
 	public function hookDisplayLeftColumn($params)
@@ -97,7 +101,7 @@ class Blockcontact extends Module
 
 	public function hookDisplayNav($params)
 	{
-
+		$params['blockcontact_tpl'] = 'nav';
 		return $this->hookDisplayRightColumn($params);
 	}
 	
@@ -121,9 +125,9 @@ class Blockcontact extends Module
 						'name' => 'blockcontact_email',
 					),
 				),
-			'submit' => array(
-				'title' => $this->l('Save'),
-				'class' => 'btn btn-default')
+				'submit' => array(
+					'title' => $this->l('Save'),
+				)
 			),
 		);
 		
@@ -151,8 +155,8 @@ class Blockcontact extends Module
 	public function getConfigFieldsValues()
 	{
 		return array(
-			'blockcontact_telnumber' => Tools::getValue('blockcontact_telnumber', Configuration::get('blockcontact_telnumber')),
-			'blockcontact_email' => Tools::getValue('blockcontact_email', Configuration::get('blockcontact_email')),
+			'blockcontact_telnumber' => Tools::getValue('blockcontact_telnumber', Configuration::get('BLOCKCONTACT_TELNUMBER')),
+			'blockcontact_email' => Tools::getValue('blockcontact_email', Configuration::get('BLOCKCONTACT_EMAIL')),
 		);
 	}
 }

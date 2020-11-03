@@ -1,6 +1,6 @@
 <?php
 /*
-* 2007-2013 PrestaShop
+* 2007-2014 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -19,7 +19,7 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author PrestaShop SA <contact@prestashop.com>
-*  @copyright  2007-2013 PrestaShop SA
+*  @copyright  2007-2014 PrestaShop SA
 *  @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
@@ -34,7 +34,6 @@ class AdminLocalizationControllerCore extends AdminController
 		$this->fields_options = array(
 			'general' => array(
 				'title' =>	$this->l('Configuration'),
-				'id' => 'configuration',
 				'fields' =>	array(
 					'PS_LANG_DEFAULT' => array(
 						'title' => $this->l('Default language:'),
@@ -66,7 +65,6 @@ class AdminLocalizationControllerCore extends AdminController
 			),
 			'localization' => array(
 				'title' =>	$this->l('Localization'),
-				'id' => 'localization',
 				'icon' =>	'icon-globe',
 				'fields' =>	array(
 					'PS_WEIGHT_UNIT' => array(
@@ -102,7 +100,6 @@ class AdminLocalizationControllerCore extends AdminController
 			),
 			'options' => array(
 				'title' =>	$this->l('Advanced'),
-				'id' => 'advanced',
 				'fields' =>	array(
 					'PS_LOCALE_LANGUAGE' => array(
 						'title' => $this->l('Language locale:'),
@@ -294,8 +291,9 @@ class AdminLocalizationControllerCore extends AdminController
 				)
 			),
 			'submit' => array(
-				'title' => $this->l('Save   '),
-				'class' => 'btn btn-default',
+				'title' => $this->l('Import'),
+				'icon' => 'process-icon-import',
+				'name' => 'submitLocalizationPack'
 			),
 		);
 

@@ -1,6 +1,6 @@
 <?php
 /*
-* 2007-2013 PrestaShop
+* 2007-2014 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -19,7 +19,7 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author PrestaShop SA <contact@prestashop.com>
-*  @copyright  2007-2013 PrestaShop SA
+*  @copyright  2007-2014 PrestaShop SA
 *  @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
@@ -61,7 +61,7 @@ class AdminContactsControllerCore extends AdminController
 					'required' => true,
 					'lang' => true,
 					'col' => 4,
-					'hint' => $this->l('Contact name (e.g. Customer Support)'),
+					'hint' => $this->l('Contact name (e.g. Customer Support).'),
 				),
 				array(
 					'type' => 'text',
@@ -69,7 +69,7 @@ class AdminContactsControllerCore extends AdminController
 					'name' => 'email',
 					'required' => false,
 					'col' => 4,
-					'hint' => $this->l('Emails will be sent to this address'),
+					'hint' => $this->l('Emails will be sent to this address.'),
 				),
 				array(
 					'type' => 'switch',
@@ -99,12 +99,11 @@ class AdminContactsControllerCore extends AdminController
 					'required' => false,
 					'lang' => true,
 					'col' => 6,
-					'hint' => $this->l('Further information regarding this contact'),
+					'hint' => $this->l('Further information regarding this contact.'),
 				),
 			),
 			'submit' => array(
-				'title' => $this->l('Save   '),
-				'class' => 'btn btn-default'
+				'title' => $this->l('Save'),
 			)
 		);
 		
@@ -112,7 +111,7 @@ class AdminContactsControllerCore extends AdminController
 		{
 			$this->fields_form['input'][] = array(
 				'type' => 'shop',
-				'label' => $this->l('Shop association:'),
+				'label' => $this->l('Shop association'),
 				'name' => 'checkBoxShopAsso',
 			);
 		}
@@ -125,8 +124,8 @@ class AdminContactsControllerCore extends AdminController
 		$this->initToolbar();
 		if(empty($this->display))
 			$this->page_header_toolbar_btn['new_contact'] = array(
-				'href' => self::$currentIndex.'&amp;addcontact&amp;token='.$this->token,
-				'desc' => $this->l('Add new contact'),
+				'href' => self::$currentIndex.'&addcontact&token='.$this->token,
+				'desc' => $this->l('Add new contact', null, null, false),
 				'icon' => 'process-icon-new'
 			);
 

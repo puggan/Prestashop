@@ -1,5 +1,5 @@
 {*
-* 2007-2013 PrestaShop
+* 2007-2014 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -18,13 +18,12 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author PrestaShop SA <contact@prestashop.com>
-*  @copyright  2007-2013 PrestaShop SA
+*  @copyright  2007-2014 PrestaShop SA
 *  @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 *}
 
 <script type="text/javascript">
-	var token = '{$token}';
 	var come_from = 'AdminModulesPositions';
 </script>
 
@@ -34,7 +33,7 @@
 	<div class="col-lg-9">
 		<div class="panel">
 			<form class="form-inline well">
-				<label>{l s='Show'} :</label>
+				<label>{l s='Show'}</label>
 				<span>
 					<select id="show_modules" onChange="autoUrl('show_modules', '{$url_show_modules}')" class="filter fixed-width-lg">
 						<option value="all">{l s='All modules'}&nbsp;</option>
@@ -83,7 +82,7 @@
 
 						{foreach $hook['modules'] as $position => $module}
 							{if isset($module['instance'])}
-							<li id="{$hook['id_hook']}_{$module['instance']->id}" class="module_list_item">
+							<li id="{$hook['id_hook']}_{$module['instance']->id}" class="module_list_item{if $can_move && $hook['module_count'] >= 2} draggable{/if}">
 								<div class="module_col_select">
 									<input type="checkbox" id="mod{$hook['id_hook']}_{$module['instance']->id}" class="hook{$hook['id_hook']}" onclick="hookCheckboxes({$hook['id_hook']}, 1, this)" name="unhooks[]" value="{$hook['id_hook']}_{$module['instance']->id}"/>
 								</div>
@@ -157,12 +156,12 @@
 		<div class="panel">
 			<h3><i class="icon-eye-open"></i> {l s='Live Edit'}</h3>
 			{if $live_edit}
-				<p>{l s='You have to select a shop to use LiveEdit'}</p>
+				<p>{l s='You have to select a shop to use Live Edit'}</p>
 			{else}
 				<p>{l s='Click here to be redirected to the Front Office of your shop where you can move and delete modules directly.'}</p>
 					<a class="btn btn-default" href="{$url_live_edit}" target="_blank">
 						<i class="icon-edit"></i>
-						{l s='Run LiveEdit'}
+						{l s='Run Live Edit'}
 					</a>
 			{/if}
 		</div>

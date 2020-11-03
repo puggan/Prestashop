@@ -1,6 +1,6 @@
 <?php
 /*
-* 2007-2013 PrestaShop
+* 2007-2014 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -19,7 +19,7 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author PrestaShop SA <contact@prestashop.com>
-*  @copyright  2007-2013 PrestaShop SA
+*  @copyright  2007-2014 PrestaShop SA
 *  @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
@@ -229,7 +229,7 @@ class ValidateCore
 	 */
 	public static function isPrice($price)
 	{
-		return preg_match('/^[0-9]{1,10}(\.[0-9]{1,9})?$/', sprintf('%f', $price));
+		return preg_match('/^[0-9]{1,10}(\.[0-9]{1,9})?$/', $price);
 	}
 
 	/**
@@ -240,7 +240,7 @@ class ValidateCore
 	*/
 	public static function isNegativePrice($price)
 	{
-		return preg_match('/^[-]?[0-9]{1,10}(\.[0-9]{1,9})?$/', sprintf('%f', $price));
+		return preg_match('/^[-]?[0-9]{1,10}(\.[0-9]{1,9})?$/', $price);
 	}
 
 	/**
@@ -496,7 +496,9 @@ class ValidateCore
 			return true;
 		if (preg_match('/^([0-9]{4})-((?:0?[1-9])|(?:1[0-2]))-((?:0?[1-9])|(?:[1-2][0-9])|(?:3[01]))([0-9]{2}:[0-9]{2}:[0-9]{2})?$/', $date, $birth_date))
 		{
-			if ($birth_date[1] > date('Y') && $birth_date[2] > date('m') && $birth_date[3] > date('d'))
+			if ($birth_date[1] > date('Y') && $birth_date[2] > date('m') && $birth_date[3] > date('d')
+				|| $birth_date[1] == date('Y') && $birth_date[2] == date('m') && $birth_date[3] > date('d')
+				|| $birth_date[1] == date('Y') && $birth_date[2] > date('m'))
 				return false;
 			return true;
 		}
@@ -804,7 +806,7 @@ class ValidateCore
 	 */
 	public static function isTabName($name)
 	{
-		return preg_match('/^[a-zA-Z0-9_-]*$/', $name);
+		return preg_match('/^[^<>]+$/u', $name);
 	}
 
 	public static function isWeightUnit($unit)

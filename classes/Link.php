@@ -1,6 +1,6 @@
 <?php
 /*
-* 2007-2013 PrestaShop
+* 2007-2014 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -19,7 +19,7 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author PrestaShop SA <contact@prestashop.com>
-*  @copyright  2007-2013 PrestaShop SA
+*  @copyright  2007-2014 PrestaShop SA
 *  @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
@@ -407,7 +407,7 @@ class LinkCore
 
 	public function getMediaLink($filepath)
 	{
-		return Tools::getProtocol().Tools::getMediaServer($filepath).$filepath;
+		return $this->protocol_content.Tools::getMediaServer($filepath).$filepath;
 	}
 
 	/**
@@ -501,11 +501,11 @@ class LinkCore
 			if (!empty($module))
 			{
 				unset($params['fc'], $params['module']);
-				return $this->getModuleLink($module, $controller, $params, false, (int)$id_lang);
+				return $this->getModuleLink($module, $controller, $params, null, (int)$id_lang);
 			}
 		}		
 
-		return $this->getPageLink($controller, false, $id_lang, $params);
+		return $this->getPageLink($controller, null, $id_lang, $params);
 	}
 
 	public function goPage($url, $p)

@@ -1,5 +1,5 @@
 {*
-* 2007-2013 PrestaShop
+* 2007-2014 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -18,7 +18,7 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author PrestaShop SA <contact@prestashop.com>
-*  @copyright  2007-2013 PrestaShop SA
+*  @copyright  2007-2014 PrestaShop SA
 *  @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 *}
@@ -28,7 +28,7 @@
 	</td>
 	<td class="cart_description">
 		<p class="product-name"><a href="{$link->getProductLink($product.id_product, $product.link_rewrite, $product.category, null, null, $product.id_shop, $product.id_product_attribute)|escape:'html':'UTF-8'}">{$product.name|escape:'html':'UTF-8'}</a></p>
-        <small class="cart_ref">{l s='SKU'} : {if $product.reference}{$product.reference|escape:'html':'UTF-8'}{else}--{/if}</small>
+        {if $product.reference}<small class="cart_ref">{l s='SKU'} : {$product.reference|escape:'html':'UTF-8'}</small>{/if}
 		{if isset($product.attributes) && $product.attributes}<small><a href="{$link->getProductLink($product.id_product, $product.link_rewrite, $product.category, null, null, $product.id_shop, $product.id_product_attribute)|escape:'html':'UTF-8'}">{$product.attributes|escape:'html':'UTF-8'}</a></small>{/if}
 	</td>
 	<td class="cart_avail" >{if $product.quantity_available > 0}<span class="label label-success">{l s='In Stock'}</span>{else}<span class="label label-warning">{l s='Out of Stock'}</span>{/if}</td>
@@ -52,6 +52,7 @@
 			{/if}
 		</span>
 	</td>
+
     {if !isset($cannotModify)}
 	<td class="cart_quantity {if isset($customizedDatas.$productId.$productAttributeId) AND $quantityDisplayed == 0} text-center{/if}">
 		{if isset($cannotModify) AND $cannotModify == 1}
@@ -84,6 +85,9 @@
 			{/if}
 		{/if}
 	</td>
+	{elseif !isset($cannotModify)}
+			<td class="cart_gift_quantity text-center">{if !empty($product.gift)}<input size="2" type="text" autocomplete="off" disabled="disabled" class="cart_quantity_input form-control grey" value="1" />{/if}</td>
+
     {/if}
 	<td class="cart_total" data-title="{l s='Total'}">
 		<span class="price" id="total_product_price_{$product.id_product}_{$product.id_product_attribute}{if $quantityDisplayed > 0}_nocustom{/if}_{$product.id_address_delivery|intval}{if !empty($product.gift)}_gift{/if}">
@@ -104,6 +108,8 @@
 			<div>
 				<a rel="nofollow" title="{l s='Delete'}" class="cart_quantity_delete" id="{$product.id_product}_{$product.id_product_attribute}_{if $quantityDisplayed > 0}nocustom{else}0{/if}_{$product.id_address_delivery|intval}" href="{$link->getPageLink('cart', true, NULL, "delete=1&amp;id_product={$product.id_product|intval}&amp;ipa={$product.id_product_attribute|intval}&amp;id_address_delivery={$product.id_address_delivery|intval}&amp;token={$token_cart}")|escape:'html':'UTF-8'}"><i class="icon-trash"></i></a>
 			</div>
+		{else}
+
 		{/if}
 		</td>
 	{/if}

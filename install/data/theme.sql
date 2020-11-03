@@ -49,17 +49,17 @@ UPDATE `PREFIX_configuration` SET value = '1' WHERE name = 'FOOTER_POWEREDBY';
 UPDATE `PREFIX_configuration` SET value = 'http://www.prestashop.com' WHERE name = 'BLOCKADVERT_LINK';
 UPDATE `PREFIX_configuration` SET value = 'store.jpg' WHERE name = 'BLOCKSTORE_IMG';
 UPDATE `PREFIX_configuration` SET value = 'jpg' WHERE name = 'BLOCKADVERT_IMG_EXT';
-UPDATE `PREFIX_configuration` SET value = 'CAT3,CAT26' WHERE name = 'MOD_BLOCKTOPMENU_ITEMS';
+UPDATE `PREFIX_configuration` SET value = 'CAT3,CAT8,CAT5,LNK1' WHERE name = 'MOD_BLOCKTOPMENU_ITEMS';
 UPDATE `PREFIX_configuration` SET value = '0' WHERE name = 'MOD_BLOCKTOPMENU_SEARCH';
-UPDATE `PREFIX_configuration` SET value = 'http://www.facebook.com/prestashop' WHERE name = 'blocksocial_facebook';
-UPDATE `PREFIX_configuration` SET value = 'http://www.twitter.com/prestashop' WHERE name = 'blocksocial_twitter';
-UPDATE `PREFIX_configuration` SET value = 'http://www.prestashop.com/blog/en/feed/' WHERE name = 'blocksocial_rss';
-UPDATE `PREFIX_configuration` SET value = 'My Company' WHERE name = 'blockcontactinfos_company';
-UPDATE `PREFIX_configuration` SET value = '42 avenue des Champs Elysées\n75000 Paris\nFrance' WHERE name = 'blockcontactinfos_address';
-UPDATE `PREFIX_configuration` SET value = '0123-456-789' WHERE name = 'blockcontactinfos_phone';
-UPDATE `PREFIX_configuration` SET value = 'sales@yourcompany.com' WHERE name = 'blockcontactinfos_email';
-UPDATE `PREFIX_configuration` SET value = '0123-456-789' WHERE name = 'blockcontact_telnumber';
-UPDATE `PREFIX_configuration` SET value = 'sales@yourcompany.com' WHERE name = 'blockcontact_email';
+UPDATE `PREFIX_configuration` SET value = 'http://www.facebook.com/prestashop' WHERE name = 'BLOCKSOCIAL_FACEBOOK';
+UPDATE `PREFIX_configuration` SET value = 'http://www.twitter.com/prestashop' WHERE name = 'BLOCKSOCIAL_TWITTER';
+UPDATE `PREFIX_configuration` SET value = 'http://www.prestashop.com/blog/en/feed/' WHERE name = 'BLOCKSOCIAL_RSS';
+UPDATE `PREFIX_configuration` SET value = 'My Company' WHERE name = 'BLOCKCONTACTINFOS_COMPANY';
+UPDATE `PREFIX_configuration` SET value = '42 avenue des Champs Elysées\n75000 Paris\nFrance' WHERE name = 'BLOCKCONTACTINFOS_ADDRESS';
+UPDATE `PREFIX_configuration` SET value = '0123-456-789' WHERE name = 'BLOCKCONTACTINFOS_PHONE';
+UPDATE `PREFIX_configuration` SET value = 'sales@yourcompany.com' WHERE name = 'BLOCKCONTACTINFOS_EMAIL';
+UPDATE `PREFIX_configuration` SET value = '0123-456-789' WHERE name = 'BLOCKCONTACT_TELNUMBER';
+UPDATE `PREFIX_configuration` SET value = 'sales@yourcompany.com' WHERE name = 'BLOCKCONTACT_EMAIL';
 UPDATE `PREFIX_configuration` SET value = '1' WHERE name = 'SUPPLIER_DISPLAY_TEXT';
 UPDATE `PREFIX_configuration` SET value = '5' WHERE name = 'SUPPLIER_DISPLAY_TEXT_NB';
 UPDATE `PREFIX_configuration` SET value = '1' WHERE name = 'SUPPLIER_DISPLAY_FORM';
@@ -111,7 +111,7 @@ WHERE id_module = (SELECT id_module FROM `PREFIX_module` WHERE name = 'blocksear
 AND id_hook = @id_hook;
 
 UPDATE `PREFIX_hook_module` SET position = 2
-WHERE id_module = (SELECT id_module FROM `PREFIX_module` WHERE name = 'blockuserinfo')
+WHERE id_module = (SELECT id_module FROM `PREFIX_module` WHERE name = 'blockcart')
 AND id_hook = @id_hook;
 
 UPDATE `PREFIX_hook_module` SET position = 3
@@ -119,22 +119,18 @@ WHERE id_module = (SELECT id_module FROM `PREFIX_module` WHERE name = 'blocktopm
 AND id_hook = @id_hook;
 
 UPDATE `PREFIX_hook_module` SET position = 4
-WHERE id_module = (SELECT id_module FROM `PREFIX_module` WHERE name = 'blockcart')
-AND id_hook = @id_hook;
-
-UPDATE `PREFIX_hook_module` SET position = 5
 WHERE id_module = (SELECT id_module FROM `PREFIX_module` WHERE name = 'homeslider')
 AND id_hook = @id_hook;
 
-UPDATE `PREFIX_hook_module` SET position = 6
+UPDATE `PREFIX_hook_module` SET position = 5
 WHERE id_module = (SELECT id_module FROM `PREFIX_module` WHERE name = 'themeconfigurator')
 AND id_hook = @id_hook;
 
-UPDATE `PREFIX_hook_module` SET position = 7
+UPDATE `PREFIX_hook_module` SET position = 6
 WHERE id_module = (SELECT id_module FROM `PREFIX_module` WHERE name = 'blockwhislist')
 AND id_hook = @id_hook;
 
-UPDATE `PREFIX_hook_module` SET position = 8
+UPDATE `PREFIX_hook_module` SET position = 7
 WHERE id_module = (SELECT id_module FROM `PREFIX_module` WHERE name = 'blockbanner')
 AND id_hook = @id_hook;
 
@@ -180,6 +176,15 @@ UPDATE `PREFIX_hook_module` SET position = 6
 WHERE id_module = (SELECT id_module FROM `PREFIX_module` WHERE name = 'blockcontactinfos')
 AND id_hook = @id_hook;
 
+/* displayProductButtons */
+SET @id_hook = (SELECT id_hook FROM `PREFIX_hook` WHERE name = 'displayProductButtons');
+UPDATE `PREFIX_hook_module` SET position = 1
+WHERE id_module = (SELECT id_module FROM `PREFIX_module` WHERE name = 'blockwishlist')
+AND id_hook = @id_hook;
+UPDATE `PREFIX_hook_module` SET position = 2
+WHERE id_module = (SELECT id_module FROM `PREFIX_module` WHERE name = 'blockpaymentlogo')
+AND id_hook = @id_hook;
+
 /* Exceptions for pages without left column */
 SET @id_hook = (SELECT id_hook FROM `PREFIX_hook` WHERE name = 'displayLeftColumn');
 INSERT INTO `PREFIX_hook_module_exceptions` (`id_shop`, `id_module`, `id_hook`, `file_name`) (
@@ -209,4 +214,16 @@ INSERT INTO `PREFIX_hook_module_exceptions` (`id_shop`, `id_module`, `id_hook`, 
 	WHERE id_hook = @id_hook
 );
 
+INSERT INTO `PREFIX_linksmenutop` (`id_linksmenutop`, `id_shop`, `new_window`) VALUES (1, 1, 1);
+INSERT INTO `PREFIX_linksmenutop_lang` (`id_linksmenutop`, `id_lang`, `id_shop`, `label`, `link`) VALUES (1, 1, 1, 'Blog', 'http://www.prestashop.com/blog/');
 
+INSERT INTO `PREFIX_hook_module_exceptions` (`id_shop`, `id_module`, `id_hook`, `file_name`) 
+(
+	SELECT 1, m.id_module, h.id_hook, 'category'
+	FROM `PREFIX_hook` h
+	JOIN `PREFIX_hook_module` hm ON (hm.id_hook = h.id_hook)
+	JOIN `PREFIX_module` m ON (m.id_module = hm.id_module)
+	WHERE 
+	h.name='displayLeftColumn' AND m.name IN ('blockbestsellers', 'blockmanufacturer', 'blocksupplier', 'blockmyaccount', 'blockpaymentlogo')
+	GROUP BY m.id_module
+);

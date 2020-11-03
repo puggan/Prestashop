@@ -1,6 +1,6 @@
 <?php
 /*
-* 2007-2013 PrestaShop
+* 2007-2014 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -19,7 +19,7 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author PrestaShop SA <contact@prestashop.com>
-*  @copyright  2007-2013 PrestaShop SA
+*  @copyright  2007-2014 PrestaShop SA
 *  @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
@@ -116,7 +116,8 @@ class CartControllerCore extends FrontController
 				$this->context->cart->update();
 			}
 		}
-		$removed = CartRule::autoAddToCart();
+		$removed = CartRule::autoRemoveFromCart();
+		CartRule::autoAddToCart();
 		if (count($removed) && (int)Tools::getValue('allow_refresh'))
 			$this->ajax_refresh = true;
 	}
@@ -319,6 +320,9 @@ class CartControllerCore extends FrontController
 			die(Tools::jsonEncode(array('hasError' => true, 'errors' => $this->errors)));
 		if ($this->ajax_refresh)
 			die(Tools::jsonEncode(array('refresh' => true)));
+		
+		// write cookie if can't on destruct
+		$this->context->cookie->write();
 
 		if (Tools::getIsset('summary'))
 		{

@@ -1,6 +1,6 @@
 <?php
 /*
-* 2007-2013 PrestaShop
+* 2007-2014 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -19,7 +19,7 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author PrestaShop SA <contact@prestashop.com>
-*  @copyright  2007-2013 PrestaShop SA
+*  @copyright  2007-2014 PrestaShop SA
 *  @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
@@ -508,8 +508,6 @@ class AdminImportControllerCore extends AdminController
 
 	public function setMedia()
 	{
-		$admin_webpath = str_ireplace(_PS_ROOT_DIR_, '', _PS_ADMIN_DIR_);
-		$admin_webpath = preg_replace('/^'.preg_quote(DIRECTORY_SEPARATOR, '/').'/', '', $admin_webpath);
 		$bo_theme = ((Validate::isLoadedObject($this->context->employee)
 			&& $this->context->employee->bo_theme) ? $this->context->employee->bo_theme : 'default');
 
@@ -520,19 +518,21 @@ class AdminImportControllerCore extends AdminController
 		// We need to set parent media first, so that jQuery is loaded before the dependant plugins
 		parent::setMedia();
 
-		$this->addJs(__PS_BASE_URI__.$admin_webpath.'/themes/'.$bo_theme.'/js/vendor/jquery.ui.widget.js');
-		$this->addJs(__PS_BASE_URI__.$admin_webpath.'/themes/'.$bo_theme.'/js/jquery.iframe-transport.js');
-		$this->addJs(__PS_BASE_URI__.$admin_webpath.'/themes/'.$bo_theme.'/js/jquery.fileupload.js');
-		$this->addJs(__PS_BASE_URI__.$admin_webpath.'/themes/'.$bo_theme.'/js/jquery.fileupload-process.js');
-		$this->addJs(__PS_BASE_URI__.$admin_webpath.'/themes/'.$bo_theme.'/js/jquery.fileupload-validate.js');			
+		$this->addJs(__PS_BASE_URI__.$this->admin_webpath.'/themes/'.$bo_theme.'/js/jquery.iframe-transport.js');
+		$this->addJs(__PS_BASE_URI__.$this->admin_webpath.'/themes/'.$bo_theme.'/js/jquery.fileupload.js');
+		$this->addJs(__PS_BASE_URI__.$this->admin_webpath.'/themes/'.$bo_theme.'/js/jquery.fileupload-process.js');
+		$this->addJs(__PS_BASE_URI__.$this->admin_webpath.'/themes/'.$bo_theme.'/js/jquery.fileupload-validate.js');			
 		$this->addJs(__PS_BASE_URI__.'js/vendor/spin.js');
 		$this->addJs(__PS_BASE_URI__.'js/vendor/ladda.js');
 	}
 
 	public function renderForm()
 	{
-		if (!is_writable(_PS_ADMIN_DIR_.'/import/'))
-			$this->displayWarning($this->l('Directory import on admin directory must be writable (CHMOD 755 / 777)'));
+		if (!is_dir(AdminImportController::getPath()))
+			return !($this->errors[] = Tools::displayError('The import directory does not extist.'));
+
+		if (!is_writable(AdminImportController::getPath()))
+			$this->displayWarning($this->l('The import directory must be writable (CHMOD 755 / 777).'));
 
 		if (isset($this->warnings) && count($this->warnings))
 		{
@@ -541,7 +541,7 @@ class AdminImportControllerCore extends AdminController
 				$warnings[] = $warning;
 		}
 
-		$files_to_import = scandir(_PS_ADMIN_DIR_.'/import/');
+		$files_to_import = scandir(AdminImportController::getPath());
 		uasort($files_to_import, array('AdminImportController', 'usortFiles'));
 		foreach ($files_to_import as $k => &$filename)
 			//exclude .  ..  .svn and index.php and all hidden files
@@ -567,7 +567,8 @@ class AdminImportControllerCore extends AdminController
 			$entity_selected = (int)$this->context->cookie->entity_selected;
 
 		$csv_selected = '';
-		if (isset($this->context->cookie->csv_selected) && file_exists(_PS_ADMIN_DIR_.'/import/'.urldecode($this->context->cookie->csv_selected)))
+		if (isset($this->context->cookie->csv_selected) && @filemtime(AdminImportController::getPath(
+			urldecode($this->context->cookie->csv_selected))))
 			$csv_selected = urldecode($this->context->cookie->csv_selected);
 		else
 			$this->context->cookie->csv_selected = $csv_selected;
@@ -600,9 +601,9 @@ class AdminImportControllerCore extends AdminController
 			$bytes = 20971520; // 20Mb
 
 		$this->tpl_form_vars = array(
-			'post_max_size' => (int)$bytes, 
+			'post_max_size' => (int)$bytes,
 			'module_confirmation' => (Tools::getValue('import')) && (isset($this->warnings) && !count($this->warnings)),
-			'path_import' => _PS_ADMIN_DIR_.'/import/',
+			'path_import' => AdminImportController::getPath(),
 			'entities' => $this->entities,
 			'entity_selected' => $entity_selected,
 			'csv_selected' => $csv_selected,
@@ -621,7 +622,6 @@ class AdminImportControllerCore extends AdminController
 
 	public function ajaxProcessuploadCsv()
 	{
-		$path = _PS_ADMIN_DIR_.'/import/';
 		$filename_prefix = date('YmdHis').'-';
 
 		if (isset($_FILES['file']) && !empty($_FILES['file']['error']))
@@ -651,12 +651,12 @@ class AdminImportControllerCore extends AdminController
 		}
 		elseif (!preg_match('/.*\.csv$/i', $_FILES['file']['name']))
 			$_FILES['file']['error'] = Tools::displayError('The extension of your file should be .csv.');
-		elseif (!file_exists($_FILES['file']['tmp_name']) ||
-			!@move_uploaded_file($_FILES['file']['tmp_name'], $path.$filename_prefix.$_FILES['file']['name']))
+		elseif (!@filemtime($_FILES['file']['tmp_name']) ||
+			!@move_uploaded_file($_FILES['file']['tmp_name'], AdminImportController::getPath().$filename_prefix.$_FILES['file']['name']))
 			$_FILES['file']['error'] = $this->l('An error occurred while uploading / copying the file.');
 		else
 		{
-			@chmod($path.$filename_prefix.$_FILES['file']['name'], 0664);
+			@chmod(AdminImportController::getPath().$filename_prefix.$_FILES['file']['name'], 0664);
 			$_FILES['file']['filename'] = $filename_prefix.$_FILES['file']['name'];
 		}
 
@@ -780,6 +780,7 @@ class AdminImportControllerCore extends AdminController
 		$this->initToolbar();
 		$this->initPageHeaderToolbar();
 		if ($this->display == 'import')
+		{
 			if (Tools::getValue('csv'))
 				$this->content .= $this->renderView();
 			else
@@ -787,6 +788,7 @@ class AdminImportControllerCore extends AdminController
 				$this->errors[] = $this->l('You must upload a file in order to proceed to the next step');
 				$this->content .= $this->renderForm();
 			}
+		}
 		else
 			$this->content .= $this->renderForm();
 
@@ -896,7 +898,8 @@ class AdminImportControllerCore extends AdminController
 			else
 			{
 				if (isset($field['help']))
-					$html = '&nbsp;<a href="#" class="info_import" title="'.$this->l('Info').'|'.$field['help'].'"><i class="icon-info-sign"></i></a>';
+
+					$html = '&nbsp;<a href="#" class="help-tooltip" data-toggle="tooltip" title="'.$field['help'].'"><i class="icon-info-sign"></i></a>';
 				else
 					$html = '';
 				$fields[] = '<div>'.$field['label'].$html.'</div>';
@@ -1158,7 +1161,7 @@ class AdminImportControllerCore extends AdminController
 				
 				if ($category->id && $category->id == $category->id_parent)
 				{
-					$this->errors[] = Tools::displayError('a category cannot be its own parent');
+					$this->errors[] = Tools::displayError('A category cannot be its own parent');
 					continue;
 				}
 
@@ -1695,6 +1698,10 @@ class AdminImportControllerCore extends AdminController
 				if (isset($product->id_category))
 					$product->updateCategories(array_map('intval', $product->id_category));
 
+				$product->checkDefaultAttributes();
+				if (!$product->cache_default_attribute)
+					Product::updateDefaultAttribute($product->id);
+
 				// Features import
 				$features = get_object_vars($product);
 
@@ -1737,7 +1744,7 @@ class AdminImportControllerCore extends AdminController
 			}
 
 			// Check if warehouse exists
-			if ($product->warehouse)
+			if (isset($product->warehouse) && $product->warehouse)
 			{
 				if (!Configuration::get('PS_ADVANCED_STOCK_MANAGEMENT'))
 					$this->warnings[] = sprintf(Tools::displayError('Advanced stock management is not enabled, warehouse not set on product %1$s '),$product->name[$default_language_id]);
@@ -2127,7 +2134,7 @@ class AdminImportControllerCore extends AdminController
 
 			$product->checkDefaultAttributes();
 			if (!$product->cache_default_attribute)
-						Product::updateDefaultAttribute($product->id);
+				Product::updateDefaultAttribute($product->id);
 			if ($id_product_attribute)
 			{
 				// now adds the attributes in the attribute_combination table
@@ -3083,7 +3090,7 @@ class AdminImportControllerCore extends AdminController
 
 	protected function openCsvFile()
 	{
-		$file = _PS_ADMIN_DIR_.'/import/'.strval(preg_replace('/\.{2,}/', '.', Tools::getValue('csv')));
+		$file = AdminImportController::getPath(strval(preg_replace('/\.{2,}/', '.', Tools::getValue('csv'))));
 		$handle = false;
 		if (is_file($file) && is_readable($file))	
 			$handle = fopen($file, 'r');
@@ -3161,6 +3168,7 @@ class AdminImportControllerCore extends AdminController
 				Db::getInstance()->execute('TRUNCATE TABLE `'._DB_PREFIX_.'product_attribute_shop`');
 				Db::getInstance()->execute('TRUNCATE TABLE `'._DB_PREFIX_.'product_attribute_combination`');
 				Db::getInstance()->execute('TRUNCATE TABLE `'._DB_PREFIX_.'product_attribute_image`');
+				Db::getInstance()->execute('TRUNCATE TABLE `'._DB_PREFIX_.'pack`');
 				Image::deleteAllImages(_PS_PROD_IMG_DIR_);
 				if (!file_exists(_PS_PROD_IMG_DIR_))
 					mkdir(_PS_PROD_IMG_DIR_);
@@ -3225,7 +3233,7 @@ class AdminImportControllerCore extends AdminController
 			return;
 		}
 
-		if (Tools::getValue('submitImportFile'))
+		if (Tools::isSubmit('import'))
 		{
 			// Check if the CSV file exist
 			if (Tools::getValue('csv'))
@@ -3286,7 +3294,7 @@ class AdminImportControllerCore extends AdminController
 					$log_message = sprintf($this->l('%s import', 'AdminTab', false, false), $import_type);
 					if (Tools::getValue('truncate'))
 						$log_message .= ' '.$this->l('with truncate', 'AdminTab', false, false);
-					Logger::addLog($log_message, 1, null, $import_type, null, true, (int)$this->context->employee->id);
+					PrestaShopLogger::addLog($log_message, 1, null, $import_type, null, true, (int)$this->context->employee->id);
 				}
 			}
 			else
@@ -3295,8 +3303,8 @@ class AdminImportControllerCore extends AdminController
 		elseif ($filename = Tools::getValue('csvfilename'))
 		{
 			$filename = urldecode($filename);
-			$file =  _PS_ADMIN_DIR_.'/import/'.basename($filename);
-			if (realpath(dirname($file)) != _PS_ADMIN_DIR_.DIRECTORY_SEPARATOR.'import')
+			$file =  AdminImportController::getPath(basename($filename));
+			if (realpath(dirname($file)) != realpath(AdminImportController::getPath()))
 				exit();
 			if (!empty($filename))
 			{
@@ -3340,7 +3348,8 @@ class AdminImportControllerCore extends AdminController
 
 	protected function addProductWarning($product_name, $product_id = null, $message = '')
 	{
-		$this->warnings[] = $product_name.(isset($product_id) ? ' (ID '.$product_id.')' : '').' '.Tools::displayError($message);
+		$this->warnings[] = $product_name.(isset($product_id) ? ' (ID '.$product_id.')' : '').' '
+			.Tools::displayError($message);
 	}
 
 	public function ajaxProcessSaveImportMatchs()
@@ -3348,7 +3357,7 @@ class AdminImportControllerCore extends AdminController
 		if ($this->tabAccess['edit'] === '1')
 		{
 			$match = implode('|', Tools::getValue('type_value'));
-			Db::getInstance()->execute('INSERT INTO  `'._DB_PREFIX_.'import_match` (
+			Db::getInstance()->execute('INSERT IGNORE INTO  `'._DB_PREFIX_.'import_match` (
 										`id_import_match` ,
 										`name` ,
 										`match`,
@@ -3369,8 +3378,10 @@ class AdminImportControllerCore extends AdminController
 	{
 		if ($this->tabAccess['edit'] === '1')
 		{
-			$return = Db::getInstance()->executeS('SELECT * FROM `'._DB_PREFIX_.'import_match` WHERE `id_import_match` = '.(int)Tools::getValue('idImportMatchs'));
-			die('{"id" : "'.$return[0]['id_import_match'].'", "matchs" : "'.$return[0]['match'].'", "skip" : "'.$return[0]['skip'].'"}');
+			$return = Db::getInstance()->executeS('SELECT * FROM `'._DB_PREFIX_.'import_match` WHERE `id_import_match` = '
+				.(int)Tools::getValue('idImportMatchs'));
+			die('{"id" : "'.$return[0]['id_import_match'].'", "matchs" : "'.$return[0]['match'].'", "skip" : "'
+				.$return[0]['skip'].'"}');
 		}
 	}
 
@@ -3378,9 +3389,16 @@ class AdminImportControllerCore extends AdminController
 	{
 		if ($this->tabAccess['edit'] === '1')
 		{
-			Db::getInstance()->execute('DELETE FROM `'._DB_PREFIX_.'import_match` WHERE `id_import_match` = '.(int)Tools::getValue('idImportMatchs'));
+			Db::getInstance()->execute('DELETE FROM `'._DB_PREFIX_.'import_match` WHERE `id_import_match` = '
+				.(int)Tools::getValue('idImportMatchs'));
 			die;
 		}
+	}
+
+	public static function getPath($file = '')
+	{
+		return (defined('_PS_HOST_MODE_') ? _PS_ROOT_DIR_ : _PS_ADMIN_DIR_).DIRECTORY_SEPARATOR.'import'
+			.DIRECTORY_SEPARATOR.$file;
 	}
 }
 ?>

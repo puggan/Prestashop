@@ -1,5 +1,5 @@
 {*
-* 2007-2013 PrestaShop
+* 2007-2014 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -18,13 +18,13 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author PrestaShop SA <contact@prestashop.com>
-*  @copyright  2007-2013 PrestaShop SA
+*  @copyright  2007-2014 PrestaShop SA
 *  @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *  International Registred Trademark & Property of PrestaShop SA
 *}
 <div class="form-group">
 	<label class="control-label col-lg-3">
-		<span class="label-tooltip" data-toggle="tooltip" data-html="true" title="" data-original-title="'.$this->l('Invalid characters:').' <>;=#{}_">{l s='URL:' mod='blockfacette'}</span>
+		<span class="label-tooltip" data-toggle="tooltip" data-html="true" title="" data-original-title="'.$this->l('Invalid characters:').' <>;=#{}_">{l s='URL:' mod='blocklayered'}</span>
 	</label>
 	<div class="col-lg-9">
 		<div class="row">
@@ -47,13 +47,13 @@
 			</div>
 			{/foreach}
 			<div class="col-lg-9">
-				<p class="help-block">{l s='Specific URL format in block layered generation' mod='blockfacette'}</p>
+				<p class="help-block">{l s='Specific URL format in block layered generation' mod='blocklayered'}</p>
 			</div>
 		</div>
 	</div>
 </div>
 <div class="form-group">
-	<label class="control-label col-lg-3">{l s='Meta title:' mod='blockfacette'}</label>
+	<label class="control-label col-lg-3">{l s='Meta title:' mod='blocklayered'}</label>
 	<div class="col-lg-9">
 		<div class="row">
 			{foreach $languages as $language}
@@ -75,7 +75,7 @@
 			</div>
 			{/foreach}
 			<div class="col-lg-9">
-				<p class="help-block">{l s='Specific format for meta title' mod='blockfacette'}</p>
+				<p class="help-block">{l s='Specific format for meta title' mod='blocklayered'}</p>
 			</div>
 		</div>
 	</div>

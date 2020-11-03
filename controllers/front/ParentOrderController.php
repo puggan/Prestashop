@@ -1,6 +1,6 @@
 <?php
 /*
-* 2007-2013 PrestaShop
+* 2007-2014 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -19,7 +19,7 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author PrestaShop SA <contact@prestashop.com>
-*  @copyright  2007-2013 PrestaShop SA
+*  @copyright  2007-2014 PrestaShop SA
 *  @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
@@ -58,7 +58,7 @@ class ParentOrderControllerCore extends FrontController
 		$this->nbProducts = $this->context->cart->nbProducts();
 		
 		if (!$this->context->customer->isLogged(true) && $this->context->getMobileDevice() && Tools::getValue('step'))
-			Tools::redirect($this->context->link->getPageLink('authentication', true, (int)$this->context->language->id, $params));
+			Tools::redirect($this->context->link->getPageLink('authentication', true, (int)$this->context->language->id));
 		
 		// Redirect to the good order process
 		if (Configuration::get('PS_ORDER_PROCESS_TYPE') == 0 && Dispatcher::getInstance()->getController() != 'order')
@@ -147,7 +147,7 @@ class ParentOrderControllerCore extends FrontController
 			$this->addCSS(_THEME_CSS_DIR_.'addresses.css');
 
 		// Adding JS files
-		$this->addJS(_THEME_JS_DIR_.'tools.js');
+		$this->addJS(_THEME_JS_DIR_.'tools.js');  // retro compat themes 1.5
 		if ((Configuration::get('PS_ORDER_PROCESS_TYPE') == 0 && Tools::getValue('step') == 1) || Configuration::get('PS_ORDER_PROCESS_TYPE') == 1)
 			$this->addJS(_THEME_JS_DIR_.'order-address.js');
 		$this->addJqueryPlugin('fancybox');
@@ -433,25 +433,32 @@ class ParentOrderControllerCore extends FrontController
 				'formatedAddressFieldsValuesList' => $formatedAddressFieldsValuesList));
 
 			/* Setting default addresses for cart */
-			if ((!isset($this->context->cart->id_address_delivery) || empty($this->context->cart->id_address_delivery)) && count($customerAddresses))
+			if (count($customerAddresses))
 			{
-				$this->context->cart->id_address_delivery = (int)($customerAddresses[0]['id_address']);
-				$update = 1;
+				if ((!isset($this->context->cart->id_address_delivery) || empty($this->context->cart->id_address_delivery)) || !Address::isCountryActiveById((int)$this->context->cart->id_address_delivery))
+				{
+					$this->context->cart->id_address_delivery = (int)($customerAddresses[0]['id_address']);
+					$update = 1;
+				}
+				if ((!isset($this->context->cart->id_address_invoice) || empty($this->context->cart->id_address_invoice)) || !Address::isCountryActiveById((int)$this->context->cart->id_address_invoice))
+				{
+					$this->context->cart->id_address_invoice = (int)($customerAddresses[0]['id_address']);
+					$update = 1;
+				}
+
+				/* Update cart addresses only if needed */
+				if (isset($update) && $update)
+				{
+					$this->context->cart->update();
+					if (!$this->context->cart->isMultiAddressDelivery())
+						$this->context->cart->setNoMultishipping();
+					// Address has changed, so we check if the cart rules still apply
+					CartRule::autoRemoveFromCart($this->context);
+					CartRule::autoAddToCart($this->context);
+				}
 			}
-			if ((!isset($this->context->cart->id_address_invoice) || empty($this->context->cart->id_address_invoice)) && count($customerAddresses))
-			{
-				$this->context->cart->id_address_invoice = (int)($customerAddresses[0]['id_address']);
-				$update = 1;
-			}
-			/* Update cart addresses only if needed */
-			if (isset($update) && $update)
-			{
-				$this->context->cart->update();
-				
-				// Address has changed, so we check if the cart rules still apply
-				CartRule::autoRemoveFromCart($this->context);
-				CartRule::autoAddToCart($this->context);
-			}
+
+
 
 			/* If delivery address is valid in cart, assign it to Smarty */
 			if (isset($this->context->cart->id_address_delivery))
@@ -477,10 +484,10 @@ class ParentOrderControllerCore extends FrontController
 	{	
 		$address = new Address($this->context->cart->id_address_delivery);
 		$id_zone = Address::getZoneById($address->id);
-		$bad_delivery = false;
 		$carriers = $this->context->cart->simulateCarriersOutput();
 		$checked = $this->context->cart->simulateCarrierSelectedOutput();
 		$delivery_option_list = $this->context->cart->getDeliveryOptionList();
+		$delivery_option = $this->context->cart->getDeliveryOption(null, false);
 		$this->setDefaultCarrierSelection($delivery_option_list);
 
 		$this->context->smarty->assign(array(		
@@ -488,7 +495,7 @@ class ParentOrderControllerCore extends FrontController
 			'delivery_option_list' => $delivery_option_list,
 			'carriers' => $carriers,
 			'checked' => $checked,
-			'delivery_option' => $this->context->cart->getDeliveryOption(null, false)
+			'delivery_option' => $delivery_option
 		));
 
 		$vars = array(
@@ -496,7 +503,7 @@ class ParentOrderControllerCore extends FrontController
 				'carriers' => $carriers,
 				'checked' => $checked,
 				'delivery_option_list' => $delivery_option_list,
-				'delivery_option' => $this->context->cart->getDeliveryOption(null, false)
+				'delivery_option' => $delivery_option
 			))
 		);
 		

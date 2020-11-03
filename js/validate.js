@@ -76,7 +76,7 @@ var unicode_hack = (function() {
 
 })();
 /*
-* 2007-2013 PrestaShop
+* 2007-2014 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -95,7 +95,7 @@ var unicode_hack = (function() {
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author PrestaShop SA <contact@prestashop.com>
-*  @copyright  2007-2013 PrestaShop SA
+*  @copyright  2007-2014 PrestaShop SA
 *  @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
@@ -117,9 +117,24 @@ function validate_isAddress(s)
 	return reg.test(s);
 }
 
-function validate_isPostCode(s)
+function validate_isPostCode(s, pattern)
 {
-	var reg = /^[a-z 0-9-]+$/i;
+	if (typeof(pattern) == 'undefined')
+		pattern = '[a-z 0-9-]+';
+	else
+	{
+		var replacements = {
+			' ': '( |)',
+			'-': '(-|)',
+			'N': '[0-9]',
+			'L': '[a-zA-Z]'
+		};
+
+		for (var new_value in replacements)
+			pattern = pattern.split(new_value).join(replacements[new_value]); 
+	}
+
+	var reg = new RegExp('^'+pattern+'$', 'i');
 	return reg.test(s);
 }
 

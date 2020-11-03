@@ -1,6 +1,6 @@
 <?php
 /*
-* 2007-2013 PrestaShop
+* 2007-2014 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -19,7 +19,7 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author PrestaShop SA <contact@prestashop.com>
-*  @copyright  2007-2013 PrestaShop SA
+*  @copyright  2007-2014 PrestaShop SA
 *  @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
@@ -124,6 +124,8 @@ abstract class ModuleCore
 	/** @var currentSmartySubTemplate */	
 	protected $current_subtemplate = null;
 	
+	protected static $update_translations_after_install = true;
+
 	/** @var allow push */
 	public $allow_push;
 	
@@ -281,7 +283,21 @@ abstract class ModuleCore
 		// Adding Restrictions for client groups
 		Group::addRestrictionsForModule($this->id, Shop::getShops(true, null, true));
 		Hook::exec('actionModuleInstallAfter', array('object' => $this));
+
+		if (Module::$update_translations_after_install)
+			$this->updateModuleTranslations();
+
 		return true;
+	}
+	
+	public static function updateTranslationsAfterInstall($update = true)
+	{
+		Module::$update_translations_after_install = (bool)$update;
+	}
+
+	public function updateModuleTranslations()
+	{
+		return Language::updateModulesTranslations(array($this->name));
 	}
 
 	/**
@@ -983,10 +999,17 @@ abstract class ModuleCore
 
 	public static function getModuleName($module)
 	{
+		$iso = substr(Context::getContext()->language->iso_code, 0, 2);
+
 		// Config file
-		$configFile = _PS_MODULE_DIR_.$module.'/config.xml';
-		if (!file_exists($configFile))
-			return 'Module '.ucfirst($module);
+		$configFile = _PS_MODULE_DIR_.$module.'/config_'.$iso.'.xml';
+		// For "en" iso code, we keep the default config.xml name
+		if ($iso == 'en' || !file_exists($configFile))
+		{
+			$configFile = _PS_MODULE_DIR_.$module.'/config.xml';
+			if (!file_exists($configFile))
+				return 'Module '.ucfirst($module);
+		}
 
 		// Load config.xml
 		libxml_use_internal_errors(true);
@@ -1054,13 +1077,18 @@ abstract class ModuleCore
 				}
 			}
 
+			$iso = substr(Context::getContext()->language->iso_code, 0, 2);
+
 			// Check if config.xml module file exists and if it's not outdated
-			$configFile = _PS_MODULE_DIR_.$module.'/config.xml';
-			$xml_exist = file_exists($configFile);
-			if ($xml_exist)
-				$needNewConfigFile = (filemtime($configFile) < filemtime(_PS_MODULE_DIR_.$module.'/'.$module.'.php'));
-			else
-				$needNewConfigFile = true;
+			$xml_exist = true;
+			$configFile = _PS_MODULE_DIR_.$module.'/config_'.$iso.'.xml';
+			if ($iso == 'en' || !file_exists($configFile))
+			{
+				$configFile = _PS_MODULE_DIR_.$module.'/config_'.$iso.'.xml';
+				if (!file_exists($configFile))
+					$xml_exist = false;
+			}
+			$needNewConfigFile = $xml_exist ? (@filemtime($configFile) < @filemtime(_PS_MODULE_DIR_.$module.'/'.$module.'.php')) : true;
 
 			// If config.xml exists and that the use config flag is at true
 			if ($useConfig && $xml_exist)
@@ -1396,13 +1424,13 @@ abstract class ModuleCore
 	{
 		return true;
 	}
-	
+
+	/*
+		@deprecated since 1.6.0.2
+	*/
 	public static function getPaypalIgnore()
 	{
-		$iso_code = Country::getIsoById((int)Configuration::get('PS_COUNTRY_DEFAULT'));
-		$paypal_countries = array('ES', 'FR', 'PL', 'IT');
-		if (Context::getContext()->getMobileDevice() && Context::getContext()->shop->getTheme() == 'default' && in_array($iso_code, $paypal_countries))
-			return 'm.`name` = \'paypal\'';
+		Tools::displayAsDeprecated();
 	}
 
 	/**
@@ -1435,8 +1463,6 @@ abstract class ModuleCore
 			$hookPayment = 'displayPayment';
 
 		$list = Shop::getContextListShopID();
-		if ($paypal_condition = Module::getPaypalIgnore())
-			$paypal_condition = ' AND '.$paypal_condition;
 			
 		return Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS('SELECT DISTINCT m.`id_module`, h.`id_hook`, m.`name`, hm.`position`
 		FROM `'._DB_PREFIX_.'module` m
@@ -1449,7 +1475,7 @@ abstract class ModuleCore
 		'.(isset($billing) && $frontend ? 'AND mc.id_country = '.(int)$billing->id_country : '').'
 		AND (SELECT COUNT(*) FROM '._DB_PREFIX_.'module_shop ms WHERE ms.id_module = m.id_module AND ms.id_shop IN('.implode(', ', $list).')) = '.count($list).'
 		AND hm.id_shop IN('.implode(', ', $list).')
-		'.((count($groups) && $frontend && $use_groups) ? 'AND (mg.`id_group` IN ('.implode(', ', $groups).'))' : '').$paypal_condition.'
+		'.((count($groups) && $frontend && $use_groups) ? 'AND (mg.`id_group` IN ('.implode(', ', $groups).'))' : '').'
 		GROUP BY hm.id_hook, hm.id_module
 		ORDER BY hm.`position`, m.`name` DESC');
 	}
@@ -1565,8 +1591,10 @@ abstract class ModuleCore
 	public function displayError($error)
 	{
 	 	$output = '
+	 	<div class="bootstrap">
 		<div class="module_error alert alert-danger">
 			'.$error.'
+		</div>
 		</div>';
 		$this->error = true;
 		return $output;
@@ -1575,8 +1603,10 @@ abstract class ModuleCore
 	public function displayConfirmation($string)
 	{
 	 	$output = '
+	 	<div class="bootstrap">
 		<div class="module_confirmation conf confirm alert alert-success">
 			'.$string.'
+		</div>
 		</div>';
 		return $output;
 	}
@@ -1595,8 +1625,9 @@ abstract class ModuleCore
 			$exceptionsCache = array();
 			$sql = 'SELECT * FROM `'._DB_PREFIX_.'hook_module_exceptions`
 				WHERE `id_shop` IN ('.implode(', ', Shop::getContextListShopID()).')';
-			$result = Db::getInstance()->executeS($sql);
-			foreach ($result as $row)
+			$db = Db::getInstance();
+			$result = $db->executeS($sql, false);
+			while ($row = $db->nextRow($result))
 			{
 				if (!$row['file_name'])
 					continue;
@@ -1813,19 +1844,20 @@ abstract class ModuleCore
 	protected function _generateConfigXml()
 	{
 		$xml = '<?xml version="1.0" encoding="UTF-8" ?>
-        <module>
-            <name>'.$this->name.'</name>
-            <displayName><![CDATA['.Tools::htmlentitiesUTF8($this->displayName).']]></displayName>
-            <version><![CDATA['.$this->version.']]></version>
-            <description><![CDATA['.Tools::htmlentitiesUTF8($this->description).']]></description>
-            <author><![CDATA['.Tools::htmlentitiesUTF8($this->author).']]></author>
-            <tab><![CDATA['.Tools::htmlentitiesUTF8($this->tab).']]></tab>'.(isset($this->confirmUninstall) ? "\n\t".'<confirmUninstall>'.$this->confirmUninstall.'</confirmUninstall>' : '').'
-            <is_configurable>'.(isset($this->is_configurable) ? (int)$this->is_configurable : 0).'</is_configurable>
-            <need_instance>'.(int)$this->need_instance.'</need_instance>'.(isset($this->limited_countries) ? "\n\t".'<limited_countries>'.(count($this->limited_countries) == 1 ? $this->limited_countries[0] : '').'</limited_countries>' : '').'
-        </module>';
+<module>
+	<name>'.$this->name.'</name>
+	<displayName><![CDATA['.Tools::htmlentitiesUTF8($this->displayName).']]></displayName>
+	<version><![CDATA['.$this->version.']]></version>
+	<description><![CDATA['.Tools::htmlentitiesUTF8($this->description).']]></description>
+	<author><![CDATA['.Tools::htmlentitiesUTF8($this->author).']]></author>
+	<tab><![CDATA['.Tools::htmlentitiesUTF8($this->tab).']]></tab>'.(isset($this->confirmUninstall) ? "\n\t".'<confirmUninstall>'.$this->confirmUninstall.'</confirmUninstall>' : '').'
+	<is_configurable>'.(isset($this->is_configurable) ? (int)$this->is_configurable : 0).'</is_configurable>
+	<need_instance>'.(int)$this->need_instance.'</need_instance>'.(isset($this->limited_countries) ? "\n\t".'<limited_countries>'.(count($this->limited_countries) == 1 ? $this->limited_countries[0] : '').'</limited_countries>' : '').'
+</module>';
 		if (is_writable(_PS_MODULE_DIR_.$this->name.'/'))
 		{
-			$file = _PS_MODULE_DIR_.$this->name.'/config.xml';
+			$iso = substr(Context::getContext()->language->iso_code, 0, 2);
+			$file = _PS_MODULE_DIR_.$this->name.'/'.($iso == 'en' ? 'config.xml' : 'config_'.$iso.'.xml');
 			if (!@file_put_contents($file, $xml))
 				if (!is_writable($file))
 				{
@@ -2026,7 +2058,7 @@ abstract class ModuleCore
 		foreach (Tools::scandir($this->getLocalPath().'override', 'php', '', true) as $file)
 		{
 			$class = basename($file, '.php');
-			if (Autoload::getInstance()->getClassPath($class.'Core'))
+			if (PrestaShopAutoload::getInstance()->getClassPath($class.'Core'))
 				$result &= $this->addOverride($class);
 		}
 
@@ -2047,7 +2079,7 @@ abstract class ModuleCore
 		foreach (Tools::scandir($this->getLocalPath().'override', 'php', '', true) as $file)
 		{
 			$class = basename($file, '.php');
-			if (Autoload::getInstance()->getClassPath($class.'Core'))
+			if (PrestaShopAutoload::getInstance()->getClassPath($class.'Core'))
 				$result &= $this->removeOverride($class);
 		}
 
@@ -2062,13 +2094,13 @@ abstract class ModuleCore
 	 */
 	public function addOverride($classname)
 	{
-		$path = Autoload::getInstance()->getClassPath($classname.'Core');
+		$path = PrestaShopAutoload::getInstance()->getClassPath($classname.'Core');
 
 		// Check if there is already an override file, if not, we just need to copy the file
-		if (Autoload::getInstance()->getClassPath($classname))
+		if (PrestaShopAutoload::getInstance()->getClassPath($classname))
 		{
 			// Check if override file is writable
-			$override_path = _PS_ROOT_DIR_.'/'.Autoload::getInstance()->getClassPath($classname);
+			$override_path = _PS_ROOT_DIR_.'/'.PrestaShopAutoload::getInstance()->getClassPath($classname);
 			if ((!file_exists($override_path) && !is_writable(dirname($override_path))) || (file_exists($override_path) && !is_writable($override_path)))
 				throw new Exception(sprintf(Tools::displayError('file (%s) not writable'), $override_path));
 
@@ -2109,7 +2141,7 @@ abstract class ModuleCore
 				throw new Exception(sprintf(Tools::displayError('directory (%s) not writable'), dirname($override_dest)));
 			copy($override_src, $override_dest);
 			// Re-generate the class index
-			Autoload::getInstance()->generateIndex();
+			PrestaShopAutoload::getInstance()->generateIndex();
 		}
 		return true;
 	}
@@ -2122,13 +2154,13 @@ abstract class ModuleCore
 	 */
 	public function removeOverride($classname)
 	{
-		$path = Autoload::getInstance()->getClassPath($classname.'Core');
+		$path = PrestaShopAutoload::getInstance()->getClassPath($classname.'Core');
 
-		if (!Autoload::getInstance()->getClassPath($classname))
+		if (!PrestaShopAutoload::getInstance()->getClassPath($classname))
 			return true;
 
 		// Check if override file is writable
-		$override_path = _PS_ROOT_DIR_.'/'.Autoload::getInstance()->getClassPath($classname);
+		$override_path = _PS_ROOT_DIR_.'/'.PrestaShopAutoload::getInstance()->getClassPath($classname);
 		if (!is_writable($override_path))
 			return false;
 
@@ -2194,7 +2226,7 @@ abstract class ModuleCore
 		file_put_contents($override_path, $code);
 
 		// Re-generate the class index
-		Autoload::getInstance()->generateIndex();
+		PrestaShopAutoload::getInstance()->generateIndex();
 
 		return true;
 	}

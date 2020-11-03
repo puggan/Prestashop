@@ -1,5 +1,5 @@
 {*
-* 2007-2013 PrestaShop
+* 2007-2014 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -18,15 +18,166 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author PrestaShop SA <contact@prestashop.com>
-*  @copyright  2007-2013 PrestaShop SA
+*  @copyright  2007-2014 PrestaShop SA
 *  @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 *}
 
 {extends file="helpers/view/view.tpl"}
 
-{block name="override_tpl"}
+<!--
+<div class="panel">
+	<div class="panel-heading text-center">
+			<button class="btn btn-default pull-left">Archiver</button>
+			<button class="btn btn-default pull-left">
+				<i class="icon-star"></i>
+				Important
+			</button>
+		<div class="btn-group pull-left">
+			<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+				</i>&nbsp;Assigner <span class="caret"></span>
+			</button>
+			<ul class="dropdown-menu">
+				<li>
+					<a href="#" onclick="javascript:checkDelBoxes($(this).closest('form').get(0), 'orderBox[]', true);return false;">
+						<i class="icon-user"></i>&nbsp;Employee
+					</a>
+				</li>
+			</ul>
+		</div>
+		<i class="icon-comments"></i>
+		Discussion : #<strong>7</strong>
+		<div class="btn-group pull-right">
+			<a class="btn btn-default pull-left" href="#">
+				<i class="icon-chevron-left"></i>
+			</a>
+			<a class="btn btn-default pull-left" href="#" disabled="">
+				<i class="icon-chevron-right"></i>
+			</a> 
+		</div>
+	</div>
+	<div class="row">
+		<div class="message-item-initial media">
+			<div class="avatar-lg pull-left"><i class="icon-user icon-3x"></i></div>
+			<div class="media-body">
+				<div class="row">
+					<div class="col-sm-6">
+						<h2>John Doe <small>(pub@prestashop.com)</small></h2>
+						<span>TO: </span><span class="badge">Webmaster</span>
+					</div>
+					<div class="col-sm-6">
+						<span class="badge">2</span> Commandes validées pour <span class="badge">42 €</span><br>
+						<span>Client depuis le 01/02/2014</span>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-sm-12">
+						<div class="message-item-initial-body">
+							<span class="message-date"><i class="icon-time"></i> 17/01/2014 - 14:00</span>
+							<p class="message-item-text">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc lacinia in enim iaculis malesuada. Quisque congue fermentum leo et porta. Pellentesque a quam dui. Pellentesque sed augue id sem aliquet faucibus eu vel odio. Nullam non libero volutpat, pulvinar turpis non, gravida mauris.</p>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="row">
+		<div class="message-item">
+			<div class="message-avatar">
+				<div class="avatar-md">
+					<img src="../img/tmp/employee_1.jpg">
+				</div>
+			</div>
+			<div class="message-body">
+				<h4 class="message-item-heading"><i class="icon-mail-reply text-muted"></i> Kevin</h4>
+				<span class="message-date">- 17/01/2014 - <i class="icon-time"></i> 14:00</span>
+				<p class="message-item-text">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc lacinia in enim iaculis malesuada. Quisque congue fermentum leo et porta. Pellentesque a quam dui. Pellentesque sed augue id sem aliquet faucibus eu vel odio. Nullam non libero volutpat, pulvinar turpis non, gravida mauris.</p>
+			</div>
+		</div>
+		<div class="message-item">
+			<div class="message-avatar">
+				<div class="avatar-md">
+					<i class="icon-user icon-3x"></i>
+				</div>
+			</div>
+			<div class="message-body">
+				<h4 class="message-item-heading"><i class="icon-mail-reply text-muted"></i> John Doe</h4>
+				<span class="message-date">- 17/01/2014 - <i class="icon-time"></i> 14:00</span>
+				<p class="message-item-text">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc lacinia in enim iaculis malesuada. Quisque congue fermentum leo et porta. Pellentesque a quam dui. Pellentesque sed augue id sem aliquet faucibus eu vel odio. Nullam non libero volutpat, pulvinar turpis non, gravida mauris.</p>
+			</div>
+		</div>
+	</div>
+</div>
+<div class="panel">
+	<h3>Répondre à John Doe</h3>
+	<div class="row">
+		<div class="media">
+			<div class="pull-left">
+				<span class="avatar-md"><img src="../img/tmp/employee_1.jpg?time=1389957919" alt=""></span>
+			</div>
+			<div class="media-body">
+				<textarea name="" id="" cols="30" rows="7"></textarea>
+			</div>
+		</div>
+	</div>
+	<div class="panel-footer">
+		<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+			<i class="icon-magic icon-2x"></i><br>
+			Utiliser un modèle
+		</button>
+		<button class="btn btn-default pull-right">
+			<i class="icon-mail-reply icon-2x"></i><br>
+			Envoyer
+		</button>
+	</div>
+</div>
+<div class="panel">
+	<h3>
+		<i class="icon-clock-o"></i>
+		Historiques des commandes et messages
+	</h3>
+	<div class="timeline">
+		<article class="timeline-item alt">
+			<div class="timeline-caption">
+				<div class="timeline-panel arrow arrow-right">
+					<span class="timeline-icon command-danger"><i class="icon-credit-card"></i></span>
+					<span class="timeline-date">17/01/2014 - 14:00</span>
+					<a class="badge" href="#">Commande #4242</a><br>
+					<span>Status : En attente</span><br>
+					<span>Paiement : Paiement par chèque</span><br><br>
+					<button class="btn btn-default">Voir le détails</button>
+				</div>
+			</div>
+		</article>
+		<article class="timeline-item">
+			<div class="timeline-caption">
+				<div class="timeline-panel arrow arrow-left">
+					<span class="timeline-icon"><i class="icon-envelope"></i></span>
+					<span class="timeline-date">17/01/2014 - 12:25</span>
+					Message à <span class="badge">Webmaster</span>
+					<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc lacinia in enim iaculis malesuada. Quisque congue fermentum leo et porta. Pellentesque a quam dui...</p>
+				</div>
+			</div>
+		</article>
 
+		<article class="timeline-item alt">
+			<div class="timeline-caption">
+				<div class="timeline-panel arrow arrow-right">
+					<span class="timeline-icon command-success"><i class="icon-credit-card"></i></span>
+					<span class="timeline-date">17/01/2014 - 14:00</span>
+					<a class="badge" href="#">Commande #4242</a><br>
+					<span>Status :</span><br>
+					<span>Paiement :</span><br><br>
+					<button class="btn btn-default">Voir le détails</button>
+				</div>
+			</div>
+		</article>
+	</div>
+</div>
+-->
+
+
+{block name="override_tpl"}
 <div class="panel">
 	<h3>
 		<i class="icon-envelope"></i>
@@ -55,14 +206,12 @@
 				</select>
 			</div>
 		</div>
-
 		<div id="message_forward_email" class="row row-margin-bottom" style="display:none">
 			<label class="control-label col-lg-3">{l s='Email'}</label>
 			<div class="col-lg-3"> 
 				<input type="text" name="email" />
 			</div>
 		</div>
-
 		<div id="message_forward" style="display:none;">
 			<div class="row row-margin-bottom">
 				<label class="control-label col-lg-3">{l s='Comment:'}</label>
@@ -80,67 +229,65 @@
 		</div>
 	</form>
 </div>
-
-
 	{if $thread->id_customer}
-
 		<div class="panel">
-		{if $orders && count($orders)}
-			{if $count_ok}
-				<h3>
-					<i class="icon-shopping-cart"></i> {l s='Orders'}
-				</h3>
-				<div class="table-responsive clearfix">
-					<table class="table">
-						<tr>
-							<th class="center">
-								<span class="title_box">{l s='ID'}</span>
-							</th>
-							<th class="center">
-								<span class="title_box">{l s='Date'}</span>
-							</th>
-							<th class="center">
-								<span class="title_box">{l s='Products:'}</span>
-							</th>
-							<th class="center">
-								<span class="title_box">{l s='Total paid'}</span>
-							</th>
-							<th class="center">
-								<span class="title_box">{l s='Payment: '}</span>
-							</th>
-							<th class="center">
-								<span class="title_box">{l s='State'}</span>
-							</th>
-							<th class="center">
-								<span class="title_box">{l s='Actions'}</span>
-							</th>
-						</tr>
-						{assign var=irow value=0}
-						{foreach $orders_ok as $order}
-							<tr onclick="document.location='?tab=AdminOrders&id_order={$order.id_order}&vieworder&token={getAdminToken tab='AdminOrders'}">
-								<td class="center">{$order.id_order}</td>
-								<td class="center">{$order.date_add}</td>
-								<td class="center">{$order.nb_products}</td>
-								<td class="center">{$order.total_paid_real}</td>
-								<td class="center">{$order.payment}</td>
-								<td class="center">{$order.order_state}</td>
-								<td class="center">
-									<a class=" btn btn-default" href="?tab=AdminOrders&id_order={$order.id_order}&vieworder&token={getAdminToken tab='AdminOrders'}">
-										<i class="icon-eye-open"></i> {l s='View'}
-									</a>
-								</td>
-							</tr>
-						{/foreach}
-					</table>
-				</div>
+			<h3>
+				<i class="icon-shopping-cart"></i> {l s='Orders'}
 				<p class="pull-right">
-					{l s='Validated Orders:'} {$count_ok} {l s='for'} <strong>{$total_ok}</strong>
+					{l s='Validated Orders:'} {$count_ok} {l s='for'} <span class="badge">{$total_ok}</span>
 				</p>
-			{/if}
-		{/if}
+			</h3>
+			<div class="table-responsive clearfix">
+				<table class="table">
+					<tr>
+						<th class="center">
+							<span class="title_box">{l s='ID'}</span>
+						</th>
+						<th class="center">
+							<span class="title_box">{l s='Date'}</span>
+						</th>
+						<th class="center">
+							<span class="title_box">{l s='Products:'}</span>
+						</th>
+						<th class="center">
+							<span class="title_box">{l s='Total paid'}</span>
+						</th>
+						<th class="center">
+							<span class="title_box">{l s='Payment: '}</span>
+						</th>
+						<th class="center">
+							<span class="title_box">{l s='State'}</span>
+						</th>
+						<th class="center">
+							<span class="title_box">{l s='Actions'}</span>
+						</th>
+					</tr>
+					{assign var=irow value=0}
+					{foreach $orders as $order}
+						<tr onclick="document.location='?tab=AdminOrders&id_order={$order.id_order}&vieworder&token={getAdminToken tab='AdminOrders'}">
+							<td class="center">{$order.id_order}</td>
+							<td class="center">{$order.date_add}</td>
+							<td class="center">{$order.nb_products}</td>
+							<td class="center">{$order.total_paid_real}</td>
+							<td class="center">{$order.payment}</td>
+							<td class="center">{$order.order_state}</td>
+							<td class="center">
+								<a class=" btn btn-default" href="?tab=AdminOrders&id_order={$order.id_order}&vieworder&token={getAdminToken tab='AdminOrders'}">
+									<i class="icon-eye-open"></i> {l s='View'}
+								</a>
+							</td>
+						</tr>
+					{foreachelse}
+						<tr>
+							<td colspan="7">{l s="No orders"}</td>
+						</tr>
+					{/foreach}
+				</table>
+			</div>
 		</div>
-		<div class="panel">
+		{/if}
 		{if $products && count($products)}
+		<div class="panel">
 			<h3>
 				<i class="icon-archive"></i> {l s='Products:'}
 			</h3>
@@ -179,7 +326,6 @@
 					{/foreach}
 				</table>
 			</div>
-		{/if}
 		</div>
 	{/if}
 
@@ -211,7 +357,6 @@
 			timer = setInterval("markAsRead()", 3000);
 		});
 		
-		
 		function markAsRead()
 		{
 			$.ajax({
@@ -230,6 +375,4 @@
 			timer = null;
    		}
 	</script>
-
 {/block}
-

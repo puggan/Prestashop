@@ -1,6 +1,6 @@
 <?php
 /*
-* 2007-2013 PrestaShop
+* 2007-2014 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -19,7 +19,7 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author PrestaShop SA <contact@prestashop.com>
-*  @copyright  2007-2013 PrestaShop SA
+*  @copyright  2007-2014 PrestaShop SA
 *  @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
@@ -38,52 +38,52 @@ class AdminInvoicesControllerCore extends AdminController
 				'title' =>	$this->l('Invoice options'),
 				'fields' =>	array(
 					'PS_INVOICE' => array(
-						'title' => $this->l('Enable invoices:'),
+						'title' => $this->l('Enable invoices'),
 						'desc' => $this->l('If enabled, your customers will be able to receive an invoice for their purchase(s).'),
 						'cast' => 'intval',
 						'type' => 'bool'
 					),
 					'PS_INVOICE_TAXES_BREAKDOWN' => array(
-						'title' => $this->l('Enable the breakdown of taxes on the invoice:'),
-						'desc' => $this->l('Show a breakdown of taxes by tax rate on the invoice when there are several taxes combined'),
+						'title' => $this->l('Enable the breakdown of taxes on the invoice'),
+						'desc' => $this->l('Show a breakdown of taxes by tax rate on the invoice when there are several taxes combined.'),
 						'cast' => 'intval',
 						'type' => 'bool'
 					),
 					'PS_INVOICE_PREFIX' => array(
-						'title' => $this->l('Invoice prefix:'),
-						'desc' => $this->l('Prefix used for invoice name (e.g. IN00001)'),
+						'title' => $this->l('Invoice prefix'),
+						'desc' => $this->l('Prefix used for invoice name (e.g. IN00001).'),
 						'size' => 6,
 						'type' => 'textLang'
 					),
 					'PS_INVOICE_START_NUMBER' => array(
-						'title' => $this->l('Invoice number:'),
+						'title' => $this->l('Invoice number'),
 						'desc' => $this->l('The next invoice will begin with this number, and then increase with each additional invoice. Set to 0 if you want to keep the current number.').(Order::getLastInvoiceNumber() + 1).').',
 						'size' => 6,
 						'type' => 'text',
 						'cast' => 'intval'
 					),
 					'PS_INVOICE_FREE_TEXT' => array(
-						'title' => $this->l('Footer text:'),
-						'desc' => $this->l('This text will appear at the bottom of the invoice'),
+						'title' => $this->l('Footer text'),
+						'desc' => $this->l('This text will appear at the bottom of the invoice.'),
 						'size' => 50,
 						'type' => 'textLang',
 					),
 					'PS_INVOICE_MODEL' => array(
-						'title' => $this->l('Invoice model:'),
-						'desc' => $this->l('Choose an invoice model'),
+						'title' => $this->l('Invoice model'),
+						'desc' => $this->l('Choose an invoice model.'),
 						'type' => 'select',
 						'identifier' => 'value',
 						'list' => $this->getInvoicesModels()
 					),
 					'PS_PDF_USE_CACHE' => array(
-						'title' => $this->l('Use disk as cache for PDF invoices:'),
+						'title' => $this->l('Use the disk as cache for PDF invoices'),
 						'desc' => $this->l('Saves memory but slows down the rendering process.'),
 						'validation' => 'isBool',
 						'cast' => 'intval',
 						'type' => 'bool'
 					)
 				),
-				'submit' => array()
+				'submit' => array('title' => $this->l('Save'))
 			)
 		);
 	}
@@ -98,26 +98,25 @@ class AdminInvoicesControllerCore extends AdminController
 			'input' => array(
 				array(
 					'type' => 'date',
-					'label' => $this->l('From:'),
+					'label' => $this->l('From'),
 					'name' => 'date_from',
 					'maxlength' => 10,
 					'required' => true,
-					'hint' => $this->l('Format: 2011-12-31 (inclusive)')
+					'hint' => $this->l('Format: 2011-12-31 (inclusive).')
 				),
 				array(
 					'type' => 'date',
-					'label' => $this->l('To:'),
+					'label' => $this->l('To'),
 					'name' => 'date_to',
 					'maxlength' => 10,
 					'required' => true,
-					'hint' => $this->l('Format: 2012-12-31 (inclusive)')
+					'hint' => $this->l('Format: 2012-12-31 (inclusive).')
 				)
 			),
 			'submit' => array(
 				'title' => $this->l('Generate PDF file by date'),
-				'class' => 'btn btn-default',
 				'id' => 'submitPrint',
-				'icon' => 'icon-download-alt'
+				'icon' => 'process-icon-download-alt'
 			)
 		);
 
@@ -128,6 +127,7 @@ class AdminInvoicesControllerCore extends AdminController
 
 		$this->table = 'invoice_date';
 		$this->show_toolbar = false;
+		$this->show_form_cancel_button = false;
 		$this->toolbar_title = $this->l('Print PDF invoices');
 		return parent::renderForm();
 	}
@@ -142,7 +142,7 @@ class AdminInvoicesControllerCore extends AdminController
 			'input' => array(
 				array(
 					'type' => 'checkboxStatuses',
-					'label' => $this->l('Statuses:'),
+					'label' => $this->l('Statuses'),
 					'name' => 'id_order_state',
 					'values' => array(
 						'query' => OrderState::getOrderStates($this->context->language->id),
@@ -153,22 +153,19 @@ class AdminInvoicesControllerCore extends AdminController
 				)
 			),
 			'submit' => array(
-				'title' => $this->l('Generate PDF file by status.'),
-				'class' => 'btn btn-default',
+				'title' => $this->l('Generate PDF file by status'),
 				'id' => 'submitPrint2',
-				'icon' => 'icon-download-alt'
+				'icon' => 'process-icon-download-alt'
 			)
 		);
 
 		$result = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS('
-			SELECT COUNT( o.id_order ) AS nbOrders, oh.id_order_state 
-			FROM '._DB_PREFIX_ .'order_invoice oi 
-			LEFT JOIN '._DB_PREFIX_ .'orders o ON  oi.id_order = o.id_order 
-			JOIN '._DB_PREFIX_ .'order_history oh ON oh.id_order = o.id_order 
-			LEFT OUTER JOIN '._DB_PREFIX_ .'order_history oh2 ON oh2.id_order = oh.id_order AND oh2.id_order_history > oh.id_order_history 
-			WHERE o.id_shop IN('.implode(', ', Shop::getContextListShopID()).')	AND ISNULL(oh2.id_order_state) 
-			GROUP BY id_order_state
-		');
+			SELECT COUNT( o.id_order ) AS nbOrders, o.current_state as id_order_state
+			FROM `'._DB_PREFIX_.'order_invoice` oi
+			LEFT JOIN `'._DB_PREFIX_.'orders` o ON  oi.id_order = o.id_order 
+			WHERE o.id_shop IN('.implode(', ', Shop::getContextListShopID()).')
+			GROUP BY o.current_state
+		 ');
 
 		$status_stats = array();
 		foreach ($result as $row)
@@ -233,7 +230,7 @@ class AdminInvoicesControllerCore extends AdminController
 				$this->errors[] = $this->l('No invoice has been found for this period.');
 			}
 		}
-		else if (Tools::isSubmit('submitAddinvoice_status'))
+		elseif (Tools::isSubmit('submitAddinvoice_status'))
 		{
 			if (!is_array($status_array = Tools::getValue('id_order_state')) || !count($status_array))
 				$this->errors[] = $this->l('You must select at least one order status.');
@@ -289,4 +286,3 @@ class AdminInvoicesControllerCore extends AdminController
 		return $templates;
 	}
 }
-

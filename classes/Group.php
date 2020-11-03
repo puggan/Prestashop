@@ -1,6 +1,6 @@
 <?php
 /*
-* 2007-2013 PrestaShop
+* 2007-2014 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -19,7 +19,7 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author PrestaShop SA <contact@prestashop.com>
-*  @copyright  2007-2013 PrestaShop SA
+*  @copyright  2007-2014 PrestaShop SA
 *  @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
@@ -304,20 +304,19 @@ class GroupCore extends ObjectModel
 
 		$customer = Context::getContext()->customer;
 		if (Validate::isLoadedObject($customer))
-		{
 			$id_group = (int)$customer->id_default_group;
-			$group = new Group((int)$id_group);
-			if (!$group->isAssociatedToShop(Context::getContext()->shop->id))
-				$group = new Group((int)Configuration::get('PS_CUSTOMER_GROUP'));
-		}
 		else
 			$id_group = (int)Configuration::get('PS_UNIDENTIFIED_GROUP');
 
-		if (!isset($groups[$id_group]) && isset($group))
-			$groups[$id_group] = $group;
-
 		if (!isset($groups[$id_group]))
 			$groups[$id_group] = new Group($id_group);
+			
+		if (!$groups[$id_group]->isAssociatedToShop(Context::getContext()->shop->id))
+		{
+			$id_group = (int)Configuration::get('PS_CUSTOMER_GROUP');
+			if (!isset($groups[$id_group]))
+				$groups[$id_group] = new Group($id_group);
+		}
 
 		return $groups[$id_group];
 	}

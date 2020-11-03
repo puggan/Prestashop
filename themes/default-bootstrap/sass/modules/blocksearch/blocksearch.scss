@@ -1,10 +1,10 @@
 @import "compass";
 @import "theme_variables";
-/* block top search */
 #search_block_top {
-	padding: 50px 0 0 0;
-	@media (max-width: $screen-sm) {
-		padding-top: 0;
+	padding-top: 50px;
+	#searchbox {
+		float: left;
+		width: 100%;
 	}
 	.btn.button-search {
 		background: $dark-background;
@@ -63,18 +63,21 @@
 }	
 
 form#searchbox {
-	padding: 0 50px 0 0;
 	position: relative;
 	label {
 		color: $base-text-color;
-		margin-bottom: 1px
 	}
 	input#search_query_block {
-		border: 1px solid $base-border-color;
-		height: 18px;
-		margin-top: 10px;
+		margin-right:10px;
+		max-width:222px;
+		margin-bottom:10px;
+		display:inline-block;
+		float:left;
 	}
-	input#search_button {
-		padding: 1px 4px;
+	.button.button-small {
+		float:left;
+		i {
+			margin-right:0;
+		}
 	}
 }

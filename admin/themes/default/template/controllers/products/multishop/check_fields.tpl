@@ -1,5 +1,5 @@
 {*
-* 2007-2013 PrestaShop
+* 2007-2014 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -18,7 +18,7 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author PrestaShop SA <contact@prestashop.com>
-*  @copyright  2007-2013 PrestaShop SA
+*  @copyright  2007-2014 PrestaShop SA
 *  @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 *}
@@ -29,18 +29,28 @@
 			<i class="icon-sitemap"></i> {l s='Multistore'}
 		</label>
 		<div class="col-lg-9">
-			<span class="switch prestashop-switch">
-				<input type="radio" name="multishop_{$product_tab}" id="multishop_{$product_tab}_on" value="1" onclick="$('#product-tab-content-{$product_tab} input[name^=\'multishop_check[\']').attr('checked', true); ProductMultishop.checkAll{$product_tab}()">
-				<label for="multishop_{$product_tab}_on">
-					<i class="icon-check-sign color_success"></i> {l s='Yes'}
-				</label>
-				<input type="radio" name="multishop_{$product_tab}" id="multishop_{$product_tab}_off" value="0" checked="checked" onclick="$('#product-tab-content-{$product_tab} input[name^=\'multishop_check[\']').attr('checked', false); ProductMultishop.checkAll{$product_tab}()">
-				<label for="multishop_{$product_tab}_off">
-					<i class="icon-ban-circle color_danger"></i> {l s='No'}
-				</label>
-				<a class="slide-button btn btn-default"></a>
-			</span>
-			<p class="help-block"><strong>{l s='Check / Uncheck all'}</strong> {l s='(If you are editing this page for several shops, some fields like "name" or "price" are may be disabled. You will need check these fields in order to edit them)'}</p>
+			<div class="row">
+				<div class="col-lg-4">
+					<span class="switch prestashop-switch">
+						<input type="radio" name="multishop_{$product_tab}" id="multishop_{$product_tab}_on" value="1" onclick="$('#product-tab-content-{$product_tab} input[name^=\'multishop_check[\']').attr('checked', true); ProductMultishop.checkAll{$product_tab}()">
+						<label for="multishop_{$product_tab}_on">
+							{l s='Yes'}
+						</label>
+						<input type="radio" name="multishop_{$product_tab}" id="multishop_{$product_tab}_off" value="0" checked="checked" onclick="$('#product-tab-content-{$product_tab} input[name^=\'multishop_check[\']').attr('checked', false); ProductMultishop.checkAll{$product_tab}()">
+						<label for="multishop_{$product_tab}_off">
+							{l s='No'}
+						</label>
+						<a class="slide-button btn"></a>
+					</span>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-lg-12">
+					<p class="help-block">
+						<strong>{l s='Check / Uncheck all'}</strong> {l s='(If you are editing this page for several shops, some fields like "name" or "price" are may be disabled. You will need check these fields in order to edit them)'}
+					</p>
+				</div>
+			</div>
 		</div>
 	</div>
 {/if}

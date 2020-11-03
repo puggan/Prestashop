@@ -1,6 +1,6 @@
 <?php
 /*
-* 2007-2013 PrestaShop
+* 2007-2014 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -19,7 +19,7 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author PrestaShop SA <contact@prestashop.com>
-*  @copyright  2007-2013 PrestaShop SA
+*  @copyright  2007-2014 PrestaShop SA
 *  @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
@@ -187,6 +187,7 @@ class InstallModelInstall extends InstallAbstractModel
 		$flip_languages = array_flip($languages);
 		$id_lang =  (!empty($flip_languages[$this->language->getLanguageIso()])) ? $flip_languages[$this->language->getLanguageIso()] : 1;
 		Configuration::updateGlobalValue('PS_LANG_DEFAULT', $id_lang);
+		Configuration::updateGlobalValue('PS_VERSION_DB', _PS_INSTALL_VERSION_);
 		return true;
 	}
 
@@ -308,11 +309,9 @@ class InstallModelInstall extends InstallAbstractModel
 				throw new PrestashopInstallerException($this->language->l('File "language.xml" not valid for language iso "%s"', $iso));
 			
 			$params_lang = array('name' => (string)$xml->name, 'iso_code' => substr((string)$xml->language_code, 0, 2));
-			
-			if (InstallSession::getInstance()->safe_mode)
+
+			if (!InstallSession::getInstance()->safe_mode || !Language::downloadAndInstallLanguagePack($iso, _PS_INSTALL_VERSION_, $params_lang))
 				Language::checkAndAddLanguage($iso, false, true, $params_lang);
-			else
-				Language::downloadAndInstallLanguagePack($iso, _PS_INSTALL_VERSION_, $params_lang);
 
 			if (!$id_lang = Language::getIdByIso($iso))
 				throw new PrestashopInstallerException($this->language->l('Cannot install language "%s"', ($xml->name) ? $xml->name : $iso));
@@ -374,16 +373,14 @@ class InstallModelInstall extends InstallAbstractModel
 					Tools::deleteFile(_PS_TMP_IMG_DIR_.$file);
 
 		$default_data = array(
-			'shop_name' =>		'My Shop',
-			'shop_activity' =>	'',
-			'shop_country' =>	'us',
-			'shop_timezone' =>	'US/Eastern',
-			'use_smtp' =>		false,
-			'smtp_server' =>	'',
-			'smtp_login' =>		'',
-			'smtp_password' =>	'',
-			'smtp_encryption' =>'off',
-			'smtp_port' =>		25,
+			'shop_name' => 'My Shop',
+			'shop_activity' => '',
+			'shop_country' => 'us',
+			'shop_timezone' => 'US/Eastern',
+			'use_smtp' => false,
+			'smtp_encryption' => 'off',
+			'smtp_port' => 25,
+			'rewrite_engine' => false,
 		);
 
 		foreach ($default_data as $k => $v)
@@ -413,11 +410,11 @@ class InstallModelInstall extends InstallAbstractModel
 
 		// Set mails configuration
 		Configuration::updateGlobalValue('PS_MAIL_METHOD', 			($data['use_smtp']) ? 2 : 1);
-		Configuration::updateGlobalValue('PS_MAIL_SERVER', 			$data['smtp_server']);
-		Configuration::updateGlobalValue('PS_MAIL_USER', 			$data['smtp_login']);
-		Configuration::updateGlobalValue('PS_MAIL_PASSWD', 			$data['smtp_password']);
 		Configuration::updateGlobalValue('PS_MAIL_SMTP_ENCRYPTION', $data['smtp_encryption']);
 		Configuration::updateGlobalValue('PS_MAIL_SMTP_PORT', 		$data['smtp_port']);
+		
+		// Set default rewriting settings
+		Configuration::updateGlobalValue('PS_REWRITING_SETTINGS', $data['rewrite_engine']);
 
 		// Activate rijndael 128 encrypt algorihtm if mcrypt is activated
 		Configuration::updateGlobalValue('PS_CIPHER_ALGORITHM', function_exists('mcrypt_encrypt') ? 1 : 0);
@@ -429,6 +426,10 @@ class InstallModelInstall extends InstallAbstractModel
 			Configuration::updateGlobalValue('SHOP_LOGO_WIDTH', round($width));
 			Configuration::updateGlobalValue('SHOP_LOGO_HEIGHT', round($height));
 		}
+		
+		// Disable cache for debug mode
+		if (_PS_MODE_DEV_)
+			Configuration::updateGlobalValue('PS_SMARTY_CACHE', 1);
 
 		// Active only the country selected by the merchant
 		Db::getInstance()->execute('UPDATE '._DB_PREFIX_.'country SET active = 0 WHERE id_country != '.(int)$id_country);
@@ -484,7 +485,7 @@ class InstallModelInstall extends InstallAbstractModel
 		{
 			Configuration::updateGlobalValue('PS_SHOP_EMAIL', $data['admin_email']);
 
-			$contacts = new Collection('Contact');
+			$contacts = new PrestaShopCollection('Contact');
 			foreach ($contacts as $contact)
 			{
 				$contact->email = $data['admin_email'];
@@ -492,12 +493,14 @@ class InstallModelInstall extends InstallAbstractModel
 			}
 		}
 
+		if (!@Tools::generateHtaccess(null, $data['rewrite_engine']))
+			Configuration::updateGlobalValue('PS_REWRITING_SETTINGS', 0);
+
 		return true;
 	}
 
 	public function getModulesList()
 	{
-		// @todo REMOVE DEV MODE
 		$modules = array();
 		if (false)
 		{
@@ -507,9 +510,8 @@ class InstallModelInstall extends InstallAbstractModel
 		}
 		else
 		{
-			// @todo THIS CODE NEED TO BE REMOVED WHEN MODULES API IS COMMITED
 			$modules = array(
-				'addsharethis',
+				'socialsharing',
 				'blockbanner',
 				'bankwire',
 				'blockbestsellers',
@@ -608,16 +610,8 @@ class InstallModelInstall extends InstallAbstractModel
 						unlink(_PS_MODULE_DIR_.$addons_module['name'].'.zip');
 					}
 		}		
-		$errors = array();
-		foreach ($modules as $module_name)
-			$this->installModules($module_name);
 
-		if ($errors)
-		{
-			$this->setError($errors);
-			return false;
-		}
-		return true;
+		return count($modules) ? $this->installModules($modules) : true;
 	}
 	
 	/**
@@ -626,8 +620,13 @@ class InstallModelInstall extends InstallAbstractModel
 	 */
 	public function installModules($module = null)
 	{
-		$modules = $module ? array($module) : $this->getModulesList();
-	
+		if ($module && !is_array($module))
+			$module = array($module);
+
+		$modules = $module ? $module : $this->getModulesList();
+
+		Module::updateTranslationsAfterInstall(false);
+
 		$errors = array();
 		foreach ($modules as $module_name)
 		{
@@ -644,6 +643,10 @@ class InstallModelInstall extends InstallAbstractModel
 			$this->setError($errors);
 			return false;
 		}
+
+		Module::updateTranslationsAfterInstall(true);
+		Language::updateModulesTranslations($modules);
+
 		return true;
 	}
 

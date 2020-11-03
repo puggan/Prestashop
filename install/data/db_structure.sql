@@ -63,6 +63,7 @@ CREATE TABLE `PREFIX_attachment` (
   `id_attachment` int(10) unsigned NOT NULL auto_increment,
   `file` varchar(40) NOT NULL,
   `file_name` varchar(128) NOT NULL,
+  `file_size` bigint(10) unsigned NOT NULL DEFAULT 0,
   `mime` varchar(128) NOT NULL,
   PRIMARY KEY (`id_attachment`)
 ) ENGINE=ENGINE_TYPE DEFAULT CHARSET=utf8;
@@ -726,6 +727,7 @@ CREATE TABLE `PREFIX_employee` (
   `stats_compare_option` int(1) unsigned NOT NULL DEFAULT 1,
   `bo_color` varchar(32) default NULL,
   `bo_theme` varchar(32) default NULL,
+  `bo_css` varchar(64) default NULL,
   `default_tab` int(10) unsigned NOT NULL DEFAULT 0,
   `bo_width` int(10) unsigned NOT NULL DEFAULT 0,
   `bo_menu` tinyint(1) NOT NULL default '1',
@@ -1784,7 +1786,7 @@ CREATE TABLE `PREFIX_tab` (
 CREATE TABLE `PREFIX_tab_lang` (
   `id_tab` int(10) unsigned NOT NULL,
   `id_lang` int(10) unsigned NOT NULL,
-  `name` varchar(32) default NULL,
+  `name` varchar(64) default NULL,
   PRIMARY KEY (`id_tab`,`id_lang`)
 ) ENGINE=ENGINE_TYPE DEFAULT CHARSET=utf8;
 
@@ -1928,14 +1930,6 @@ CREATE TABLE `PREFIX_tax_rules_group` (
 `active` INT NOT NULL
 ) ENGINE=ENGINE_TYPE DEFAULT CHARSET=utf8;
 
-CREATE TABLE `PREFIX_help_access` (
-  `id_help_access` int(11) NOT NULL AUTO_INCREMENT,
-  `label` varchar(45) NOT NULL,
-  `version` varchar(8) NOT NULL,
-  PRIMARY KEY (`id_help_access`),
-  UNIQUE KEY `label` (`label`)
-) ENGINE=ENGINE_TYPE  DEFAULT CHARSET=utf8;
-
 CREATE TABLE `PREFIX_specific_price_priority` (
 	`id_specific_price_priority` INT NOT NULL AUTO_INCREMENT ,
 	`id_product` INT NOT NULL ,
@@ -2012,6 +2006,7 @@ CREATE TABLE IF NOT EXISTS `PREFIX_theme` (
   `responsive` tinyint(1) NOT NULL DEFAULT '0',
   `default_left_column` tinyint(1) NOT NULL DEFAULT '0',
   `default_right_column` tinyint(1) NOT NULL DEFAULT '0',
+  `product_per_page` int(10) unsigned NOT NULL,
   PRIMARY KEY (`id_theme`)
 ) ENGINE=ENGINE_TYPE  DEFAULT CHARSET=utf8;
 
@@ -2019,8 +2014,8 @@ CREATE TABLE IF NOT EXISTS `PREFIX_theme_meta` (
   `id_theme_meta` int(11) NOT NULL AUTO_INCREMENT,
   `id_theme` int(11) NOT NULL,
   `id_meta` int(10) unsigned NOT NULL,
-  `left_column` tinyint(1) NOT NULL DEFAULT '0',
-  `right_column` tinyint(1) NOT NULL DEFAULT '0',
+  `left_column` tinyint(1) NOT NULL DEFAULT '1',
+  `right_column` tinyint(1) NOT NULL DEFAULT '1',
   PRIMARY KEY (`id_theme_meta`),
   UNIQUE KEY `id_theme_2` (`id_theme`,`id_meta`),
   KEY `id_theme` (`id_theme`),

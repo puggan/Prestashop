@@ -1,5 +1,5 @@
 {*
-* 2007-2013 PrestaShop
+* 2007-2014 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -18,7 +18,7 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author PrestaShop SA <contact@prestashop.com>
-*  @copyright  2007-2013 PrestaShop SA
+*  @copyright  2007-2014 PrestaShop SA
 
 *  @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
@@ -26,7 +26,6 @@
 
 <script type="text/javascript">{$autocompleteList}</script>
 <script type="text/javascript">
-	var token = '{$token}';
 	var currentIndex = '{$currentIndex}';
 	var currentIndexWithToken = '{$currentIndex}&token={$token}';
 	var dirNameCurrentIndex = '{$dirNameCurrentIndex}';
@@ -108,8 +107,10 @@
 			{
 				resAjax = $.ajax({
 					type:"POST",
-					url : $(this).attr('href'),
+					url : $(this).attr('href')+'&rand=' + new Date().getTime(),
+					headers: {"cache-control": "no-cache"},
 					async: true,
+					cache: false,
 					data : {
 						ajax : "1",
 						token : token,
@@ -119,8 +120,12 @@
 					beforeSend: function(xhr){
 						$('#moduleContainer').html('<img src="../img/loader.gif" alt="" border="0" />');
 					},
-					success: function(data){
+					success: function(data, status, request){
+						if (request.getResponseHeader('Login') === 'true')
+							return window.location.reload();
+
 						$('#moduleContainer').html(data);
+						$('.dropdown-toggle').dropdown();
 					}
 				});
 			}
@@ -134,7 +139,9 @@
 			resAjax = $.ajax({
 				type:"POST",
 				url: ajaxCurrentIndex,
+				headers: {"cache-control": "no-cache"},
 				async: true,
+				cache: false,
 				data: {
 					ajaxMode : "1",
 					ajax : "1",
@@ -177,7 +184,7 @@
 						{
 							$('#addons_loading').html('');
 							$('#addons_login_div').fadeOut();
-							window.location.href = currentIndexWithToken;
+							window.location.href = currentIndexWithToken + '&conf=32';
 						}
 						else
 							$('#addons_loading').html(errorLogin);
@@ -280,7 +287,7 @@
 				},
 				success : function(data){
 					if (data == 'OK')
-						$('#r_' + module_pref).html(confirmPreferencesSaved);
+						showSuccessMessage(confirmPreferencesSaved);
 				}
 			});
 		});
@@ -309,7 +316,7 @@
 					},
 					success : function(data){
 						if (data == 'OK')
-							$('#r_' + module_pref).html(confirmPreferencesSaved);
+							showSuccessMessage(confirmPreferencesSaved);
 					}
 				});
 			}

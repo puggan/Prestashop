@@ -1,5 +1,5 @@
 {*
-* 2007-2013 PrestaShop
+* 2007-2014 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -18,7 +18,7 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author PrestaShop SA <contact@prestashop.com>
-*  @copyright  2007-2013 PrestaShop SA
+*  @copyright  2007-2014 PrestaShop SA
 *  @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 *}
@@ -168,6 +168,11 @@
 				</div>
 			{/if}
 		{/if}
+		<div class="panel-footer">
+			<a href="{$link->getAdminLink('AdminProducts')}" class="btn btn-default"><i class="process-icon-cancel"></i> {l s='Cancel'}</a>
+			<button type="submit" name="submitAddproduct" class="btn btn-default pull-right product_quantities_button"><i class="process-icon-save"></i> {l s='Save'}</button>
+			<button type="submit" name="submitAddproductAndStay" class="btn btn-default pull-right product_quantities_button"><i class="process-icon-save"></i> {l s='Save and stay'}</button>
+		</div>
 	</div>
 	<div class="panel">
 		<h3>{l s='Availability settings'}</h3>
@@ -231,10 +236,14 @@
 			</div>
 			{/if}
 		{/if}
-
+		<div class="panel-footer">
+			<a href="{$link->getAdminLink('AdminProducts')}" class="btn btn-default"><i class="process-icon-cancel"></i> {l s='Cancel'}</a>
+			<button type="submit" name="submitAddproduct" class="btn btn-default pull-right product_quantities_button"><i class="process-icon-save"></i> {l s='Save'}</button>
+			<button type="submit" name="submitAddproductAndStay" class="btn btn-default pull-right product_quantities_button"><i class="process-icon-save"></i> {l s='Save and stay'}</button>
+		</div>
 		<script type="text/javascript">
-			var quantities_ajax_success = '{l s='Data saved'}';
-			var quantities_ajax_waiting = '{l s='Saving data...'}';
+			var quantities_ajax_success = '{l s='Data saved' js=1}';
+			var quantities_ajax_waiting = '{l s='Saving data...' js=1}';
 		</script>
 	</div>
 {/if}

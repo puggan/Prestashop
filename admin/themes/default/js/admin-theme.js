@@ -17,15 +17,14 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author PrestaShop SA <contact@prestashop.com>
-*  @copyright  2007-2013 PrestaShop SA
+*  @copyright  2007-2014 PrestaShop SA
 *  @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
 
-$( document ).ready(function() {
+$(document).ready(function() {
 
 	$("[name^='checkBoxShopGroupAsso_theme']").change(function(){
-
 		$(this).parents('.tree-folder').find("[name^='checkBoxShopAsso_theme']").each(function(){
 			var id = $(this).attr('value');
 			var checked = $(this).prop('checked');
@@ -39,15 +38,11 @@ $( document ).ready(function() {
 		toggleShopModuleCheckbox(id, checked);
 	});
 
-	//nav side bar
 	function navSidebar(){
-		//$('body.page-topbar').removeClass('page-topbar').addClass('page-sidebar');
-		//$('#nav-topbar').attr('id','nav-sidebar');
 		var sidebar = $('#nav-sidebar');
 		sidebar.off();
 		$('.expanded').removeClass('expanded');
 		$('.maintab').not('.active').closest('.submenu').hide();
-		sidebar.find('li.maintab.has_submenu').append('<span class="submenu_expand"></span>');
 		sidebar.on('click','.submenu_expand', function(){
 			var $navId = $(this).parent();
 			$('.submenu-collapse').remove();
@@ -68,11 +63,15 @@ $( document ).ready(function() {
 		sidebar.find('.menu-collapse').on('click',function(){
 			$('body').toggleClass('page-sidebar-closed');
 			$('.expanded').removeClass('expanded');
+			$.ajax({
+				url: "index.php",
+				cache: false,
+				data: "token="+employee_token+'&ajax=1&action=toggleMenu&tab=AdminEmployees&collapse='+Number($('body').hasClass('page-sidebar-closed'))
+			});
 		});
 	}
-	//nav top bar
+
 	function navTopbar(){
-		//$('body').removeClass('page-sidebar').addClass('page-topbar').removeClass('page-sidebar-closed');
 		$('#nav-sidebar').attr('id','nav-topbar');
 		var topbar = $('#nav-topbar');
 		topbar.off();
@@ -114,8 +113,8 @@ $( document ).ready(function() {
 	}
 
 	function mobileNav() {
-		//clean actual menu type
-		// get it in navigation whatever type it is.
+		// clean actual menu type
+		// get it in navigation whatever type it is
 		var navigation = $('#nav-sidebar,#nav-topbar');
 		var submenu = "";
 		// clean trigger
@@ -137,6 +136,7 @@ $( document ).ready(function() {
 				$(this).addClass('expanded');
 			}
 		});
+
 		//get click for item which has submenu
 		navigation.on('click.submenu','.maintab.has_submenu a.title', function(e){
 			e.preventDefault();
@@ -149,6 +149,7 @@ $( document ).ready(function() {
 			navigation.append(submenu);
 			submenu.show();
 		});
+
 		navigation.on('click.back','#nav-mobile-submenu-back',function(e){
 			e.preventDefault();
 			submenu.remove();
@@ -170,7 +171,6 @@ $( document ).ready(function() {
 		}
 	}
 
-	//nav switch - not used for now
 	function navSwitch(){
 		if ($('body').hasClass('page-sidebar')){
 			navTopbar();
@@ -179,7 +179,6 @@ $( document ).ready(function() {
 		}
 	}
 
-	//init menu
 	function initNav(){
 		if ($('body').hasClass('page-sidebar')){
 			navSidebar();
@@ -188,24 +187,42 @@ $( document ).ready(function() {
 			navTopbar();
 		}
 	}
-
 	initNav();
-	//tooltip
-	$('.label-tooltip').tooltip();
 
-	//modal
+	// wip prevent mouseout
+	$("li.maintab.has_submenu").not(".active").on("mouseenter",function(e){
+		$("li.maintab").removeClass("hover");
+		$(this).addClass("hover");
+		$(this).on("mouseleave",function(){
+			var $submenu = $(this);
+			setTimeout(function(){
+				$submenu.removeClass("hover");
+			}, 300);
+		});
+	});
+
+	$('.dropdown-toggle').dropdown();
+	$('.label-tooltip, .help-tooltip').tooltip();
 	$("#error-modal").modal("show");
 
 	//scroll top
 	function animateGoTop() {
-		if ($(window).scrollTop())
-		{
+		if ($(window).scrollTop()) {
 			$('#go-top:hidden').stop(true, true).fadeIn();
 			$('#go-top:hidden').removeClass('hide');
 		} else {
 			$('#go-top').stop(true, true).fadeOut();
 		}
 	}
+
+	function animateFooter(){
+		if($(window).scrollTop() + $(window).height() === $(document).height()) {
+			$('#footer:hidden').removeClass('hide');
+		} else {
+			$('#footer').addClass('hide');
+		}
+	}
+	animateFooter();
 
 	$("#go-top").on('click',function() {
 		$("html, body").animate({ scrollTop: 0 }, "slow");
@@ -214,12 +231,12 @@ $( document ).ready(function() {
 
 	$(window).scroll(function() {
 		animateGoTop();
+		animateFooter();
 	});
-
 
 	function toggleShopModuleCheckbox(id_shop, toggle){
 		var formGroup = $("[for='to_disable_shop"+id_shop+"']").parent();
-		if (toggle == true)
+		if (toggle === true)
 		{
 			formGroup.removeClass('hide');
 			formGroup.find('input').each(function(){$(this).prop('checked', 'checked');});
@@ -232,7 +249,7 @@ $( document ).ready(function() {
 	}
 
 	//media queries - depends of enquire.js
-	enquire.register("screen and (max-width: 992px)", {
+	enquire.register("screen and (max-width: 768px)", {
 		match : function() {
 			$('body.page-sidebar').addClass('page-sidebar-closed');
 		},
@@ -240,15 +257,39 @@ $( document ).ready(function() {
 			$('body.page-sidebar').removeClass('page-sidebar-closed');
 		}
 	});
-	enquire.register("screen and (max-width: 480px)", {
+	enquire.register('screen and (max-width: 480px)', {
 		match : function() {
+			$('body').addClass('mobile-nav');
 			mobileNav();
 		},
 		unmatch : function() {
+			$('body').removeClass('mobile-nav');
 			removeMobileNav();
 		}
 	});
 
-	//show time elapsed
-	$("abbr.timeago").timeago();
+	//erase button search input
+	if ($('#bo_query').val() !== ''){
+		$('.clear_search').removeClass('hide');
+	}
+	$('.clear_search').on('click', function(e){
+		e.preventDefault();
+		$("#bo_query").val('').focus();
+		$('.clear_search').addClass('hide');
+	});
+	$("#bo_query").on('change', function(){
+		if ($('#bo_query').val() !== ''){
+			$('.clear_search').removeClass('hide');
+		}
+	});
+
+	$('a.btn-help').on('click', function(e){
+		e.preventDefault();
+		var url = $(this).attr('href');
+		window.open(
+			url,
+			'PrestaShop',
+			'width=500,height=600,toolbar=0,menubar=0,location=0,status=1,scrollbars=1,resizable=1,left=50,top=50'
+		)
+	});
 });

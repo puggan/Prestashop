@@ -1,6 +1,6 @@
 <?php
 /*
-* 2007-2013 PrestaShop
+* 2007-2014 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -19,7 +19,7 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author PrestaShop SA <contact@prestashop.com>
-*  @copyright  2007-2013 PrestaShop SA
+*  @copyright  2007-2014 PrestaShop SA
 *  @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
@@ -32,8 +32,8 @@ class BlockBanner extends Module
 	public function __construct()
 	{
 		$this->name = 'blockbanner';
-		$this->tab = 'other';
-		$this->version = 1.1;
+		$this->tab = 'front_office_features';
+		$this->version = 1.2;
 		$this->author = 'PrestaShop';
 		$this->need_instance = 0;
 
@@ -41,7 +41,7 @@ class BlockBanner extends Module
 		parent::__construct();	
 
 		$this->displayName = $this->l('Banner block');
-		$this->description = $this->l('Displays banner at the top of the store.');
+		$this->description = $this->l('Displays a banner at the top of the store.');
 	}
 
 	public function install()
@@ -51,7 +51,7 @@ class BlockBanner extends Module
 
 		foreach ($languages as $lang)
 		{
-			$values['BLOCKBANNER_IMG'][$lang['id_lang']] = 'sale70.gif';
+			$values['BLOCKBANNER_IMG'][$lang['id_lang']] = 'sale70.png';
 			$values['BLOCKBANNER_LINK'][$lang['id_lang']] = '';
 			$values['BLOCKBANNER_DESC'][$lang['id_lang']] = '';
 		}
@@ -75,19 +75,15 @@ class BlockBanner extends Module
 	{
 		if (!$this->isCached('blockbanner.tpl', $this->getCacheId()))
 		{
-			if (file_exists(_PS_MODULE_DIR_.'blockbanner'.DIRECTORY_SEPARATOR.'img'.DIRECTORY_SEPARATOR
-				.Configuration::get('BLOCKBANNER_IMG', $this->context->language->id)))
-				$this->smarty->assign('banner_img', 'img/'.Configuration::get('BLOCKBANNER_IMG', $this->context->language->id));
+			$imgname = Configuration::get('BLOCKBANNER_IMG', $this->context->language->id);
 
-			$this->smarty->assign('banner_link', Configuration::get('BLOCKBANNER_LINK', $this->context->language->id));
-			$this->smarty->assign('banner_desc', Configuration::get('BLOCKBANNER_DESC', $this->context->language->id));
-			$sql = 'SELECT COUNT(*)
-					FROM '._DB_PREFIX_.'store s'
-					.Shop::addSqlAssociation('store', 's');
-			$total = Db::getInstance()->getValue($sql);
+			if ($imgname && file_exists(_PS_MODULE_DIR_.$this->name.DIRECTORY_SEPARATOR.'img'.DIRECTORY_SEPARATOR.$imgname))
+				$this->smarty->assign('banner_img', $this->context->link->protocol_content.Tools::getMediaServer($imgname).$this->_path.'img/'.$imgname);
 
-			if ($total <= 0)
-				return;
+			$this->smarty->assign(array(
+				'banner_link' => Configuration::get('BLOCKBANNER_LINK', $this->context->language->id),
+				'banner_desc' => Configuration::get('BLOCKBANNER_DESC', $this->context->language->id)
+			));
 		}
 
 		return $this->display(__FILE__, 'blockbanner.tpl', $this->getCacheId());
@@ -179,7 +175,7 @@ class BlockBanner extends Module
 						'type' => 'file_lang',
 						'label' => $this->l('Block image'),
 						'name' => 'BLOCKBANNER_IMG',
-						'desc' => $this->l('Please upload banner image'),
+						'desc' => $this->l('You can either upload the image or gives its absolute link in the option below.'),
 						'lang' => true,
 					),
 					array(
@@ -187,19 +183,19 @@ class BlockBanner extends Module
 						'lang' => true,
 						'label' => $this->l('Image Link'),
 						'name' => 'BLOCKBANNER_LINK',
-						'desc' => $this->l('Please input banner link')
+						'desc' => $this->l('You can either give the image\'s absolute link or upload the image in the option above.')
 					),			
 					array(
 						'type' => 'text',
 						'lang' => true,
 						'label' => $this->l('Image description'),
 						'name' => 'BLOCKBANNER_DESC',
-						'desc' => $this->l('Please input banner image description')
+						'desc' => $this->l('Please enter a short but meaningful description for the banner.')
 					)
 				),
-			'submit' => array(
-				'title' => $this->l('Save'),
-				'class' => 'btn btn-default')
+				'submit' => array(
+					'title' => $this->l('Save')
+				)
 			),
 		);
 

@@ -1,5 +1,5 @@
 {*
-* 2007-2013 PrestaShop
+* 2007-2014 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -18,22 +18,18 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author PrestaShop SA <contact@prestashop.com>
-*  @copyright  2007-2013 PrestaShop SA
+*  @copyright  2007-2014 PrestaShop SA
 *  @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 *}
 
 <!-- <label for="node-search">{l s=$label}</label> -->
-<div class="input-group fixed-width-xl pull-right">
-	<div class="input-group-addon">
-		<i class="icon-search"></i>
-	</div>
+<div class="pull-right">
 	<input type="text"
 		{if isset($id)}id="{$id}"{/if}
 		{if isset($name)}name="{$name}"{/if}
-		class="{if isset($class)} {$class}{/if}"
-		placeholder="search..."
-	/>
+		class="search-field {if isset($class)} {$class}{/if}"
+		placeholder="search..." />
 </div>
 
 {if isset($typeahead_source) && isset($id)}

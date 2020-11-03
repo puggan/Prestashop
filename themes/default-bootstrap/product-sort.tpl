@@ -1,5 +1,5 @@
 {*
-* 2007-2013 PrestaShop
+* 2007-2014 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -18,7 +18,7 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author PrestaShop SA <contact@prestashop.com>
-*  @copyright  2007-2013 PrestaShop SA
+*  @copyright  2007-2014 PrestaShop SA
 *  @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 *}
@@ -26,8 +26,8 @@
 {if isset($orderby) AND isset($orderway)}
 <ul class="display hidden-xs">
 	<li class="display-title">{l s='View:'}</li>
-    <li id="grid"><a onclick="display('grid');"><i class="icon-th-large"></i>{l s='Grid'}</a></li>
-    <li id="list"><a onclick="display('list');"><i class="icon-th-list"></i>{l s='List'}</a></li>
+    <li id="grid"><a rel="nofollow" href="#" title="{l s='Grid'}"><i class="icon-th-large"></i>{l s='Grid'}</a></li>
+    <li id="list"><a rel="nofollow" href="#" title="{l s='List'}"><i class="icon-th-list"></i>{l s='List'}</a></li>
 </ul>
 {* On 1.5 the var request is setted on the front controller. The next lines assure the retrocompatibility with some modules *}
 {if !isset($request)}

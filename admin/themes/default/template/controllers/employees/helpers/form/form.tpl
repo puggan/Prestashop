@@ -1,5 +1,5 @@
 {*
-* 2007-2013 PrestaShop
+* 2007-2014 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -18,29 +18,14 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author PrestaShop SA <contact@prestashop.com>
-*  @copyright  2007-2013 PrestaShop SA
+*  @copyright  2007-2014 PrestaShop SA
 *  @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 *}
 {extends file="helpers/form/form.tpl"}
 
 {block name="input"}
-	{if $input.type == 'select_theme'}
-		<select name="{$input.name}" id="{$input.name}" {if isset($input.multiple)}multiple="multiple" {/if}{if isset($input.onchange)}onchange="{$input.onchange}"{/if}>
-			{foreach $input.options.query AS $option}
-				<option value="{$option}"
-					{if isset($input.multiple)}
-						{foreach $fields_value[$input.name] as $field_value}
-							{$field_value}
-							{if $field_value == $option}selected="selected"{/if}
-						{/foreach}
-					{else}
-						{if $fields_value[$input.name] == $option}selected="selected"{/if}
-					{/if}
-				>{$option|escape:'html':'UTF-8'}</option>
-			{/foreach}
-		</select>
-	{elseif $input.type == 'default_tab'}
+	{if $input.type == 'default_tab'}
 	<select name="{$input.name}" id="{$input.name}">
 		{foreach $input.options AS $option}
 			{if isset($option.children) && $option.children|@count}

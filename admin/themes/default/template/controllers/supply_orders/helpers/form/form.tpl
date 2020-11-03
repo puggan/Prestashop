@@ -1,5 +1,5 @@
 {*
-* 2007-2013 PrestaShop
+* 2007-2014 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -18,7 +18,7 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author PrestaShop SA <contact@prestashop.com>
-*  @copyright  2007-2013 PrestaShop SA
+*  @copyright  2007-2014 PrestaShop SA
 *  @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 *}
@@ -100,7 +100,7 @@
 							</div>
 						</td>
 						<td>
-							<a href="#" id="deletelink|{$product.id_product}_{$product.id_product_attribute}" class="btn btn-default"><i class="icon-trash"></i> {l s='Remove'}
+							<a href="#" id="deletelink|{$product.id_product}_{$product.id_product_attribute}" class="btn btn-default removeProductFromSupplyOrderLink"><i class="icon-trash"></i> {l s='Remove'}
 							</a>
 						</td>
 					</tr>
@@ -147,7 +147,7 @@
 				'<td><input type="text" name="input_quantity_expected_'+product_infos.id+'" value="0" class="fixed-width-xs" /></td>'+
 				'<td><div class="input-group fixed-width-md"><input type="text" name="input_discount_rate_'+product_infos.id+'" value="0" /><span class="input-group-addon">%</span></div></td>'+
 				'<td><div class="input-group fixed-width-md"><input type="text" name="input_tax_rate_'+product_infos.id+'" value="0" /><span class="input-group-addon">%</span></div></td>'+
-				'<td><a href="#" id="deletelink|'+product_infos.id+'" class="btn btn-default"><i class="icon-trash"></i> {l s="Remove"}'+
+				'<td><a href="#" id="deletelink|'+product_infos.id+'" class="btn btn-default removeProductFromSupplyOrderLink"><i class="icon-trash"></i> {l s="Remove"}'+
 				'</a></td></tr>'
 			);
 

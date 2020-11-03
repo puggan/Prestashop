@@ -1,6 +1,6 @@
 <?php
 /*
-* 2007-2013 PrestaShop
+* 2007-2014 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -19,7 +19,7 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author PrestaShop SA <contact@prestashop.com>
-*  @copyright  2007-2013 PrestaShop SA
+*  @copyright  2007-2014 PrestaShop SA
 *  @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
@@ -111,7 +111,7 @@ class AdminCustomersControllerCore extends AdminController
 				'active' => 'status',
 				'type' => 'bool',
 				'orderby' => false,
-				'filter_key' => 'a!active',
+				'filter_key' => 'a!active'
 			),
 			'newsletter' => array(
 				'title' => $this->l('News.'),
@@ -191,17 +191,32 @@ class AdminCustomersControllerCore extends AdminController
 	{
 		parent::initToolbarTitle();
 
-		if ($this->display != 'list')
-			if (($customer = $this->loadObject(true)) && Validate::isLoadedObject($customer))
-				$this->toolbar_title[] = Tools::htmlentitiesUTF8(Tools::substr($customer->firstname, 0, 1).'. '.$customer->firstname);
+		switch ($this->display)
+		{
+			case '':
+			case 'list':
+				$this->toolbar_title[] = $this->l('Manage your Customers');
+				break;
+			case 'view':
+				if (($customer = $this->loadObject(true)) && Validate::isLoadedObject($customer))
+					$this->toolbar_title[] = sprintf('Information about Customer: %s', Tools::substr($customer->firstname, 0, 1).'. '.$customer->lastname);
+				break;
+			case 'add':
+			case 'edit':
+				if (($customer = $this->loadObject(true)) && Validate::isLoadedObject($customer))
+					$this->toolbar_title[] = sprintf('Editing Customer: %s', Tools::substr($customer->firstname, 0, 1).'. '.$customer->lastname);
+				else
+					$this->toolbar_title[] = $this->l('Creating a new Customer');
+				break;
+		}
 	}
 
 	public function initPageHeaderToolbar()
 	{
 		if (empty($this->display))
 			$this->page_header_toolbar_btn['new_customer'] = array(
-				'href' => self::$currentIndex.'&amp;addcustomer&amp;token='.$this->token,
-				'desc' => $this->l('Add new customer'),
+				'href' => self::$currentIndex.'&addcustomer&token='.$this->token,
+				'desc' => $this->l('Add new customer', null, null, false),
 				'icon' => 'process-icon-new'
 			);
 
@@ -281,7 +296,7 @@ class AdminCustomersControllerCore extends AdminController
 			'input' => array(
 				array(
 					'type' => 'radio',
-					'label' => $this->l('Title:'),
+					'label' => $this->l('Title'),
 					'name' => 'id_gender',
 					'required' => false,
 					'class' => 't',
@@ -289,7 +304,7 @@ class AdminCustomersControllerCore extends AdminController
 				),
 				array(
 					'type' => 'text',
-					'label' => $this->l('First name:'),
+					'label' => $this->l('First name'),
 					'name' => 'firstname',
 					'required' => true,
 					'col' => '4',
@@ -297,7 +312,7 @@ class AdminCustomersControllerCore extends AdminController
 				),
 				array(
 					'type' => 'text',
-					'label' => $this->l('Last name:'),
+					'label' => $this->l('Last name'),
 					'name' => 'lastname',
 					'required' => true,
 					'col' => '4',
@@ -305,22 +320,23 @@ class AdminCustomersControllerCore extends AdminController
 				),
 				array(
 					'type' => 'text',
-					'label' => $this->l('Email address:'),
+					'label' => $this->l('Email address'),
 					'name' => 'email',
 					'col' => '4',
-					'required' => true
+					'required' => true,
+					'autocomplete' => false
 				),
 				array(
 					'type' => 'password',
-					'label' => $this->l('Password:'),
+					'label' => $this->l('Password'),
 					'name' => 'passwd',
 					'required' => ($obj->id ? false : true),
 					'col' => '4',
-					'hint' => ($obj->id ? $this->l('Leave  this field blank if there\'s no change') : $this->l('Minimum of five characters'))
+					'hint' => ($obj->id ? $this->l('Leave this field blank if there\'s no change.') : $this->l('Minimum of five characters.'))
 				),
 				array(
 					'type' => 'birthday',
-					'label' => $this->l('Birthday:'),
+					'label' => $this->l('Birthday'),
 					'name' => 'birthday',
 					'options' => array(
 						'days' => $days,
@@ -330,7 +346,7 @@ class AdminCustomersControllerCore extends AdminController
 				),
 				array(
 					'type' => 'switch',
-					'label' => $this->l('Status:'),
+					'label' => $this->l('Status'),
 					'name' => 'active',
 					'required' => false,
 					'class' => 't',
@@ -347,11 +363,11 @@ class AdminCustomersControllerCore extends AdminController
 							'label' => $this->l('Disabled')
 						)
 					),
-					'hint' => $this->l('Enable or disable customer login')
+					'hint' => $this->l('Enable or disable customer login.')
 				),
 				array(
 					'type' => 'switch',
-					'label' => $this->l('Newsletter:'),
+					'label' => $this->l('Newsletter'),
 					'name' => 'newsletter',
 					'required' => false,
 					'class' => 't',
@@ -372,7 +388,7 @@ class AdminCustomersControllerCore extends AdminController
 				),
 				array(
 					'type' => 'switch',
-					'label' => $this->l('Opt in:'),
+					'label' => $this->l('Opt in'),
 					'name' => 'optin',
 					'required' => false,
 					'class' => 't',
@@ -501,8 +517,7 @@ class AdminCustomersControllerCore extends AdminController
 		}
 
 		$this->fields_form['submit'] = array(
-			'title' => $this->l('Save   '),
-			'class' => 'button'
+			'title' => $this->l('Save'),
 		);
 
 		$birthday = explode('-', $this->getFieldValue($obj, 'birthday'));
@@ -615,7 +630,7 @@ class AdminCustomersControllerCore extends AdminController
 		$sql = 'SELECT SUM(total_paid_real) FROM '._DB_PREFIX_.'orders WHERE id_customer = %d AND valid = 1';
 		if ($total_customer = Db::getInstance()->getValue(sprintf($sql, $customer->id)))
 		{
-			$sql = 'SELECT SQL_CALC_FOUND_ROWS COUNT(*) FROM '._DB_PREFIX_.'orders WHERE valid = 1 GROUP BY id_customer HAVING SUM(total_paid_real) > %d';
+			$sql = 'SELECT SQL_CALC_FOUND_ROWS COUNT(*) FROM '._DB_PREFIX_.'orders WHERE valid = 1 AND id_customer != '.(int)$customer->id.' GROUP BY id_customer HAVING SUM(total_paid_real) > %d';
 			Db::getInstance()->getValue(sprintf($sql, (int)$total_customer));
 			$count_better_customers = (int)Db::getInstance()->getValue('SELECT FOUND_ROWS()') + 1;
 		}
@@ -721,10 +736,7 @@ class AdminCustomersControllerCore extends AdminController
 			$connections = array();
 		$total_connections = count($connections);
 		for ($i = 0; $i < $total_connections; $i++)
-		{
-			$connections[$i]['date_add'] = Tools::displayDate($connections[$i]['date_add'],null , true);
 			$connections[$i]['http_referer'] = $connections[$i]['http_referer'] ? preg_replace('/^www./', '', parse_url($connections[$i]['http_referer'], PHP_URL_HOST)) : $this->l('Direct link');
-		}
 		
 		$referrers = Referrer::getReferrers($customer->id);
 		$total_referrers = count($referrers);
@@ -736,7 +748,6 @@ class AdminCustomersControllerCore extends AdminController
 			'customer' => $customer,
 			'gender' => $gender,
 			'gender_image' => $gender_image,
-
 			// General information of the customer
 			'registration_date' => Tools::displayDate($customer->date_add,null , true),
 			'customer_stats' => $customer_stats,
@@ -749,40 +760,29 @@ class AdminCustomersControllerCore extends AdminController
 			'customer_exists' => Customer::customerExists($customer->email),
 			'id_lang' => $customer->id_lang,
 			'customerLanguage' => (new Language($customer->id_lang)),
-
 			// Add a Private note
 			'customer_note' => Tools::htmlentitiesUTF8($customer->note),
-
 			// Messages
 			'messages' => $messages,
-
 			// Groups
 			'groups' => $groups,
-
 			// Orders
 			'orders' => $orders,
 			'orders_ok' => $orders_ok,
 			'orders_ko' => $orders_ko,
 			'total_ok' => Tools::displayPrice($total_ok, $this->context->currency->id),
-
 			// Products
 			'products' => $products,
-
 			// Addresses
 			'addresses' => $customer->getAddresses($this->default_form_language),
-
 			// Discounts
 			'discounts' => CartRule::getCustomerCartRules($this->default_form_language, $customer->id, false, false),
-
 			// Carts
 			'carts' => $carts,
-
 			// Interested
 			'interested' => $interested,
-
 			// Connections
 			'connections' => $connections,
-
 			// Referrers
 			'referrers' => $referrers,
 			'show_toolbar' => true
@@ -857,7 +857,7 @@ class AdminCustomersControllerCore extends AdminController
 				$customer = new Customer();
 				if (Validate::isEmail($customer_email))
 					$customer->getByEmail($customer_email);
-				if ($customer->id)
+				if (($customer->id) && ($customer->id != (int)$this->object->id))
 					$this->errors[] = Tools::displayError('An account already exists for this email address:').' '.$customer_email;
 			}
 
@@ -939,17 +939,17 @@ class AdminCustomersControllerCore extends AdminController
 
 	public function printNewsIcon($value, $customer)
 	{
-		return '<a class="label '.($value ? 'label-success' : 'label-warning').'" href="index.php?tab=AdminCustomers&id_customer='
+		return '<a class="list-action-enable '.($value ? 'action-enabled' : 'action-disabled').'" href="index.php?tab=AdminCustomers&id_customer='
 			.(int)$customer['id_customer'].'&changeNewsletterVal&token='.Tools::getAdminTokenLite('AdminCustomers').'">
-				'.($value ? '<i class="icon-check-sign"></i> '.$this->l('Yes') : '<i class="icon-ban-circle"></i> '.$this->l('No')).
+				'.($value ? '<i class="icon-check"></i>' : '<i class="icon-remove"></i>').
 			'</a>';
 	}
 
 	public function printOptinIcon($value, $customer)
 	{
-		return '<a class="label '.($value ? 'label-success' : 'label-warning').'" href="index.php?tab=AdminCustomers&id_customer='
+		return '<a class="list-action-enable '.($value ? 'action-enabled' : 'action-disabled').'" href="index.php?tab=AdminCustomers&id_customer='
 			.(int)$customer['id_customer'].'&changeOptinVal&token='.Tools::getAdminTokenLite('AdminCustomers').'">
-				'.($value ? '<i class="icon-check-sign"></i> '.$this->l('Yes') : '<i class="icon-ban-circle"></i> '.$this->l('No')).
+				'.($value ? '<i class="icon-check"></i>' : '<i class="icon-ban-circle"></i>').
 			'</a>';
 	}
 

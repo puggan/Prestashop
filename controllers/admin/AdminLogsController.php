@@ -1,6 +1,6 @@
 <?php
 /*
-* 2007-2013 PrestaShop
+* 2007-2014 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -19,7 +19,7 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author PrestaShop SA <contact@prestashop.com>
-*  @copyright  2007-2013 PrestaShop SA
+*  @copyright  2007-2014 PrestaShop SA
 *  @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
@@ -30,7 +30,7 @@ class AdminLogsControllerCore extends AdminController
 	{
 		$this->bootstrap = true;
 	 	$this->table = 'log';
-	 	$this->className = 'Logger';
+	 	$this->className = 'PrestaShopLogger';
 	 	$this->lang = false;
 		$this->noLink = true;
 
@@ -90,7 +90,7 @@ class AdminLogsControllerCore extends AdminController
 						'type' => 'text'
 					)
 				),
-				'submit' => array()
+				'submit' => array('title' => $this->l('Save'))
 			)
 		);
 		$this->list_no_link = true;
@@ -101,7 +101,7 @@ class AdminLogsControllerCore extends AdminController
 	
 	public function processDelete()
 	{
-		return Logger::eraseAllLogs();
+		return PrestaShopLogger::eraseAllLogs();
 	}
 
 	public function initToolbar()
@@ -118,7 +118,7 @@ class AdminLogsControllerCore extends AdminController
 	public function displayEmployee($value, $tr)
 	{
 		$employee = new Employee((int)$tr['id_employee']);
-		return ImageManager::thumbnail($employee->getImage(), $this->table.'_mini_'.$value.'_'.$this->context->shop->id.'.'.$this->imageType, 45, $this->imageType).' '.$value;
+		return '<span class="employee_avatar_small">'.ImageManager::thumbnail($employee->getImage(), $this->table.'_mini_'.$value.'_'.$this->context->shop->id.'.'.$this->imageType, 45, $this->imageType).'</span> '.$value;
 	}
 }
 

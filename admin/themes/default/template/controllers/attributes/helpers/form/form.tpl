@@ -1,5 +1,5 @@
 {*
-* 2007-2013 PrestaShop
+* 2007-2014 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -18,21 +18,21 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author PrestaShop SA <contact@prestashop.com>
-*  @copyright  2007-2013 PrestaShop SA
+*  @copyright  2007-2014 PrestaShop SA
 *  @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 *}
 
 {extends file="helpers/form/form.tpl"}
 
-{block name="label"}
-	{if $input.type == 'color'}
-		<div id="colorAttributeProperties"{if !$colorAttributeProperties} style="display: none;"{/if}>
-	{/if}
-	{if $input.type == 'closediv'}
-		</div>
+{block name="input_row"}
+	{if $input.type == 'color' || $input.name == 'texture' || $input.name == 'current_texture'}
+		<div class="colorAttributeProperties"{if !$colorAttributeProperties} style="display: none;"{/if}>
 	{/if}
 	{$smarty.block.parent}
+	{if $input.type == 'color' || $input.name == 'texture' || $input.name == 'current_texture'}
+		</div>
+	{/if}
 {/block}
 
 {block name="field"}
@@ -58,9 +58,9 @@
 	var displayColorFieldsOption = function() {
 		var val = $('#id_attribute_group').val();
 		if (attributesGroups[val])
-			$('#colorAttributeProperties').show();
+			$('.colorAttributeProperties').show();
 		else
-			$('#colorAttributeProperties').hide();
+			$('.colorAttributeProperties').hide();
 	};
 	
 	displayColorFieldsOption();

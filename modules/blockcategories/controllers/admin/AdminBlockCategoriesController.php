@@ -1,6 +1,6 @@
 <?php
 /*
-* 2007-2013 PrestaShop
+* 2007-2014 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -19,7 +19,7 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author PrestaShop SA <contact@prestashop.com>
-*  @copyright  2007-2013 PrestaShop SA
+*  @copyright  2007-2014 PrestaShop SA
 *  @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
@@ -36,6 +36,9 @@ class AdminBlockCategoriesController extends ModuleAdminController
 			if (file_exists(_PS_CAT_IMG_DIR_.(int)Tools::getValue('id_category').'-'.(int)$id_thumb.'_thumb.jpg')
 				&& !unlink(_PS_CAT_IMG_DIR_.(int)Tools::getValue('id_category').'-'.(int)$id_thumb.'_thumb.jpg'))
 				$this->context->controller->errors[] = Tools::displayError('Error while delete');
+
+			if (empty($this->context->controller->errors))
+				Tools::clearSmartyCache();
 
 			Tools::redirectAdmin(Context::getContext()->link->getAdminLink('AdminCategories').'&id_category='
 				.(int)Tools::getValue('id_category').'&updatecategory');
@@ -100,7 +103,9 @@ class AdminBlockCategoriesController extends ModuleAdminController
 			}
 
 			if (count($total_errors))
-			$this->context->controller->errors = array_merge($this->context->controller->errors, $total_errors);
+				$this->context->controller->errors = array_merge($this->context->controller->errors, $total_errors);
+			else
+				Tools::clearSmartyCache();
 
 			die(Tools::jsonEncode(array('thumbnail' => $files)));
 		}

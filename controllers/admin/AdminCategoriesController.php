@@ -1,6 +1,6 @@
 <?php
 /*
-* 2007-2013 PrestaShop
+* 2007-2014 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -19,7 +19,7 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author PrestaShop SA <contact@prestashop.com>
-*  @copyright  2007-2013 PrestaShop SA
+*  @copyright  2007-2014 PrestaShop SA
 *  @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
@@ -163,17 +163,19 @@ class AdminCategoriesControllerCore extends AdminController
 		parent::initPageHeaderToolbar();
 
 		if ($this->display != 'edit' && $this->display != 'add')
+		{
 			if (Configuration::get('PS_MULTISHOP_FEATURE_ACTIVE'))
 				$this->page_header_toolbar_btn['new-url'] = array(
-					'href' => self::$currentIndex.'&amp;add'.$this->table.'root&amp;token='.$this->token,
-					'desc' => $this->l('Add new root category')
+					'href' => self::$currentIndex.'&add'.$this->table.'root&token='.$this->token,
+					'desc' => $this->l('Add new root category', null, null, false)
 				);
 
 			$this->page_header_toolbar_btn['new_category'] = array(
-				'href' => self::$currentIndex.'&amp;addcategory&amp;token='.$this->token,
-				'desc' => $this->l('Add new category'),
+				'href' => self::$currentIndex.'&addcategory&token='.$this->token,
+				'desc' => $this->l('Add new category', null, null, false),
 				'icon' => 'process-icon-new'
 			);
+		}
 	}
 	
 	public function initContent()
@@ -524,7 +526,7 @@ class AdminCategoriesControllerCore extends AdminController
 			),
 			'submit' => array(
 				'title' => $this->l('Save'),
-				'class' => 'btn-default'
+				'name' => 'submitAdd'.$this->table.'AndBackToParent'
 			)
 		);
 
@@ -642,7 +644,7 @@ class AdminCategoriesControllerCore extends AdminController
 				$this->errors[] = Tools::displayError($this->l('The category cannot be a parent of itself.'));
 		}
 		$object = parent::processAdd();
-		
+
 		//if we create a you root category you have to associate to a shop before to add sub categories in. So we redirect to AdminCategories listing
 		if ($object && Tools::getValue('is_root_category'))
 			Tools::redirectAdmin(self::$currentIndex.'&token='.Tools::getAdminTokenLite('AdminCategories').'&conf=3');

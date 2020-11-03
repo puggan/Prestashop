@@ -1,6 +1,6 @@
 <?php
 /*
-* 2007-2013 PrestaShop
+* 2007-2014 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -19,7 +19,7 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author PrestaShop SA <contact@prestashop.com>
-*  @copyright  2007-2013 PrestaShop SA
+*  @copyright  2007-2014 PrestaShop SA
 *  @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
@@ -70,7 +70,7 @@ class HelperListCore extends Helper
 	public $table_id;
 
 	/**
-	 * @var string Customize list display
+	 * @var array Customize list display
 	 *
 	 * align  : determine value alignment
 	 * prefix : displayed before value
@@ -95,6 +95,7 @@ class HelperListCore extends Helper
 	public $list_skip_actions = array();
 
 	public $bulk_actions = false;
+	public $force_show_bulk_actions = false;
 	public $specificConfirmDelete = null;
 	public $colorOnBackground;
 
@@ -168,12 +169,13 @@ class HelperListCore extends Helper
 	 * @param int $id_product
 	 * @return string
 	 */
-	public function displayEnableLink($token, $id, $value, $active, $id_category = null, $id_product = null)
+	public function displayEnableLink($token, $id, $value, $active, $id_category = null, $id_product = null, $ajax = false)
 	{
 		$tpl_enable = $this->createTemplate('list_action_enable.tpl');
 		$tpl_enable->assign(array(
+			'ajax' => $ajax,
 			'enabled' => (bool)$value,
-			'url_enable' => Tools::safeOutput($this->currentIndex.'&'.$this->identifier.'='.(int)$id.'&'.$active.$this->table.
+			'url_enable' => Tools::safeOutput($this->currentIndex.'&'.$this->identifier.'='.(int)$id.'&'.$active.$this->table.($ajax ? '&action='.$active.$this->table.'&ajax='.(int)$ajax : '').
 				((int)$id_category && (int)$id_product ? '&id_category='.(int)$id_category : '').'&token='.($token != null ? $token : $this->token))
 		));
 		return $tpl_enable->fetch();
@@ -184,9 +186,12 @@ class HelperListCore extends Helper
 		if (isset($this->fields_list['position']))
 		{
 			if ($this->position_identifier)
-				$id_category = (int)Tools::getValue('id_'.($this->is_cms ? 'cms_' : '').'category', ($this->is_cms ? '1' : Category::getRootCategory()->id ));
+				if (isset($this->position_group_identifier))
+					$position_group_identifier = (int)Tools::getValue($this->position_group_identifier);
+				else
+					$position_group_identifier = (int)Tools::getValue('id_'.($this->is_cms ? 'cms_' : '').'category', ($this->is_cms ? '1' : Category::getRootCategory()->id ));
 			else
-				$id_category = Category::getRootCategory()->id;
+				$position_group_identifier = Category::getRootCategory()->id;
 
 			$positions = array_map(create_function('$elem', 'return (int)($elem[\'position\']);'), $this->_list);
 			sort($positions);
@@ -236,13 +241,17 @@ class HelperListCore extends Helper
 						$calling_obj = $this->context->controller;
 					else
 						$calling_obj = $this;
+
+					if (!isset($params['ajax']))
+						$params['ajax'] = false;
 					$this->_list[$index][$key] = $calling_obj->displayEnableLink(
 						$this->token,
 						$id,
 						$tr[$key],
 						$params['active'],
 						Tools::getValue('id_category'),
-						Tools::getValue('id_product')
+						Tools::getValue('id_product'),
+						$params['ajax']
 					);
 				}
 				elseif (isset($params['activeVisu']))
@@ -252,11 +261,11 @@ class HelperListCore extends Helper
 					$this->_list[$index][$key] = array(
 						'position' => $tr[$key],
 						'position_url_down' => $this->currentIndex.
-							(isset($key_to_get) ? '&'.$key_to_get.'='.(int)$id_category : '').
+							(isset($key_to_get) ? '&'.$key_to_get.'='.(int)$position_group_identifier : '').
 							'&'.$this->position_identifier.'='.$id.
 							'&way=1&position='.((int)$tr['position'] + 1).'&token='.$this->token,
 						'position_url_up' => $this->currentIndex.
-							(isset($key_to_get) ? '&'.$key_to_get.'='.(int)$id_category : '').
+							(isset($key_to_get) ? '&'.$key_to_get.'='.(int)$position_group_identifier : '').
 							'&'.$this->position_identifier.'='.$id.
 							'&way=0&position='.((int)$tr['position'] - 1).'&token='.$this->token
 					);
@@ -288,21 +297,10 @@ class HelperListCore extends Helper
 					}
 					else
 						if (isset($params['icon'][$tr[$key]]))
-							$this->_list[$index][$key] = array(
-								'class' => $params['icon'][$tr[$key]],
-							);
+							$this->_list[$index][$key] = $params['icon'][$tr[$key]];
 				}
 				elseif (isset($params['type']) && $params['type'] == 'float')
 					$this->_list[$index][$key] = rtrim(rtrim($tr[$key], '0'), '.');
-				elseif (isset($params['type']) && $params['type'] == 'price')
-				{
-					$currency = (isset($params['currency']) && $params['currency']) ? Currency::getCurrencyInstance($tr['id_currency']) : $this->context->currency;
-					$this->_list[$index][$key] = Tools::displayPrice($tr[$key], $currency, false);
-				}
-				elseif (isset($params['type']) && $params['type'] == 'date')
-					$this->_list[$index][$key] = Tools::displayDate($tr[$key]);
-				elseif (isset($params['type']) && $params['type'] == 'datetime')
-					$this->_list[$index][$key] = Tools::displayDate($tr[$key],null , true);
 				elseif (isset($tr[$key]))
 				{
 					$echo = $tr[$key];
@@ -325,7 +323,7 @@ class HelperListCore extends Helper
 			'table' => $this->table,
 			'token' => $this->token,
 			'color_on_bg' => $this->colorOnBackground,
-			'id_category' => isset($id_category) ? $id_category : false,
+			'position_group_identifier' => isset($position_group_identifier) ? $position_group_identifier : false,
 			'bulk_actions' => $this->bulk_actions,
 			'positions' => isset($positions) ? $positions : null,
 			'order_by' => $this->orderBy,
@@ -339,7 +337,7 @@ class HelperListCore extends Helper
 			'view' => in_array('view', $this->actions),
 			'edit' => in_array('edit', $this->actions),
 			'has_actions' => !empty($this->actions),
-			'has_bulk_actions' =>  count($this->_list) <= 1 ? false : !empty($this->bulk_actions),
+			'has_bulk_actions' =>  (count($this->_list) <= 1 && !$this->force_show_bulk_actions) ? false : !empty($this->bulk_actions),
 			'list_skip_actions' => $this->list_skip_actions,
 			'row_hover' => $this->row_hover,
 		)));
@@ -546,6 +544,7 @@ class HelperListCore extends Helper
 			$table_dnd = true;
 
 		$prefix = isset($this->controller_name) ? str_replace(array('admin', 'controller'), '', Tools::strtolower($this->controller_name)) : '';
+		$ajax = false;
 		foreach ($this->fields_list as $key => $params)
 		{
 			if (!isset($params['type']))
@@ -554,6 +553,8 @@ class HelperListCore extends Helper
 			switch ($params['type'])
 			{
 				case 'bool':
+					if (isset($params['ajax']) && $params['ajax'])
+						$ajax = true;
 					break;
 
 				case 'date':
@@ -585,6 +586,7 @@ class HelperListCore extends Helper
 					if (!Validate::isCleanHtml($value))
 						$value = '';
 			}
+
 			$params['value'] = $value;
 			$this->fields_list[$key] = $params;
 		}
@@ -613,10 +615,11 @@ class HelperListCore extends Helper
 			'show_toolbar' => $this->show_toolbar,
 			'toolbar_scroll' => $this->toolbar_scroll,
 			'toolbar_btn' => $this->toolbar_btn,
-			'has_bulk_actions' => (count($this->_list) <= 1 && !$has_value) ? false : !empty($this->bulk_actions),
+			'has_bulk_actions' => (count($this->_list) <= 1 && !$has_value && !$this->force_show_bulk_actions) ? false : !empty($this->bulk_actions),
 		));
 
 		$this->header_tpl->assign(array_merge($this->tpl_vars, array(
+			'ajax' => $ajax,
 			'title' => array_key_exists('title', $this->tpl_vars) ? $this->tpl_vars['title'] : $this->title,
 			'show_filters' => (count($this->_list) <= 1 && !$has_value) ? false : true,
 			'filters_has_value' => $has_value,

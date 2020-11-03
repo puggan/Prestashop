@@ -1,6 +1,6 @@
 <?php
 /*
-* 2007-2013 PrestaShop
+* 2007-2014 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -19,7 +19,7 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author PrestaShop SA <contact@prestashop.com>
-*  @copyright  2007-2013 PrestaShop SA
+*  @copyright  2007-2014 PrestaShop SA
 *  @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
@@ -74,8 +74,8 @@ class AdminSuppliersControllerCore extends AdminController
 	{
 		if (empty($this->display))
 			$this->page_header_toolbar_btn['new_supplier'] = array(
-				'href' => self::$currentIndex.'&amp;addsupplier&amp;token='.$this->token,
-				'desc' => $this->l('Add new supplier'),
+				'href' => self::$currentIndex.'&addsupplier&token='.$this->token,
+				'desc' => $this->l('Add new supplier', null, null, false),
 				'icon' => 'process-icon-new'
 			);
 
@@ -243,8 +243,7 @@ class AdminSuppliersControllerCore extends AdminController
 				)
 			),
 			'submit' => array(
-				'title' => $this->l('   Save   '),
-				'class' => 'button'
+				'title' => $this->l('Save'),
 			)
 		);
 

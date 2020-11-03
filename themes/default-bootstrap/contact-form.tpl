@@ -1,5 +1,5 @@
 {*
-* 2007-2013 PrestaShop
+* 2007-2014 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -18,7 +18,7 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author PrestaShop SA <contact@prestashop.com>
-*  @copyright  2007-2013 PrestaShop SA
+*  @copyright  2007-2014 PrestaShop SA
 *  @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 *}
@@ -52,9 +52,6 @@
         </li>
 	</ul>
 {else}
-	<p class="contact-title">
-        <i class="icon-comment-alt"></i>{l s='For questions about an order or for more information about our products'}.
-    </p>
 	{include file="$tpl_dir./errors.tpl"}
 	<form action="{$request_uri|escape:'html':'UTF-8'}" method="post" class="contact-form-box" enctype="multipart/form-data">
 		<fieldset>
@@ -81,8 +78,8 @@
                 </div> <!-- .col-xs-12 .col-md-3 -->
                     <p id="desc_contact0" class="desc_contact">&nbsp;</p>
                     {foreach from=$contacts item=contact}
-                        <p id="desc_contact{$contact.id_contact|intval}" class="desc_contact" style="display:none;">
-                            {$contact.description|escape:'html':'UTF-8'}
+                        <p id="desc_contact{$contact.id_contact|intval}" class="desc_contact contact-title" style="display:none;">
+                            <i class="icon-comment-alt"></i>{$contact.description|escape:'html':'UTF-8'}
                         </p>
                     {/foreach}
                 {/if}
@@ -91,14 +88,14 @@
                     {if isset($customerThread.email)}
                         <input class="form-control grey" type="text" id="email" name="from" value="{$customerThread.email|escape:'html':'UTF-8'}" readonly="readonly" />
                     {else}
-                        <input class="form-control grey" type="text" id="email" name="from" value="{$email|escape:'html':'UTF-8'}" />
+                        <input class="form-control grey validate" type="text" id="email" name="from" data-validate="isEmail" value="{$email|escape:'html':'UTF-8'}" />
                     {/if}
                 </p>
                 {if !$PS_CATALOG_MODE}
                     {if (!isset($customerThread.id_order) || $customerThread.id_order > 0)}
                         <div class="form-group selector1">
                             <label>{l s='Order reference'}</label>
-                            {if !isset($customerThread.id_order) && isset($isLogged) && $isLogged == 1}
+                            {if !isset($customerThread.id_order) && isset($isLogged) && $isLogged}
                                 <select name="id_order" class="form-control">
                                     <option value="0">{l s='-- Choose --'}</option>
                                     {foreach from=$orderList item=order}
@@ -151,33 +148,3 @@
 	</fieldset>
 </form>
 {/if}
-<div class="row contact-banners">
-	<div class="col-xs-12 col-sm-4">
-    	<div class="box">
-        	<h3 class="page-subheading">{l s='Call us now toll free:'}</h3>
-            <ul class="list-1">
-                <li><i class="icon-phone"></i>{l s='(800) 2345-6789'}</li>
-                <li><i class="icon-phone"></i>{l s='(800) 2345-6790'}</li>
-            </ul>
-            <span>{l s='Hours: 9am-9pm PST Mon - Sun'}</span>
-        </div>
-    </div>
-    <div class="col-xs-12 col-sm-4">
-    	<div class="box">
-        	<h3 class="page-subheading">{l s='Our company'}</h3>
-            <ul class="list-2">
-            	<li><i class="icon-ok"></i>{l s='Top quality products'}</li>
-                <li><i class="icon-ok"></i>{l s='Best customer service'}</li>
-                <li><i class="icon-ok"></i>{l s='30-days money back guarantee'}</li>
-            </ul>
-        </div>
-    </div>
-    <div class="col-xs-12 col-sm-4">
-    	<div class="box box-last">
-        	<h3 class="page-subheading">{l s='Free Shipping'}</h3>
-			<p><i class="icon-truck"></i><strong class="dark">{l s='Free Shipping on orders over $199'}</strong></p>
-            <span>{l s='This offer is valid on all our store items.'}</span>
-        </div>
-    </div>
-</div>
-

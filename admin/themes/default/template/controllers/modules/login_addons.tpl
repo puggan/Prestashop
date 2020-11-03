@@ -1,5 +1,5 @@
 {*
-* 2007-2013 PrestaShop
+* 2007-2014 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -18,7 +18,7 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author PrestaShop SA <contact@prestashop.com>
-*  @copyright  2007-2013 PrestaShop SA
+*  @copyright  2007-2014 PrestaShop SA
 *  @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 *}
@@ -49,7 +49,7 @@
 		{else}
 			<!--start addons login-->
 			<div class="panel-heading">
-				<i class="icon-user"></i>
+				<i class="icon-puzzle-piece"></i>
 				<a target="_blank" href="http://addons.prestashop.com/">PrestaShop Addons</a>
 			</div>
 			<form id="addons_login_form" method="post" >
@@ -67,8 +67,8 @@
 						<input id="password_addons" class="form-control" name="password_addons" type="password" value=""  autocomplete="off" class="form-control ac_input">
 					</div>
 				</div>
-				<div class="form-group">
-					<button id="addons_login_button" class="btn btn-default" type="submit">
+				<div class="row">
+					<button id="addons_login_button" class="btn btn-default btn-block btn-lg" type="submit">
 						<i class="icon-unlock"></i> {l s='Log in'}
 					</button>
 				</div>

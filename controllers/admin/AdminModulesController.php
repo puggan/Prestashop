@@ -1,6 +1,6 @@
 <?php
 /*
-* 2007-2013 PrestaShop
+* 2007-2014 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -19,7 +19,7 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author PrestaShop SA <contact@prestashop.com>
-*  @copyright  2007-2013 PrestaShop SA
+*  @copyright  2007-2014 PrestaShop SA
 *  @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
@@ -34,7 +34,8 @@ class AdminModulesControllerCore extends AdminController
 		'uninstall' => 'uninstall',
 		'configure' => 'getContent',
 		'update' => 'update',
-		'delete' => 'delete'
+		'delete' => 'delete',
+		'checkAndUpdate' => 'checkAndUpdate'
 	);
 
 	protected $list_modules_categories = array();
@@ -69,8 +70,6 @@ class AdminModulesControllerCore extends AdminController
 		parent::__construct();
 
 		register_shutdown_function('displayFatalError');
-
-		include_once(_PS_ADMIN_DIR_.'/../tools/tar/Archive_Tar.php');
 
 		// Set the modules categories
 		$this->list_modules_categories['administration']['name'] = $this->l('Administration');
@@ -146,10 +145,10 @@ class AdminModulesControllerCore extends AdminController
 		$this->addJqueryPlugin(array('autocomplete', 'fancybox', 'tablefilter'));
 	}
 
-	public function ajaxProcessRefreshModuleList()
+	public function ajaxProcessRefreshModuleList($force_reload_cache = false)
 	{
 		// Refresh modules_list.xml every week
-		if (!$this->isFresh(Module::CACHE_FILE_MODULES_LIST, 604800))
+		if (!$this->isFresh(Module::CACHE_FILE_MODULES_LIST, 604800) || $force_reload_cache)
 		{
 			if ($this->refresh(Module::CACHE_FILE_MODULES_LIST, 'https://'.$this->xml_modules_list))
 				$this->status = 'refresh';
@@ -165,7 +164,7 @@ class AdminModulesControllerCore extends AdminController
 		// If logged to Addons Webservices, refresh default country native modules list every day
 		if ($this->status != 'error')
 		{
-			if (!$this->isFresh(Module::CACHE_FILE_DEFAULT_COUNTRY_MODULES_LIST, 86400))
+			if (!$this->isFresh(Module::CACHE_FILE_DEFAULT_COUNTRY_MODULES_LIST, 86400) || $force_reload_cache)
 			{
 				if (file_put_contents(_PS_ROOT_DIR_.Module::CACHE_FILE_DEFAULT_COUNTRY_MODULES_LIST, Tools::addonsRequest('native')))
 					$this->status = 'refresh';
@@ -175,7 +174,7 @@ class AdminModulesControllerCore extends AdminController
 			else
 				$this->status = 'cache';
 			
-			if (!$this->isFresh(Module::CACHE_FILE_MUST_HAVE_MODULES_LIST, 86400))
+			if (!$this->isFresh(Module::CACHE_FILE_MUST_HAVE_MODULES_LIST, 86400) || $force_reload_cache)
 			{
 				if (file_put_contents(_PS_ROOT_DIR_.Module::CACHE_FILE_MUST_HAVE_MODULES_LIST, Tools::addonsRequest('must-have')))
 					$this->status = 'refresh';
@@ -189,7 +188,7 @@ class AdminModulesControllerCore extends AdminController
 		// If logged to Addons Webservices, refresh customer modules list every day
 		if ($this->logged_on_addons && $this->status != 'error')
 		{
-			if (!$this->isFresh(Module::CACHE_FILE_CUSTOMER_MODULES_LIST, 60))
+			if (!$this->isFresh(Module::CACHE_FILE_CUSTOMER_MODULES_LIST, 60) || $force_reload_cache)
 			{
 				if (file_put_contents(_PS_ROOT_DIR_.Module::CACHE_FILE_CUSTOMER_MODULES_LIST, Tools::addonsRequest('customer')))
 					$this->status = 'refresh';
@@ -271,6 +270,10 @@ class AdminModulesControllerCore extends AdminController
 						if (!$access['edit'])
 							$perm &= false; 
 					}
+					
+					if (in_array($module->name, $this->list_partners_modules))
+						$module->type = 'addonsPartner';
+					
 					if ($perm)
 					{
 						$this->fillModuleData($module, 'array');
@@ -379,6 +382,7 @@ class AdminModulesControllerCore extends AdminController
 		}
 		else
 		{
+			require_once(_PS_TOOL_DIR_.'tar/Archive_Tar.php');
 			$archive = new Archive_Tar($file);
 			if ($archive->extract($tmp_folder))
 			{
@@ -388,18 +392,21 @@ class AdminModulesControllerCore extends AdminController
 			}
 		}
 		if (!$success)
-				$this->errors[] = Tools::displayError('There was an error while extracting the module (file may be corrupted).');
-		
-		//check if it's a real module
-		foreach($zip_folders as $folder)
-			if (!in_array($folder, array('.', '..', '.svn', '.git', '__MACOSX')) && !Module::getInstanceByName($folder))
-			{
-				$this->errors[] = sprintf(Tools::displayError('The folder %1$s you uploaded is not a module.'), $folder);
-				$this->recursiveDeleteOnDisk(_PS_MODULE_DIR_.$folder);
-			}
-			
+			$this->errors[] = Tools::displayError('There was an error while extracting the module (file may be corrupted).');
+		else
+		{
+			//check if it's a real module
+			foreach($zip_folders as $folder)
+				if (!in_array($folder, array('.', '..', '.svn', '.git', '__MACOSX')) && !Module::getInstanceByName($folder))
+				{
+					$this->errors[] = sprintf(Tools::displayError('The module %1$s that you uploaded is not a valid module.'), $folder);
+					$this->recursiveDeleteOnDisk(_PS_MODULE_DIR_.$folder);
+				}
+		}
+	
 		@unlink($file);
 		$this->recursiveDeleteOnDisk($tmp_folder);
+
 		if ($success && $redirect)
 			Tools::redirectAdmin(self::$currentIndex.'&conf=8&anchor='.ucfirst($folder).'&token='.$this->token);
 
@@ -662,21 +669,43 @@ class AdminModulesControllerCore extends AdminController
 
 		foreach ($this->map as $key => $method)
 		{
-			$modules = Tools::getValue($key);
-			if (strpos($modules, '|'))
+			if (!Tools::getValue($key))
+				continue;
+
+			if ($key == 'checkAndUpdate')
 			{
-				$modules_list_save = $modules;
-				$modules = explode('|', $modules);
+				$modules = array();
+				$this->ajaxProcessRefreshModuleList(true);
+				$modules_on_disk = Module::getModulesOnDisk(true, $this->logged_on_addons, $this->id_employee);
+
+				// Browse modules list
+				foreach ($modules_on_disk as $km => $module_on_disk)
+				{
+					if (isset($module_on_disk->version_addons) && $module_on_disk->version_addons)
+						$modules[] = $module_on_disk->name;
+				}
+
+				$modules_list_save = implode('|', $modules);
 			}
-			else
-				$modules = empty($modules) ? false : array($modules);
+			elseif (($modules = Tools::getValue($key)))
+			{
+				if (strpos($modules, '|'))
+				{
+					$modules_list_save = $modules;
+					$modules = explode('|', $modules);
+				}
+
+				if (!is_array($modules))
+					$modules = (array)$modules;
+			}
+
 			$module_errors = array();
-			if ($modules)
+			if (isset($modules))
 				foreach ($modules as $name)
 				{
 					$full_report = null;
 					// If Addons module, download and unzip it before installing it
-					if (!file_exists('../modules/'.$name.'/'.$name.'.php') || $key == 'update')
+					if (!file_exists('../modules/'.$name.'/'.$name.'.php') || $key == 'update' || $key == 'checkAndUpdate')
 					{
 						$filesList = array(
 							array('type' => 'addonsNative', 'file' => Module::CACHE_FILE_DEFAULT_COUNTRY_MODULES_LIST, 'loggedOnAddons' => 0),
@@ -708,6 +737,9 @@ class AdminModulesControllerCore extends AdminController
 							}
 					}
 
+					if (count($this->errors))
+						continue;
+
 					// Check potential error
 					if (!($module = Module::getInstanceByName(urldecode($name))))
 						$this->errors[] = $this->l('Module not found');
@@ -737,7 +769,7 @@ class AdminModulesControllerCore extends AdminController
 							$_POST['tab'] = Tools::safeOutput(Tools::getValue('controller'));
 
 						$echo = '';
-						if ($key != 'update')
+						if ($key != 'update' && $key != 'checkAndUpdate')
 						{
 						// We check if method of module exists
 							if (!method_exists($module, $method))
@@ -766,6 +798,7 @@ class AdminModulesControllerCore extends AdminController
 							$disable_link = $this->context->link->getAdminLink('AdminModules').'&module_name='.$module->name.'&enable=0&tab_module='.$module->tab;
 							$uninstall_link = $this->context->link->getAdminLink('AdminModules').'&module_name='.$module->name.'&uninstall='.$module->name.'&tab_module='.$module->tab;
 							$reset_link = $this->context->link->getAdminLink('AdminModules').'&module_name='.$module->name.'&reset&tab_module='.$module->tab;
+							$update_link =  $this->context->link->getAdminLink('AdminModules').'&checkAndUpdate=1';
 
 							$this->context->smarty->assign(array(
 								'module_name' => $module->name,
@@ -775,10 +808,13 @@ class AdminModulesControllerCore extends AdminController
 								'module_disable_link' => $disable_link,
 								'module_uninstall_link' => $uninstall_link,
 								'module_reset_link' => $reset_link,
-								'module_update_link' => null, //TODO
+								'module_update_link' => $update_link,
 								'trad_link' => $trad_link,
 								'module_languages' => Language::getLanguages(false),
-								'theme_language_dir' => _THEME_LANG_DIR_
+								'theme_language_dir' => _THEME_LANG_DIR_,
+								'page_header_toolbar_title' => $this->page_header_toolbar_title,
+								'page_header_toolbar_btn' => $this->page_header_toolbar_btn,
+								'add_permission' => $this->tabAccess['add'],
 							));
 							
 							// Display checkbox in toolbar if multishop
@@ -852,12 +888,12 @@ class AdminModulesControllerCore extends AdminController
 			Tools::redirectAdmin(self::$currentIndex.'&conf='.$return.'&token='.$this->token.'&tab_module='.$module->tab.'&module_name='.$module->name.'&anchor='.ucfirst($module->name).(isset($modules_list_save) ? '&modules_list='.$modules_list_save : '').$params);
 		}
 
-		if (Tools::getValue('update'))
-			Tools::redirectAdmin(self::$currentIndex.'&token='.$this->token.'&updated=1tab_module='.$module->tab.'&module_name='.$module->name.'&anchor='.ucfirst($module->name).(isset($modules_list_save) ? '&modules_list='.$modules_list_save : ''));
-		
-		if (Tools::getValue('check_and_update'))
+		if (Tools::getValue('update') || Tools::getValue('checkAndUpdate'))
 		{
-			//TODO
+			if (isset($modules_list_save))
+				Tools::redirectAdmin(self::$currentIndex.'&token='.$this->token.'&updated=1&module_name='.$modules_list_save);
+			elseif ($module)
+				Tools::redirectAdmin(self::$currentIndex.'&token='.$this->token.'&updated=1tab_module='.$module->tab.'&module_name='.$module->name.'&anchor='.ucfirst($module->name).(isset($modules_list_save) ? '&modules_list='.$modules_list_save : ''));
 		}
 	}
 	
@@ -912,8 +948,8 @@ class AdminModulesControllerCore extends AdminController
 				$html_error_description = '';
 				if (count($module_error['message']) > 0)
 					foreach ($module_error['message'] as $e)
-						$html_error_description .= '<br />'.$e;
-				$html_error .= '<li><b>- '.$module_error['name'].'</b> : '.$html_error_description.'</li>';
+						$html_error_description .= '<br />&nbsp;&nbsp;&nbsp;&nbsp;'.$e;
+				$html_error .= '<li><b>'.$module_error['name'].'</b> : '.$html_error_description.'</li>';
 			}
 			$html_error .= '</ul>';
 		}
@@ -978,8 +1014,13 @@ class AdminModulesControllerCore extends AdminController
 		}
 
 		// Filter on interest
-		if ((int)Db::getInstance()->getValue('SELECT `id_module_preference` FROM `'._DB_PREFIX_.'module_preference` WHERE `module` = \''.pSQL($module->name).'\' AND `id_employee` = '.(int)$this->id_employee.' AND `interest` = 0') > 0)
+		if ($module->interest !== '')
+		{
+			if ($module->interest === '0')
 				return true;
+		}
+		elseif ((int)Db::getInstance()->getValue('SELECT `id_module_preference` FROM `'._DB_PREFIX_.'module_preference` WHERE `module` = \''.pSQL($module->name).'\' AND `id_employee` = '.(int)$this->id_employee.' AND `interest` = 0') > 0)
+			return true;
 
 		// Filter on favorites
 		if (Configuration::get('PS_SHOW_CAT_MODULES_'.(int)$this->id_employee) == 'favorites')
@@ -1008,15 +1049,15 @@ class AdminModulesControllerCore extends AdminController
 		$show_type_modules = $this->filter_configuration['PS_SHOW_TYPE_MODULES_'.(int)$this->id_employee];
 		if ($show_type_modules == 'nativeModules' && !in_array($module->name, $this->list_natives_modules))
 			return true;
-		else if ($show_type_modules == 'partnerModules' && !in_array($module->name, $this->list_partners_modules))
+		elseif ($show_type_modules == 'partnerModules' && !in_array($module->name, $this->list_partners_modules))
 			return true;
-		else if ($show_type_modules == 'addonsModules' && (!isset($module->type) || $module->type != 'addonsBought'))
+		elseif ($show_type_modules == 'addonsModules' && (!isset($module->type) || $module->type != 'addonsBought'))
 			return true;
-		else if ($show_type_modules == 'mustHaveModules' && (!isset($module->type) || $module->type != 'addonsMustHave'))
+		elseif ($show_type_modules == 'mustHaveModules' && (!isset($module->type) || $module->type != 'addonsMustHave'))
 			return true;
-		else if ($show_type_modules == 'otherModules' && (in_array($module->name, $this->list_partners_modules) || in_array($module->name, $this->list_natives_modules)))
+		elseif ($show_type_modules == 'otherModules' && (in_array($module->name, $this->list_partners_modules) || in_array($module->name, $this->list_natives_modules)))
 			return true;
-		else if (strpos($show_type_modules, 'authorModules[') !== false)
+		elseif (strpos($show_type_modules, 'authorModules[') !== false)
 		{
 			// setting selected author in authors set
 			$author_selected = substr(str_replace(array('authorModules[', "\'"), array('', "'"), $show_type_modules), 0, -1);
@@ -1102,6 +1143,9 @@ class AdminModulesControllerCore extends AdminController
 		// If we are on a module configuration, no need to load all modules
 		if (Tools::getValue('configure') != '')
 			return true;
+			
+		$this->initToolbar();
+		$this->initPageHeaderToolbar();
 
 		// Init
 		$smarty = $this->context->smarty;
@@ -1154,9 +1198,17 @@ class AdminModulesControllerCore extends AdminController
 			//Add succes message for one module update
 			if (Tools::getValue('updated') && Tools::getValue('module_name'))
 			{
-				if ($module->name === (string)Tools::getValue('module_name'))
+				$module_names = (string)Tools::getValue('module_name');
+
+				if (strpos($module_names, '|'))
+					$module_names = explode('|', $module_names);
+
+				if (!is_array($module_names))
+					$module_names = (array)$module_names;
+
+				if (in_array($module->name, $module_names))
 					$module_success[] = array('name' => $module->displayName, 'message' => array(
-							0 => $this->l('Current version:').$module->version));
+							0 => $this->l('Current version: ').$module->version));
 			}
 
 			//if we are in favorites view we only display installed modules
@@ -1197,7 +1249,7 @@ class AdminModulesControllerCore extends AdminController
 						require_once(_PS_MODULE_DIR_.$module->name.'/'.$module->name.'.php');
 						$object = new $module->name();
 						$module_success[] = array('name' => $module->name, 'message' => array(
-							0 => $this->l('Current version:').$object->version,
+							0 => $this->l('Current version: ').$object->version,
 							1 => $this->l('No file upgrades applied (none exist).'))
 						);
 					}
@@ -1211,7 +1263,14 @@ class AdminModulesControllerCore extends AdminController
 
 			// Assign warnings
 			if ($module->active && isset($module->warning) && !empty($module->warning))
-				$this->warnings[] = sprintf($this->l('%1$s: %2$s'), $module->displayName, $module->warning);
+			{
+
+				$href = Context::getContext()->link->getAdminLink('AdminModules', true).'&module_name='.$module->name.'&tab_module='.$module->tab.'&configure='.$module->name;
+
+				$this->context->smarty->assign('text', sprintf($this->l('%1$s: %2$s'), $module->displayName, $module->warning));
+				$this->context->smarty->assign('module_link', $href);
+				$this->displayWarning($this->context->smarty->fetch('controllers/modules/warning_module.tpl'));
+			}
 
 			// AutoComplete array
 			$autocompleteList .= Tools::jsonEncode(array(
@@ -1236,7 +1295,10 @@ class AdminModulesControllerCore extends AdminController
 			}
 			unset($object);
 			if ($module->installed && isset($module->version_addons) && $module->version_addons)
-				$upgrade_available[] = array('anchor' => ucfirst($module->name), 'name' => $module->displayName);
+				$upgrade_available[] = array('anchor' => ucfirst($module->name), 'name' => $module->name, 'displayName' => $module->displayName);
+				
+			if (in_array($module->name, $this->list_partners_modules))
+				$module->type = 'addonsPartner';
 		}
 
 		// Don't display categories without modules
@@ -1288,6 +1350,9 @@ class AdminModulesControllerCore extends AdminController
 		$tpl_vars['tab_modules_preferences'] = $tab_modules_preferences;
 		$tpl_vars['kpis'] = $this->renderKpis();
 		$tpl_vars['module_name'] = Tools::getValue('module_name');
+		$tpl_vars['page_header_toolbar_title'] = $this->page_header_toolbar_title;
+		$tpl_vars['page_header_toolbar_btn'] = $this->page_header_toolbar_btn;
+		$tpl_vars['modules_uri'] = __PS_BASE_URI__.basename(_PS_MODULE_DIR_);
 
 		if ($this->logged_on_addons)
 		{

@@ -1,5 +1,5 @@
 {*
-* 2007-2013 PrestaShop
+* 2007-2014 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -18,7 +18,7 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author PrestaShop SA <contact@prestashop.com>
-*  @copyright  2007-2013 PrestaShop SA
+*  @copyright  2007-2014 PrestaShop SA
 *  @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 *}
@@ -37,7 +37,7 @@
 							</label>
 						</div>
 						<div class="theme_container">
-							<img class="thumbnail" src="../themes/{$theme->directory}/preview.jpg" alt="{$theme->directory}" />
+							<img class="img-thumbnail" src="../themes/{$theme->directory}/preview.jpg" alt="{$theme->directory}" />
 						</div>
 					</div>
 				{/foreach}
@@ -67,7 +67,7 @@
 				page:'themes'
 			},
 			success: function(htmlData) {
-				$("#prestastore-content").html("<h3><i class='icon-puzzle-piece'></i> {l s='Live from PrestaShop Addons!'}</h3>"+htmlData);
+				$("#prestastore-content").html("<h3><i class='icon-picture-o'></i> {l s='Live from PrestaShop Addons!'}</h3>"+htmlData);
 			}
 		});
 	</script>

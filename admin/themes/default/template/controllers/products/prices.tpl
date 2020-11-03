@@ -1,5 +1,5 @@
 {*
-* 2007-2013 PrestaShop
+* 2007-2014 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -18,7 +18,7 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author PrestaShop SA <contact@prestashop.com>
-*  @copyright  2007-2013 PrestaShop SA
+*  @copyright  2007-2014 PrestaShop SA
 *  @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 *}
@@ -261,7 +261,7 @@ $(document).ready(function () {
 
 	<div class="form-group">
 		<div class="col-lg-9 col-lg-offset-3">
-			<div class="alert alert-success">
+			<div class="alert alert-warning">
 				<strong>{l s='Final retail price:'}</strong>
 				<span>
 					{$currency->prefix}
@@ -280,6 +280,11 @@ $(document).ready(function () {
 				</span>
 			</div>
 		</div>
+	</div>
+	<div class="panel-footer">
+		<a href="{$link->getAdminLink('AdminProducts')}" class="btn btn-default"><i class="process-icon-cancel"></i> {l s='Cancel'}</a>
+		<button type="submit" name="submitAddproduct" class="btn btn-default pull-right"><i class="process-icon-save"></i> {l s='Save'}</button>
+		<button type="submit" name="submitAddproductAndStay" class="btn btn-default pull-right"><i class="process-icon-save"></i> {l s='Save and stay'}</button>
 	</div>
 </div>
 
@@ -445,8 +450,8 @@ $(document).ready(function () {
 						<div class="col-lg-6">
 							<select name="sp_reduction_type" id="sp_reduction_type">
 								<option selected="selected">-</option>
-								<option value="amount">{l s='Amount'}</option>
-								<option value="percentage">{l s='Percentage'}</option>
+								<option value="amount">{l s='Currency Units'}</option>
+								<option value="percentage">{l s='Percent'}</option>
 							</select>
 						</div>
 					</div>

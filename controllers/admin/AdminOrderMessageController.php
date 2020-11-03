@@ -1,6 +1,6 @@
 <?php
 /*
-* 2007-2013 PrestaShop
+* 2007-2014 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -19,7 +19,7 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author PrestaShop SA <contact@prestashop.com>
-*  @copyright  2007-2013 PrestaShop SA
+*  @copyright  2007-2014 PrestaShop SA
 *  @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
@@ -66,7 +66,7 @@ class AdminOrderMessageControllerCore extends AdminController
 				array(
 					'type' => 'text',
 					'lang' => true,
-					'label' => $this->l('Name:'),
+					'label' => $this->l('Name'),
 					'name' => 'name',
 					'size' => 53,
 					'required' => true
@@ -74,14 +74,13 @@ class AdminOrderMessageControllerCore extends AdminController
 				array(
 					'type' => 'textarea',
 					'lang' => true,
-					'label' => $this->l('Message:'),
+					'label' => $this->l('Message'),
 					'name' => 'message',
 					'required' => true
 				)
 			),
 			'submit' => array(
-				'title' => $this->l('Save   '),
-				'class' => 'button'
+				'title' => $this->l('Save'),
 			)
 		);
 
