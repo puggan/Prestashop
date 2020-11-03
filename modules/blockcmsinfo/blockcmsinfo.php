@@ -1,6 +1,6 @@
 <?php
 /*
-* 2007-2014 PrestaShop
+* 2007-2015 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -19,7 +19,7 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author PrestaShop SA <contact@prestashop.com>
-*  @copyright  2007-2014 PrestaShop SA
+*  @copyright  2007-2015 PrestaShop SA
 
 *  @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
@@ -38,7 +38,7 @@ class Blockcmsinfo extends Module
 	{
 		$this->name = 'blockcmsinfo';
 		$this->tab = 'front_office_features';
-		$this->version = '1.5.2';
+		$this->version = '1.5.5';
 		$this->author = 'PrestaShop';
 		$this->bootstrap = true;
 		$this->need_instance = 0;
@@ -102,7 +102,9 @@ class Blockcmsinfo extends Module
 
 		if (Tools::isSubmit('saveblockcmsinfo'))
 		{
-			if ($this->processSaveCmsInfo())
+			if (!Tools::getValue('text_'.(int)Configuration::get('PS_LANG_DEFAULT'), false))
+				return $this->html . $this->displayError($this->l('You must fill in all fields.')) . $this->renderForm();
+			elseif ($this->processSaveCmsInfo())
 				return $this->html . $this->renderList();
 			else
 				return $this->html . $this->renderForm();

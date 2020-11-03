@@ -1,6 +1,6 @@
 <?php
 /*
-* 2007-2014 PrestaShop
+* 2007-2015 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -19,7 +19,7 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author PrestaShop SA <contact@prestashop.com>
-*  @copyright  2007-2014 PrestaShop SA
+*  @copyright  2007-2015 PrestaShop SA
 *  @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
@@ -29,13 +29,13 @@ if (!defined('_PS_VERSION_'))
 
 class CrossSelling extends Module
 {
-	private $html;
+	protected $html;
 
 	public function __construct()
 	{
 		$this->name = 'crossselling';
 		$this->tab = 'front_office_features';
-		$this->version = '0.9.7';
+		$this->version = '1.0.0';
 		$this->author = 'PrestaShop';
 		$this->need_instance = 0;
 
@@ -167,7 +167,7 @@ class CrossSelling extends Module
 				}
 
 				$order_products = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS('
-					SELECT DISTINCT od.product_id, pl.name, pl.link_rewrite, p.reference, i.id_image, product_shop.show_price,
+					SELECT DISTINCT od.product_id, pl.name, pl.description_short, pl.link_rewrite, p.reference, i.id_image, product_shop.show_price,
 						cl.link_rewrite category, p.ean13, stock.out_of_stock, IFNULL(stock.quantity, 0) as quantity
 					FROM '._DB_PREFIX_.'order_detail od
 					LEFT JOIN '._DB_PREFIX_.'product p ON (p.id_product = od.product_id)
@@ -262,7 +262,7 @@ class CrossSelling extends Module
 				}
 
 				$order_products = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS('
-					SELECT DISTINCT od.product_id, pl.name, pl.link_rewrite, p.reference, i.id_image, product_shop.show_price,
+					SELECT DISTINCT od.product_id, pl.name, pl.description_short, pl.link_rewrite, p.reference, i.id_image, product_shop.show_price,
 						cl.link_rewrite category, p.ean13, stock.out_of_stock, IFNULL(stock.quantity, 0) as quantity
 					FROM '._DB_PREFIX_.'order_detail od
 					LEFT JOIN '._DB_PREFIX_.'product p ON (p.id_product = od.product_id)
