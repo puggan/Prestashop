@@ -1,101 +1,12 @@
 GitHub contributors:
 --------------------------------
-- Adonis Karavokyros
-- Alessandro Corbelli
-- Alex Even
-- AlexEven
-- alexsimple
-- Antonino Di Bella
-- Arnaud Lemercier
-- Benjamin PONGY
-- bercik999
-- Bruno Desprez
-- cedricfontaine
-- Damien Metzger
-- Dan Hlavenka
-- danoosh
-- David-Julian BUCH
-- Denver Prophit Jr.
-- Desbouche Christophe
-- Dimitrios Karvounaris
-- djfm
-- doekia
-- Dvir-Julius
-- el-tenkova
-- eleazar
-- Eric Rouvier
-- Etienne Samson
-- fird
-- fram
-- Francois Gaillard
-- Frederic BENOIST
-- Gordon Coubrough
-- Gregory Roussac
-- gRoussac
-- gskema
-- Guillaume Leseur
-- Gytis
-- Gytis Skėma
-- indesign47
-- Jerome Nadaud
-- joce
-- joseantgv
-- Julien Bourdeau
-- Julien Deniau
-- Julien Martin
-- Krystian Podemski
-- Ladel
-- luc
-- Luc Vandesype
-- Leo
-- MaX3315
-- Maxime
-- Maxime Biloe
-- mdomenjoud
-- natrim
-- Nicolas Sorosac
-- nodexpl
-- oleacorner
-- Pan P.
-- pbirnzain
-- Pedro J. Parra
-- PhpMadman
-- PrestaEdit
-- rGaillard
-- Richard LT
-- Roland Schütz
-- Sacha FROMENT
-- Samy Rabih
-- SebSept
-- Shagshag
-- Shudrum
-- Steven Sulley
-- Sebastien Monterisi
-- tchauviere
-- Thibaud Chauviere
-- Thomas Nabord
-- Tomas Votruba
-- tucoinfo
-- unlocomqx
-- Vincent Augagneur
-- vitekj
-- webbax
-- Xavier
-- Xavier Gouley
-- zimmi1
-- ZiZuu.com
-
-SVN contributors:
---------------------------------
 - (d)oekia
 - 123monsite-regis
 - 1RV34
 - Adonis Karavokyros
 - Adrien
 - Adrien Astier
-- aFolletete
 - Agence CINS
-- aKorczak
 - Aleksander Palyan
 - Alessandro Corbelli
 - Alex Even
@@ -105,6 +16,7 @@ SVN contributors:
 - AlexEven
 - Alexey Svistunov
 - alexey-svistunov
+- alexsimple
 - Alfakom-MK
 - Alfonso Jimenez
 - Alphacom IT Solutions - Macedonia
@@ -112,7 +24,7 @@ SVN contributors:
 - anat
 - Anatole
 - Andrew
-- aNiassy
+- Antonino Di Bella
 - antoniofr
 - AntonLejon
 - Arnaud Lemercier
@@ -121,11 +33,11 @@ SVN contributors:
 - Balestrino
 - bellini13
 - Benjamin PONGY
+- bercik999
 - Bersam Karbasion
 - BigZ
-- bLeveque
 - BluTiGeS
-- bMancone
+- Bruno Desprez
 - Bruno Leveque
 - bumbu
 - Burhan
@@ -142,9 +54,11 @@ SVN contributors:
 - ChristopheBoucaut
 - CINS
 - cippest
+- Claire Meuriot
 - cmouleyre
 - codvir
 - Comkwatt
+- Conner Burnett
 - Corentin Delcourt
 - Cosmin Hutanu
 - Cedric Mouleyre
@@ -153,6 +67,7 @@ SVN contributors:
 - Damien PIQUET
 - DamienMetzger
 - Damon Skelhorn
+- Dan Hlavenka
 - danidomen
 - Daniel
 - Daniele Giachino
@@ -162,6 +77,8 @@ SVN contributors:
 - David Sivocha
 - David-Julian BUCH
 - Davy Rolink
+- Denver Prophit Jr.
+- Desbouche Christophe
 - DevNet
 - Dh42
 - Dimitrios Karvounaris
@@ -169,7 +86,6 @@ SVN contributors:
 - djbuch
 - djfm
 - dlage
-- dMetzger
 - doekia
 - DOEO
 - Dragan Skrbic
@@ -183,20 +99,23 @@ SVN contributors:
 - Dvir-Julius
 - edamart
 - Edouard Gaulue
+- el-tenkova
 - elationbase
 - eleazar
 - Elitius
 - Emilien Puget
 - emilien-puget
 - emily-d
+- Eolia
 - Eric Le Lay
 - Eric Rouvier
 - erickturcios
+- Etienne Samson
 - Fabio Chelly
-- fBrignoli
 - fchellypresta
 - Felipe Uribe
 - fetis
+- fird
 - flashmaestro
 - Florian Kwakkenbos
 - fram
@@ -204,28 +123,26 @@ SVN contributors:
 - Francois-Marie de Jouvencel
 - Fran�ois Gaillard
 - Frederic BENOIST
-- fSerny
 - Gabriel Schwardy
 - Gaelle ITZKOVITZ
 - Gamesh
-- gBrunier
-- gCharmes
 - ggedamed
 - Giant Leap Lab
 - Gordon Coubrough
-- gPoulain
 - gr4devel
 - Granger Kevin
 - Gregory Roussac
 - gRoussac
 - Gregoire Belorgey
+- gskema
 - Guillaume DELOINCE
 - Guillaume Lafarge
+- Guillaume Leseur
 - Gytis
 - Gytis Skėma
 - Ha!*!*y
 - ha99y
-- hAitmansour
+- hadjedjvincent
 - harelguy
 - hiousi
 - htrex
@@ -238,7 +155,6 @@ SVN contributors:
 - J. Danse
 - janisVincent
 - Javsmile
-- jBreux
 - JEAN
 - jeanbe
 - jeckyl
@@ -246,10 +162,8 @@ SVN contributors:
 - Jerome Nadaud
 - jeromenadaud
 - jessylenne
-- jmCollin
 - Joan
 - Joan Juvanteny
-- jObregon
 - joce
 - Joe Siwiak
 - joemartin247
@@ -263,23 +177,26 @@ SVN contributors:
 - Julien
 - Julien Bouchez
 - Julien Bourdeau
+- Julien Deniau
 - Julien Martin
 - julienbourdeau
+- julvernois
 - Jachym Tousek
 - Kamil Szymański
 - Kelly Karnetsky
 - kermes
 - Kevin Granger
+- Kijam Lopez
 - kiropowered
 - kpodemski
 - Krystian Podemski
 - Kevin Dunglas
-- lBrieu
-- lCherifi
+- Ladel
 - ldecoker
 - Lesley Paone
-- lLefevre
 - LOIC ROSSET ltd
+- luc
+- Luc Vandesype
 - Luca T.
 - Lucas CERDAN
 - LucasC
@@ -291,6 +208,7 @@ SVN contributors:
 - Madman
 - Mainmich
 - makk1ntosh
+- manuelbcd
 - marcinsz101
 - Marco Cervellin
 - Marcos
@@ -298,13 +216,14 @@ SVN contributors:
 - Mats Rynge
 - Matteo
 - MatthieuB
+- MaX3315
 - Maxence
 - Maxime
+- Maxime Biloe
 - Maxime Vasse
-- mBertholino
 - mchelh
 - mchojnacki
-- mDeflotte
+- mdomenjoud
 - Michael Hjulskov
 - Michel Courtade
 - Mickael Desgranges
@@ -314,7 +233,6 @@ SVN contributors:
 - Mingsong Hu
 - minic studio
 - misthero
-- mMarinetti
 - moncef102
 - montes
 - mplh
@@ -328,15 +246,20 @@ SVN contributors:
 - Nils-Helge Garli Hegvik
 - NinjaOfWeb
 - Nino Uzelac
-- nPellicari
+- nodexpl
 - nturato
 - oleacorner
 - Otto Nascarella
+- Pan P
+- Pan P.
+- Pan Ploenes
 - Panagiotis Tigas
 - panesarsandeep
 - Patanock
 - Patrick Mettraux
 - Pavel Novitsky
+- pbirnzain
+- Pedro J. Parra
 - Per Lejontand
 - Peter Schaeffer
 - peterept
@@ -345,6 +268,7 @@ SVN contributors:
 - Pierre
 - Piotr Kaczor
 - Piotr Moćko
+- Presta Module
 - PrestaEdit
 - PrestaLab
 - prestamodule
@@ -359,6 +283,7 @@ SVN contributors:
 - quadrateam
 - Quentin Leonetti
 - Quentin Montant
+- Quentin MONTANT - KIWIK
 - Quetzacoalt91
 - Racochejl
 - Rafael Cunha
@@ -366,16 +291,16 @@ SVN contributors:
 - raulgundin
 - rGaillard
 - Rhys
+- Richard LT
 - Rimas Kudelis
-- rMalie
-- rMontagne
 - robert
+- Roland Schütz
 - romainberger
 - runningz
 - Remi Gaillard
 - s-duval
 - Sacha
-- Sacha Froment
+- Sacha FROMENT
 - sadlyblue
 - sagaradonis
 - Sam Sanchez
@@ -383,6 +308,7 @@ SVN contributors:
 - Samy Rabih
 - Sarah Lorenzini
 - Seb
+- SebSept
 - Seynaeve
 - sfroment42
 - shaffe-fr
@@ -401,7 +327,7 @@ SVN contributors:
 - Stefano Kowalke
 - Stephan Obadia
 - Steven "SDF" Sulley
-- sThiebaut
+- Steven Sulley
 - Studio Kiwik
 - Sumh
 - svensson_david
@@ -410,9 +336,9 @@ SVN contributors:
 - Sebastien
 - Sebastien Bareyre
 - Sebastien Bocahu
+- Sebastien Monterisi
 - Tanguy JACQUET
 - tchauviere
-- tDidierjean
 - Thibaud Chauviere
 - thoma202
 - Thomas
@@ -426,24 +352,25 @@ SVN contributors:
 - TMMeilleur
 - Tom Panier
 - Tomasz Slominski
+- Tomas Votruba
 - tucoinfo
 - Tung Dao
 - unlocomqx
 - Valerii Savchenko
 - vAugagneur
-- vChabot
 - Vincent Augagneur
 - Vincent Schoener
 - Vincent Terenti
 - vinvin27
 - vinzter
-- vKham
-- vSchoener
+- vitekj
 - Wayann
 - web-plus
+- webbax
 - Wojciech Grzebieniowski
 - Xavier
 - Xavier Borderie
+- Xavier Gouley
 - Xavier POITAU
 - xitromedia
 - xKnut
@@ -452,3 +379,40 @@ SVN contributors:
 - zimmi1
 - ZiZuu.com
 - Zollner Robert
+
+SVN contributors:
+--------------------------------
+- aFolletete
+- aKorczak
+- aNiassy
+- bLeveque
+- bMancone
+- dMetzger
+- dSevere
+- fBrignoli
+- Francois Gaillard
+- fSerny
+- gBrunier
+- gCharmes
+- gPoulain
+- hAitmansour
+- jBreux
+- jmCollin
+- jObregon
+- lBrieu
+- lCherifi
+- lLefevre
+- mBertholino
+- mDeflotte
+- mMarinetti
+- nPellicari
+- rGaillard
+- rMalie
+- rMontagne
+- sLorenzini
+- sThiebaut
+- tDidierjean
+- vAugagneur
+- vChabot
+- vKham
+- vSchoener
