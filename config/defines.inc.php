@@ -27,7 +27,7 @@
 /* Debug only */
 define('_PS_MODE_DEV_', false);
 /* Compatibility warning */
-define('_PS_DISPLAY_COMPATIBILITY_WARNING_', false);
+define('_PS_DISPLAY_COMPATIBILITY_WARNING_', true);
 if (_PS_MODE_DEV_)
 {
 	@ini_set('display_errors', 'on');
