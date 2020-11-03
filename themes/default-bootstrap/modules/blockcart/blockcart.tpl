@@ -23,7 +23,9 @@
 *  International Registered Trademark & Property of PrestaShop SA
 *}
 <!-- MODULE Block cart -->
+{if isset($blockcart_top) && $blockcart_top}
 <div class="col-sm-4 clearfix{if $PS_CATALOG_MODE} header_user_catalog{/if}">
+{/if}
 	<div id="shopping_cart">
 		<a href="{$link->getPageLink($order_process, true)|escape:'html':'UTF-8'}" title="{l s='View my shopping cart' mod='blockcart'}" rel="nofollow">
 			<b>{l s='Cart' mod='blockcart'}</b>
@@ -208,8 +210,11 @@
 			</div><!-- #cart_block -->
 		{/if}
 	</div>
+{if isset($blockcart_top) && $blockcart_top}
 </div>
-{if !$PS_CATALOG_MODE}
+{/if}
+{counter name=active_overlay assign=active_overlay}
+{if !$PS_CATALOG_MODE && $active_overlay == 1}
 	<div id="layer_cart">
 		<div class="clearfix">
 			<div class="layer_cart_product col-xs-12 col-md-6">
@@ -236,7 +241,7 @@
 				<h2>
 					<!-- Plural Case [both cases are needed because page may be updated in Javascript] -->
 					<span class="ajax_cart_product_txt_s {if $cart_qties < 2} unvisible{/if}">
-						{l s='There are %s items in your cart.' mod='blockcart' sprintf=["<span class='ajax_cart_quantity'>"|cat:$cart_qties|cat:'</span>']}
+						{l s='There are [1]%d[/1] items in your cart.' mod='blockcart' sprintf=[$cart_qties] tags=['<span class="ajax_cart_quantity">']}
 					</span>
 					<!-- Singular Case [both cases are needed because page may be updated in Javascript] -->
 					<span class="ajax_cart_product_txt {if $cart_qties > 1} unvisible{/if}">

@@ -22,438 +22,34 @@
 *  @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
-
-function updateCarrierList(json)
-{
-	var html = json.carrier_block;
-	
-	// @todo  check with theme 1.4
-	//if ($('#HOOK_EXTRACARRIER').length == 0 && json.HOOK_EXTRACARRIER !== null && json.HOOK_EXTRACARRIER != undefined)
-	//	html += json.HOOK_EXTRACARRIER;
-	
-	$('#carrier_area').replaceWith(html);
-	bindInputs();
-	/* update hooks for carrier module */
-	$('#HOOK_BEFORECARRIER').html(json.HOOK_BEFORECARRIER);
-}
-
-function updatePaymentMethods(json)
-{
-	$('#HOOK_TOP_PAYMENT').html(json.HOOK_TOP_PAYMENT);
-	$('#opc_payment_methods-content #HOOK_PAYMENT').html(json.HOOK_PAYMENT);
-}
-
-function updatePaymentMethodsDisplay()
-{
-	var checked = '';
-	if ($('#cgv:checked').length !== 0)
-		checked = 1;
-	else
-		checked = 0;
-	$('#opc_payment_methods-overlay').fadeIn('slow', function(){
-		$.ajax({
-			type: 'POST',
-			headers: { "cache-control": "no-cache" },
-			url: orderOpcUrl + '?rand=' + new Date().getTime(),
-			async: true,
-			cache: false,
-			dataType : "json",
-			data: 'ajax=true&method=updateTOSStatusAndGetPayments&checked=' + checked + '&token=' + static_token,
-			success: function(json)
-			{
-				updatePaymentMethods(json);
-				$("select.form-control,input[type='checkbox']").uniform(); 
-			}
-		});
-		$(this).fadeOut('slow');		
-	});
-}
-
-function updateAddressSelection()
-{
-	var idAddress_delivery = ($('#opc_id_address_delivery').length == 1 ? $('#opc_id_address_delivery').val() : $('#id_address_delivery').val());
-	var idAddress_invoice = ($('#opc_id_address_invoice').length == 1 ? $('#opc_id_address_invoice').val() : ($('#addressesAreEquals:checked').length == 1 ? idAddress_delivery : ($('#id_address_invoice').length == 1 ? $('#id_address_invoice').val() : idAddress_delivery)));
-
-	$('#opc_account-overlay').fadeIn('slow');
-	$('#opc_delivery_methods-overlay').fadeIn('slow');
-	$('#opc_payment_methods-overlay').fadeIn('slow');
-	
-	$.ajax({
-		type: 'POST',
-		headers: { "cache-control": "no-cache" },
-		url: orderOpcUrl + '?rand=' + new Date().getTime(),
-		async: true,
-		cache: false,
-		dataType : "json",
-		data: 'allow_refresh=1&ajax=true&method=updateAddressesSelected&id_address_delivery=' + idAddress_delivery + '&id_address_invoice=' + idAddress_invoice + '&token=' + static_token,
-		success: function(jsonData)
-		{
-			if (jsonData.hasError)
-			{
-				var errors = '';
-				for(var error in jsonData.errors)
-					//IE6 bug fix
-					if(error !== 'indexOf')
-						errors += $('<div />').html(jsonData.errors[error]).text() + "\n";
-				alert(errors);
-			}
-			else
-			{
-				if (jsonData.refresh)
-					location.reload();
-				// Update all product keys with the new address id
-				$('#cart_summary .address_'+deliveryAddress).each(function() {
-					$(this)
-						.removeClass('address_'+deliveryAddress)
-						.addClass('address_'+idAddress_delivery);
-					$(this).attr('id', $(this).attr('id').replace(/_\d+$/, '_'+idAddress_delivery));
-					if ($(this).find('.cart_unit span').length > 0 && $(this).find('.cart_unit span').attr('id').length > 0)
-						$(this).find('.cart_unit span').attr('id', $(this).find('.cart_unit span').attr('id').replace(/_\d+$/, '_'+idAddress_delivery));
-
-					if ($(this).find('.cart_total span').length > 0 && $(this).find('.cart_total span').attr('id').length > 0)
-						$(this).find('.cart_total span').attr('id', $(this).find('.cart_total span').attr('id').replace(/_\d+$/, '_'+idAddress_delivery));
-
-					if ($(this).find('.cart_quantity_input').length > 0 && $(this).find('.cart_quantity_input').attr('name').length > 0)
-					{
-						var name = $(this).find('.cart_quantity_input').attr('name')+'_hidden';
-						$(this).find('.cart_quantity_input').attr('name', $(this).find('.cart_quantity_input').attr('name').replace(/_\d+$/, '_'+idAddress_delivery));
-						if ($(this).find('[name='+name+']').length > 0)
-							$(this).find('[name='+name+']').attr('name', name.replace(/_\d+_hidden$/, '_'+idAddress_delivery+'_hidden'));
-					}
-
-					if ($(this).find('.cart_quantity_delete').length > 0 && $(this).find('.cart_quantity_delete').attr('id').length > 0)
-					{
-						$(this).find('.cart_quantity_delete')
-							.attr('id', $(this).find('.cart_quantity_delete').attr('id').replace(/_\d+$/, '_'+idAddress_delivery))
-							.attr('href', $(this).find('.cart_quantity_delete').attr('href').replace(/id_address_delivery=\d+&/, 'id_address_delivery='+idAddress_delivery+'&'));
-					}
-					
-					if ($(this).find('.cart_quantity_down').length > 0 && $(this).find('.cart_quantity_down').attr('id').length > 0)
-					{
-						$(this).find('.cart_quantity_down')
-							.attr('id', $(this).find('.cart_quantity_down').attr('id').replace(/_\d+$/, '_'+idAddress_delivery))
-							.attr('href', $(this).find('.cart_quantity_down').attr('href').replace(/id_address_delivery=\d+&/, 'id_address_delivery='+idAddress_delivery+'&'));
-					}
-
-					if ($(this).find('.cart_quantity_up').length > 0 && $(this).find('.cart_quantity_up').attr('id').length > 0)
-					{
-						$(this).find('.cart_quantity_up')
-							.attr('id', $(this).find('.cart_quantity_up').attr('id').replace(/_\d+$/, '_'+idAddress_delivery))
-							.attr('href', $(this).find('.cart_quantity_up').attr('href').replace(/id_address_delivery=\d+&/, 'id_address_delivery='+idAddress_delivery+'&'));
-					}	
-				});
-
-				// Update global var deliveryAddress
-				deliveryAddress = idAddress_delivery;
-				if (window.ajaxCart !== undefined)
-				{
-					$('#cart_block_list dd, #cart_block_list dt').each(function(){
-						if (typeof($(this).attr('id')) != 'undefined')
-							$(this).attr('id', $(this).attr('id').replace(/_\d+$/, '_' + idAddress_delivery));
-					});
-				}
-				updateCarrierList(jsonData.carrier_data);
-				updatePaymentMethods(jsonData);
-				updateCartSummary(jsonData.summary);
-				updateHookShoppingCart(jsonData.HOOK_SHOPPING_CART);
-				updateHookShoppingCartExtra(jsonData.HOOK_SHOPPING_CART_EXTRA);
-				if ($('#gift-price').length == 1)
-					$('#gift-price').html(jsonData.gift_price);
-				$('#opc_account-overlay, #opc_delivery_methods-overlay, #opc_payment_methods-overlay').fadeOut('slow');
-			}
-		},
-		error: function(XMLHttpRequest, textStatus, errorThrown) {
-			if (textStatus !== 'abort')
-				alert("TECHNICAL ERROR: unable to save adresses \n\nDetails:\nError thrown: " + XMLHttpRequest + "\n" + 'Text status: ' + textStatus);
-			$('#opc_account-overlay, #opc_delivery_methods-overlay, #opc_payment_methods-overlay').fadeOut('slow');
-		}
-	});
-}
-
-function getCarrierListAndUpdate()
-{
-	$('#opc_delivery_methods-overlay').fadeIn('slow');
-	$.ajax({
-		type: 'POST',
-		headers: { "cache-control": "no-cache" },
-		url: orderOpcUrl + '?rand=' + new Date().getTime(),
-		async: true,
-		cache: false,
-		dataType : "json",
-		data: 'ajax=true&method=getCarrierList&token=' + static_token,
-		success: function(jsonData)
-		{
-			if (jsonData.hasError)
-			{
-				var errors = '';
-				for(var error in jsonData.errors)
-					//IE6 bug fix
-					if(error !== 'indexOf')
-						errors += $('<div />').html(jsonData.errors[error]).text() + "\n";
-				alert(errors);
-			}
-			else
-				updateCarrierList(jsonData);
-			$('#opc_delivery_methods-overlay').fadeOut('slow');
-		}
-	});
-}
-
-function updateCarrierSelectionAndGift()
-{
-	var recyclablePackage = 0;
-	var gift = 0;
-	var giftMessage = '';
-	
-	var delivery_option_radio = $('.delivery_option_radio');
-	var delivery_option_params = '&';
-	$.each(delivery_option_radio, function(i) {
-		if ($(this).prop('checked'))
-			delivery_option_params += $(delivery_option_radio[i]).attr('name') + '=' + $(delivery_option_radio[i]).val() + '&';
-	});
-	if (delivery_option_params == '&')
-		delivery_option_params = '&delivery_option=&';
-
-	if ($('input#recyclable:checked').length)
-		recyclablePackage = 1;
-	if ($('input#gift:checked').length)
-	{
-		gift = 1;
-		giftMessage = encodeURIComponent($('#gift_message').val());
-	}
-	
-	$('#opc_delivery_methods-overlay, #opc_payment_methods-overlay').fadeOut('slow');
-	$.ajax({
-		type: 'POST',
-		headers: { "cache-control": "no-cache" },
-		url: orderOpcUrl + '?rand=' + new Date().getTime(),
-		async: true,
-		cache: false,
-		dataType : "json",
-		data: 'ajax=true&method=updateCarrierAndGetPayments' + delivery_option_params + 'recyclable=' + recyclablePackage + '&gift=' + gift + '&gift_message=' + giftMessage + '&token=' + static_token ,
-		success: function(jsonData)
-		{
-			if (jsonData.hasError)
-			{
-				var errors = '';
-				for(var error in jsonData.errors)
-					//IE6 bug fix
-					if(error !== 'indexOf')
-						errors += $('<div />').html(jsonData.errors[error]).text() + "\n";
-				alert(errors);
-			}
-			else
-			{
-				updateCartSummary(jsonData.summary);
-				updatePaymentMethods(jsonData);
-				updateHookShoppingCart(jsonData.summary.HOOK_SHOPPING_CART);
-				updateHookShoppingCartExtra(jsonData.summary.HOOK_SHOPPING_CART_EXTRA);
-				updateCarrierList(jsonData.carrier_data);
-				$('#opc_delivery_methods-overlay, #opc_payment_methods-overlay').fadeOut('slow');
-				refreshDeliveryOptions();
-			}
-		},
-		error: function(XMLHttpRequest, textStatus, errorThrown) {
-			if (textStatus !== 'abort')
-				alert("TECHNICAL ERROR: unable to save carrier \n\nDetails:\nError thrown: " + XMLHttpRequest + "\n" + 'Text status: ' + textStatus);
-			$('#opc_delivery_methods-overlay, #opc_payment_methods-overlay').fadeOut('slow');
-		}
-	});
-}
-
-function confirmFreeOrder()
-{
-	if ($('#opc_new_account-overlay').length !== 0)
-		$('#opc_new_account-overlay').fadeIn('slow');
-	else
-		$('#opc_account-overlay').fadeIn('slow');
-	$('#opc_delivery_methods-overlay, #opc_payment_methods-overlay').fadeOut('slow');
-	$('#confirmOrder').attr('disabled', 'disabled');
-	$.ajax({
-		type: 'POST',
-		headers: { "cache-control": "no-cache" },
-		url: orderOpcUrl + '?rand=' + new Date().getTime(),
-		async: true,
-		cache: false,
-		dataType : "html",
-		data: 'ajax=true&method=makeFreeOrder&token=' + static_token ,
-		success: function(html)
-		{
-			$('#confirmOrder').attr('disabled', '');
-			var array_split = html.split(':');
-			if (array_split[0] == 'freeorder')
-			{
-				if (isGuest)
-					document.location.href = guestTrackingUrl+'?id_order='+encodeURIComponent(array_split[1])+'&email='+encodeURIComponent(array_split[2]);
-				else
-					document.location.href = historyUrl;
-			}
-		},
-		error: function(XMLHttpRequest, textStatus, errorThrown) {
-			if (textStatus !== 'abort')
-				alert("TECHNICAL ERROR: unable to confirm the order \n\nDetails:\nError thrown: " + XMLHttpRequest + "\n" + 'Text status: ' + textStatus);
-		}
-	});
-}
-
-function saveAddress(type)
-{
-	if (type !== 'delivery' && type !== 'invoice')
-		return false;
-	
-	var params = 'firstname='+encodeURIComponent($('#firstname'+(type == 'invoice' ? '_invoice' : '')).val())+'&lastname='+encodeURIComponent($('#lastname'+(type == 'invoice' ? '_invoice' : '')).val())+'&';
-	params += 'company='+encodeURIComponent($('#company'+(type == 'invoice' ? '_invoice' : '')).val())+'&';
-	params += 'vat_number='+encodeURIComponent($('#vat_number'+(type == 'invoice' ? '_invoice' : '')).val())+'&';
-	params += 'dni='+encodeURIComponent($('#dni'+(type == 'invoice' ? '_invoice' : '')).val())+'&';
-	params += 'address1='+encodeURIComponent($('#address1'+(type == 'invoice' ? '_invoice' : '')).val())+'&';
-	params += 'address2='+encodeURIComponent($('#address2'+(type == 'invoice' ? '_invoice' : '')).val())+'&';
-	params += 'postcode='+encodeURIComponent($('#postcode'+(type == 'invoice' ? '_invoice' : '')).val())+'&';
-	params += 'city='+encodeURIComponent($('#city'+(type == 'invoice' ? '_invoice' : '')).val())+'&';
-	params += 'id_country='+encodeURIComponent($('#id_country').val())+'&';
-	if ($('#id_state'+(type == 'invoice' ? '_invoice' : '')).val())
-		params += 'id_state='+encodeURIComponent($('#id_state'+(type == 'invoice' ? '_invoice' : '')).val())+'&';
-	params += 'other='+encodeURIComponent($('#other'+(type == 'invoice' ? '_invoice' : '')).val())+'&';
-	params += 'phone='+encodeURIComponent($('#phone'+(type == 'invoice' ? '_invoice' : '')).val())+'&';
-	params += 'phone_mobile='+encodeURIComponent($('#phone_mobile'+(type == 'invoice' ? '_invoice' : '')).val())+'&';
-	params += 'alias='+encodeURIComponent($('#alias'+(type == 'invoice' ? '_invoice' : '')).val())+'&';
-	if (type == 'delivery' && $('#opc_id_address_delivery').val() != undefined && parseInt($('#opc_id_address_delivery').val()) > 0)
-		params += 'opc_id_address_delivery='+encodeURIComponent($('#opc_id_address_delivery').val())+'&';
-	if (type == 'invoice' && $('#opc_id_address_invoice').val() != undefined && parseInt($('#opc_id_address_invoice').val()) > 0)			
-		params += 'opc_id_address_invoice='+encodeURIComponent($('#opc_id_address_invoice').val())+'&';		
-	// Clean the last &
-	params = params.substr(0, params.length-1);
-
-	var result = false;
-	
-	$.ajax({
-		type: 'POST',
-		headers: { "cache-control": "no-cache" },
-		url: addressUrl + '?rand=' + new Date().getTime(),
-		async: false,
-		cache: false,
-		dataType : "json",
-		data: 'ajax=true&submitAddress=true&type='+type+'&'+params+'&token=' + static_token,
-		success: function(jsonData)
-		{
-			if (jsonData.hasError)
-			{
-				var tmp = '';
-				var i = 0;
-				for(var error in jsonData.errors)
-					//IE6 bug fix
-					if(error !== 'indexOf')
-					{
-						i = i+1;
-						tmp += '<li>'+jsonData.errors[error]+'</li>';
-					}
-				tmp += '</ol>';
-				var errors = '<b>'+txtThereis+' '+i+' '+txtErrors+':</b><ol>'+tmp;
-				$('#opc_account_errors').slideUp('fast', function(){
-					$(this).html(errors).slideDown('slow', function(){
-						$.scrollTo('#opc_account_errors', 800);
-					});
-				});
-				$('#opc_account-overlay, #opc_delivery_methods-overlay, #opc_payment_methods-overlay').fadeOut('slow');
-				result = false;
-			}
-			else
-			{
-				// update addresses id
-				$('input#opc_id_address_delivery').val(jsonData.id_address_delivery);
-				$('input#opc_id_address_invoice').val(jsonData.id_address_invoice);
-				result = true;
-			}
-		},
-		error: function(XMLHttpRequest, textStatus, errorThrown) {
-			if (textStatus !== 'abort')
-				alert("TECHNICAL ERROR: unable to save adresses \n\nDetails:\nError thrown: " + XMLHttpRequest + "\n" + 'Text status: ' + textStatus);
-			$('#opc_account-overlay, #opc_delivery_methods-overlay, #opc_payment_methods-overlay').fadeOut('slow');
-		}
-		});
-
-	return result;
-}
-
-function updateNewAccountToAddressBlock()
-{
-	$('#opc_account-overlay, #opc_delivery_methods-overlay, #opc_payment_methods-overlay').fadeOut('slow');;
-	$.ajax({
-		type: 'POST',
-		headers: { "cache-control": "no-cache" },
-		url: orderOpcUrl + '?rand=' + new Date().getTime(),
-		async: true,
-		cache: false,
-		dataType : "json",
-		data: 'ajax=true&method=getAddressBlockAndCarriersAndPayments&token=' + static_token ,
-		success: function(json)
-		{
-			isLogged = 1;
-			if (json.no_address == 1)
-				document.location.href = addressUrl;
-			
-			$('#opc_new_account').fadeOut('fast', function() {
-				$('#opc_new_account').html(json.order_opc_adress);
-				// update block user info
-				if (json.block_user_info !== '' && $('#header_user').length == 1)
-				{
-					var elt = $(json.block_user_info).find('#header_user_info').html();					
-					$('#header_user_info').fadeOut('nortmal', function() {
-						$(this).html(elt).fadeIn();
-					});
-				}
-				$('#opc_new_account').fadeIn('fast', function() {
-					//After login, the products are automatically associated to an address
-					$.each(json.summary.products, function() {
-						updateAddressId(this.id_product, this.id_product_attribute, '0', this.id_address_delivery);
-					});
-					updateAddressesDisplay(true);
-					updateCarrierList(json.carrier_data);
-					updateCarrierSelectionAndGift();
-					updatePaymentMethods(json);
-					if ($('#gift-price').length == 1)
-						$('#gift-price').html(json.gift_price);
-					$('#opc_delivery_methods-overlay, #opc_payment_methods-overlay').fadeOut('slow');
-				});
-			});
-		},
-		error: function(XMLHttpRequest, textStatus, errorThrown) {
-			if (textStatus !== 'abort')
-				alert("TECHNICAL ERROR: unable to send login informations \n\nDetails:\nError thrown: " + XMLHttpRequest + "\n" + 'Text status: ' + textStatus);
-			$('#opc_delivery_methods-overlay, #opc_payment_methods-overlay').fadeOut('slow');
-		}
-	});
-}
-
-$(function() {
+$(document).ready(function(){
 	// GUEST CHECKOUT / NEW ACCOUNT MANAGEMENT
-	if ((!isLogged) || (isGuest))
+	if ((typeof isLogged == 'undefined' || !isLogged) || (typeof isGuest !== 'undefined' && isGuest))
 	{
 		if (guestCheckoutEnabled && !isLogged)
 		{
 			$('#opc_account_choice').show();
 			$('#opc_account_form, #opc_invoice_address').hide();
 			
-			$('#opc_createAccount').click(function() {
+			$(document).on('click', '#opc_createAccount',function(e){
+				e.preventDefault();
 				$('.is_customer_param').show();
 				$('#opc_account_form').slideDown('slow');
 				$('#is_new_customer').val('1');
 				$('#opc_account_choice, #opc_invoice_address').hide();
-				updateState();
-				updateNeedIDNumber();
-				updateZipCode();
-				$("select.form-control,input[type='checkbox'],input[type='radio']").uniform(); 
+				if (typeof bindUniform !=='undefined')
+					bindUniform();
 			});
-			$('#opc_guestCheckout').click(function() {
+			$(document).on('click', '#opc_guestCheckout', function(e){
+				e.preventDefault();
 				$('.is_customer_param').hide();
 				$('#opc_account_form').slideDown('slow');
 				$('#is_new_customer').val('0');
 				$('#opc_account_choice, #opc_invoice_address').hide();
 				$('#new_account_title').html(txtInstantCheckout);
-				$('#submitAccount').prop({id : 'submitGuestAccount', name : 'submitGuestAccount'});
-				updateState();
-				updateNeedIDNumber();
-				updateZipCode();
-				$("select.form-control,input[type='checkbox']").uniform(); 
+				$('#submitAccount').attr({id : 'submitGuestAccount', name : 'submitGuestAccount'});
+				if (typeof bindUniform !=='undefined')
+					bindUniform();
 			});
 		}
 		else if (isGuest)
@@ -463,9 +59,6 @@ $(function() {
 			$('#is_new_customer').val('0');
 			$('#opc_account_choice, #opc_invoice_address').hide();
 			$('#new_account_title').html(txtInstantCheckout);
-			updateState();
-			updateNeedIDNumber();
-			updateZipCode();
 		}
 		else
 		{
@@ -473,21 +66,19 @@ $(function() {
 			$('#is_new_customer').val('1');
 			$('.is_customer_param, #opc_account_form').show();
 			$('#opc_invoice_address').hide();
-			updateState();
-			updateNeedIDNumber();
-			updateZipCode();
 		}
 		
 		// LOGIN FORM
-		$('#openLoginFormBlock').click(function() {
+		$(document).on('click', '#openLoginFormBlock', function(e){
+			e.preventDefault();
 			$('#openNewAccountBlock').show();
 			$(this).hide();
 			$('#login_form_content').slideDown('slow');
 			$('#new_account_form_content').slideUp('slow');
-			return false;
 		});
 		// LOGIN FORM SENDING
-		$('#SubmitLogin').click(function() {
+		$(document).on('click', '#SubmitLogin', function(e){
+			e.preventDefault();
 			$.ajax({
 				type: 'POST',
 				headers: { "cache-control": "no-cache" },
@@ -517,19 +108,29 @@ $(function() {
 				},
 				error: function(XMLHttpRequest, textStatus, errorThrown) {
 					if (textStatus !== 'abort')
-						alert("TECHNICAL ERROR: unable to send login informations \n\nDetails:\nError thrown: " + XMLHttpRequest + "\n" + 'Text status: ' + textStatus);
+					{
+						error = "TECHNICAL ERROR: unable to send login informations \n\nDetails:\nError thrown: " + XMLHttpRequest + "\n" + 'Text status: ' + textStatus;
+			            if (!!$.prototype.fancybox)
+			                $.fancybox.open([
+			                    {
+			                        type: 'inline',
+			                        autoScale: true,
+			                        minHeight: 30,
+			                        content: '<p class="fancybox-error">' + error + '</p>'
+			                    }
+			                ], {
+			                    padding: 0
+			                });
+			            else
+			                alert(error);
+					}
 				}
 			});
-			return false;
-		});
-		
-		// INVOICE ADDRESS
-		$('#invoice_address').click(function() {
-			bindCheckbox();
 		});
 		
 		// VALIDATION / CREATION AJAX
-		$('#submitAccount').click(function() {
+		$(document).on('click', '#submitAccount, #submitGuestAccount', function(e){
+			e.preventDefault();
 			$('#opc_new_account-overlay, #opc_delivery_methods-overlay, #opc_payment_methods-overlay').fadeIn('slow')
 						
 			var callingFile = '';
@@ -560,6 +161,7 @@ $(function() {
 				else
 					params += encodeURIComponent($(this).attr('name'))+'='+encodeURIComponent($(this).val())+'&';
 			});
+
 			$('#opc_account_form select:visible').each(function() {
 				params += encodeURIComponent($(this).attr('name'))+'='+encodeURIComponent($(this).val())+'&';
 			});
@@ -651,15 +253,28 @@ $(function() {
 				},
 				error: function(XMLHttpRequest, textStatus, errorThrown) {
 					if (textStatus !== 'abort')
-						alert("TECHNICAL ERROR: unable to save account \n\nDetails:\nError thrown: " + XMLHttpRequest + "\n" + 'Text status: ' + textStatus);
+					{
+						error = "TECHNICAL ERROR: unable to save account \n\nDetails:\nError thrown: " + XMLHttpRequest + "\n" + 'Text status: ' + textStatus;
+			            if (!!$.prototype.fancybox)
+			                $.fancybox.open([
+			                    {
+			                        type: 'inline',
+			                        autoScale: true,
+			                        minHeight: 30,
+			                        content: '<p class="fancybox-error">' + error + '</p>'
+			                    }
+			                ], {
+			                    padding: 0
+			                });
+			            else
+			                alert(error);
+					}
 					$('#opc_new_account-overlay, #opc_delivery_methods-overlay, #opc_payment_methods-overlay').fadeIn('slow')
 				}
 			});
-			return false;
 		});
 	}
 	
-	bindCheckbox();
 	bindInputs();
 	
 	$('#opc_account_form input,select,textarea').change(function() {
@@ -669,23 +284,531 @@ $(function() {
 			$('#submitAccount').show();
 		}
 	});
-	$("select.form-control,input[type='checkbox']").uniform();  
+
+	// If the multishipping mode is off assure us the checkbox "I want to specify a delivery address for each products I order." is unchecked.
+	$('#multishipping_mode_checkbox').attr('checked', false);
+	// If the multishipping mode is on, check the box "I want to specify a delivery address for each products I order.".
+	if (typeof(multishipping_mode) !== 'undefined' && multishipping_mode)
+	{
+		$('#multishipping_mode_checkbox').click();
+		$('.addressesAreEquals').hide().find('input').attr('checked', false);
+	}
+	if (typeof(open_multishipping_fancybox) !== 'undefined' && open_multishipping_fancybox)
+		$('#link_multishipping_form').click();
 });
 
-function bindCheckbox()
+function updateCarrierList(json)
 {
-	if ($('#invoice_address:checked').length > 0)
-	{
-		$('#opc_invoice_address').slideDown('slow');
-		if ($('#company_invoice').val() == '')
-			$('#vat_number_block_invoice').hide();
-		updateState('invoice');
-		updateNeedIDNumber('invoice');
-		updateZipCode('invoice');
-	}
+	var html = json.carrier_block;
+	$('#carrier_area').replaceWith(html);
+	bindInputs();
+	/* update hooks for carrier module */
+	$('#HOOK_BEFORECARRIER').html(json.HOOK_BEFORECARRIER);
+}
+
+function updatePaymentMethods(json)
+{
+	$('#HOOK_TOP_PAYMENT').html(json.HOOK_TOP_PAYMENT);
+	$('#opc_payment_methods-content #HOOK_PAYMENT').html(json.HOOK_PAYMENT);
+}
+
+function updatePaymentMethodsDisplay()
+{
+	var checked = '';
+	if ($('#cgv:checked').length !== 0)
+		checked = 1;
 	else
-		$('#opc_invoice_address').slideUp('slow');
-	$("select.form-control,input[type='checkbox']").uniform();  
+		checked = 0;
+	$('#opc_payment_methods-overlay').fadeIn('slow', function(){
+		$.ajax({
+			type: 'POST',
+			headers: { "cache-control": "no-cache" },
+			url: orderOpcUrl + '?rand=' + new Date().getTime(),
+			async: true,
+			cache: false,
+			dataType : "json",
+			data: 'ajax=true&method=updateTOSStatusAndGetPayments&checked=' + checked + '&token=' + static_token,
+			success: function(json)
+			{
+				updatePaymentMethods(json);
+				if (typeof bindUniform !=='undefined')
+					bindUniform();
+			}
+		});
+		$(this).fadeOut('slow');		
+	});
+}
+
+function updateAddressSelection()
+{
+	var idAddress_delivery = ($('#opc_id_address_delivery').length == 1 ? $('#opc_id_address_delivery').val() : $('#id_address_delivery').val());
+	var idAddress_invoice = ($('#opc_id_address_invoice').length == 1 ? $('#opc_id_address_invoice').val() : ($('#addressesAreEquals:checked').length == 1 ? idAddress_delivery : ($('#id_address_invoice').length == 1 ? $('#id_address_invoice').val() : idAddress_delivery)));
+
+	$('#opc_account-overlay').fadeIn('slow');
+	$('#opc_delivery_methods-overlay').fadeIn('slow');
+	$('#opc_payment_methods-overlay').fadeIn('slow');
+	
+	$.ajax({
+		type: 'POST',
+		headers: { "cache-control": "no-cache" },
+		url: orderOpcUrl + '?rand=' + new Date().getTime(),
+		async: true,
+		cache: false,
+		dataType : "json",
+		data: 'allow_refresh=1&ajax=true&method=updateAddressesSelected&id_address_delivery=' + idAddress_delivery + '&id_address_invoice=' + idAddress_invoice + '&token=' + static_token,
+		success: function(jsonData)
+		{
+			if (jsonData.hasError)
+			{
+				var errors = '';
+				for(var error in jsonData.errors)
+					//IE6 bug fix
+					if(error !== 'indexOf')
+						errors += $('<div />').html(jsonData.errors[error]).text() + "\n";
+	            if (!!$.prototype.fancybox)
+	                $.fancybox.open([
+	                    {
+	                        type: 'inline',
+	                        autoScale: true,
+	                        minHeight: 30,
+	                        content: '<p class="fancybox-error">' + errors + '</p>'
+	                    }
+	                ], {
+	                    padding: 0
+	                });
+	            else
+	                alert(errors);
+			}
+			else
+			{
+				if (jsonData.refresh)
+					location.reload();
+				// Update all product keys with the new address id
+				$('#cart_summary .address_'+deliveryAddress).each(function() {
+					$(this)
+						.removeClass('address_'+deliveryAddress)
+						.addClass('address_'+idAddress_delivery);
+					$(this).attr('id', $(this).attr('id').replace(/_\d+$/, '_'+idAddress_delivery));
+					if ($(this).find('.cart_unit span').length > 0 && $(this).find('.cart_unit span').attr('id').length > 0)
+						$(this).find('.cart_unit span').attr('id', $(this).find('.cart_unit span').attr('id').replace(/_\d+$/, '_'+idAddress_delivery));
+
+					if ($(this).find('.cart_total span').length > 0 && $(this).find('.cart_total span').attr('id').length > 0)
+						$(this).find('.cart_total span').attr('id', $(this).find('.cart_total span').attr('id').replace(/_\d+$/, '_'+idAddress_delivery));
+
+					if ($(this).find('.cart_quantity_input').length > 0 && $(this).find('.cart_quantity_input').attr('name').length > 0)
+					{
+						var name = $(this).find('.cart_quantity_input').attr('name')+'_hidden';
+						$(this).find('.cart_quantity_input').attr('name', $(this).find('.cart_quantity_input').attr('name').replace(/_\d+$/, '_'+idAddress_delivery));
+						if ($(this).find('[name='+name+']').length > 0)
+							$(this).find('[name='+name+']').attr('name', name.replace(/_\d+_hidden$/, '_'+idAddress_delivery+'_hidden'));
+					}
+
+					if ($(this).find('.cart_quantity_delete').length > 0 && $(this).find('.cart_quantity_delete').attr('id').length > 0)
+					{
+						$(this).find('.cart_quantity_delete')
+							.attr('id', $(this).find('.cart_quantity_delete').attr('id').replace(/_\d+$/, '_'+idAddress_delivery))
+							.attr('href', $(this).find('.cart_quantity_delete').attr('href').replace(/id_address_delivery=\d+&/, 'id_address_delivery='+idAddress_delivery+'&'));
+					}
+					
+					if ($(this).find('.cart_quantity_down').length > 0 && $(this).find('.cart_quantity_down').attr('id').length > 0)
+					{
+						$(this).find('.cart_quantity_down')
+							.attr('id', $(this).find('.cart_quantity_down').attr('id').replace(/_\d+$/, '_'+idAddress_delivery))
+							.attr('href', $(this).find('.cart_quantity_down').attr('href').replace(/id_address_delivery=\d+&/, 'id_address_delivery='+idAddress_delivery+'&'));
+					}
+
+					if ($(this).find('.cart_quantity_up').length > 0 && $(this).find('.cart_quantity_up').attr('id').length > 0)
+					{
+						$(this).find('.cart_quantity_up')
+							.attr('id', $(this).find('.cart_quantity_up').attr('id').replace(/_\d+$/, '_'+idAddress_delivery))
+							.attr('href', $(this).find('.cart_quantity_up').attr('href').replace(/id_address_delivery=\d+&/, 'id_address_delivery='+idAddress_delivery+'&'));
+					}	
+				});
+
+				// Update global var deliveryAddress
+				deliveryAddress = idAddress_delivery;
+				if (window.ajaxCart !== undefined)
+				{
+					$('#cart_block_list dd, #cart_block_list dt').each(function(){
+						if (typeof($(this).attr('id')) != 'undefined')
+							$(this).attr('id', $(this).attr('id').replace(/_\d+$/, '_' + idAddress_delivery));
+					});
+				}
+				updateCarrierList(jsonData.carrier_data);
+				updatePaymentMethods(jsonData);
+				updateCartSummary(jsonData.summary);
+				updateHookShoppingCart(jsonData.HOOK_SHOPPING_CART);
+				updateHookShoppingCartExtra(jsonData.HOOK_SHOPPING_CART_EXTRA);
+				if ($('#gift-price').length == 1)
+					$('#gift-price').html(jsonData.gift_price);
+				$('#opc_account-overlay, #opc_delivery_methods-overlay, #opc_payment_methods-overlay').fadeOut('slow');
+			}
+		},
+		error: function(XMLHttpRequest, textStatus, errorThrown) {
+			if (textStatus !== 'abort')
+			{
+				error = "TECHNICAL ERROR: unable to save adresses \n\nDetails:\nError thrown: " + XMLHttpRequest + "\n" + 'Text status: ' + textStatus;
+	            if (!!$.prototype.fancybox)
+	                $.fancybox.open([
+	                    {
+	                        type: 'inline',
+	                        autoScale: true,
+	                        minHeight: 30,
+	                        content: '<p class="fancybox-error">' + error + '</p>'
+	                    }
+	                ], {
+	                    padding: 0
+	                });
+	            else
+	                alert(error);
+			}
+			$('#opc_account-overlay, #opc_delivery_methods-overlay, #opc_payment_methods-overlay').fadeOut('slow');
+		}
+	});
+}
+
+function getCarrierListAndUpdate()
+{
+	$('#opc_delivery_methods-overlay').fadeIn('slow');
+	$.ajax({
+		type: 'POST',
+		headers: { "cache-control": "no-cache" },
+		url: orderOpcUrl + '?rand=' + new Date().getTime(),
+		async: true,
+		cache: false,
+		dataType : "json",
+		data: 'ajax=true&method=getCarrierList&token=' + static_token,
+		success: function(jsonData)
+		{
+			if (jsonData.hasError)
+			{
+				var errors = '';
+				for(var error in jsonData.errors)
+					//IE6 bug fix
+					if(error !== 'indexOf')
+						errors += $('<div />').html(jsonData.errors[error]).text() + "\n";
+	            if (!!$.prototype.fancybox)
+	            {
+	                $.fancybox.open([
+	                    {
+	                        type: 'inline',
+	                        autoScale: true,
+	                        minHeight: 30,
+	                        content: '<p class="fancybox-error">' + errors + '</p>'
+	                    }
+	                ], {
+	                    padding: 0
+	                });
+	            }
+	            else
+				{
+		            if (!!$.prototype.fancybox)
+		                $.fancybox.open([
+		                    {
+		                        type: 'inline',
+		                        autoScale: true,
+		                        minHeight: 30,
+		                        content: '<p class="fancybox-error">' + errors + '</p>'
+		                    }
+		                ], {
+		                    padding: 0
+		                });
+		            else
+		                alert(errors);
+				}
+			}
+			else
+				updateCarrierList(jsonData);
+			$('#opc_delivery_methods-overlay').fadeOut('slow');
+		}
+	});
+}
+
+function updateCarrierSelectionAndGift()
+{
+	var recyclablePackage = 0;
+	var gift = 0;
+	var giftMessage = '';
+	
+	var delivery_option_radio = $('.delivery_option_radio');
+	var delivery_option_params = '&';
+	$.each(delivery_option_radio, function(i) {
+		if ($(this).prop('checked'))
+			delivery_option_params += $(delivery_option_radio[i]).attr('name') + '=' + $(delivery_option_radio[i]).val() + '&';
+	});
+	if (delivery_option_params == '&')
+		delivery_option_params = '&delivery_option=&';
+
+	if ($('input#recyclable:checked').length)
+		recyclablePackage = 1;
+	if ($('input#gift:checked').length)
+	{
+		gift = 1;
+		giftMessage = encodeURIComponent($('#gift_message').val());
+	}
+	
+	$('#opc_delivery_methods-overlay, #opc_payment_methods-overlay').fadeOut('slow');
+	$.ajax({
+		type: 'POST',
+		headers: { "cache-control": "no-cache" },
+		url: orderOpcUrl + '?rand=' + new Date().getTime(),
+		async: true,
+		cache: false,
+		dataType : "json",
+		data: 'ajax=true&method=updateCarrierAndGetPayments' + delivery_option_params + 'recyclable=' + recyclablePackage + '&gift=' + gift + '&gift_message=' + giftMessage + '&token=' + static_token ,
+		success: function(jsonData)
+		{
+			if (jsonData.hasError)
+			{
+				var errors = '';
+				for(var error in jsonData.errors)
+					//IE6 bug fix
+					if(error !== 'indexOf')
+						errors += $('<div />').html(jsonData.errors[error]).text() + "\n";
+	            if (!!$.prototype.fancybox)
+	                $.fancybox.open([
+	                    {
+	                        type: 'inline',
+	                        autoScale: true,
+	                        minHeight: 30,
+	                        content: '<p class="fancybox-error">' + errors + '</p>'
+	                    }
+	                ], {
+	                    padding: 0
+	                });
+	            else
+	                alert(errors);
+			}
+			else
+			{
+				updateCartSummary(jsonData.summary);
+				updatePaymentMethods(jsonData);
+				updateHookShoppingCart(jsonData.summary.HOOK_SHOPPING_CART);
+				updateHookShoppingCartExtra(jsonData.summary.HOOK_SHOPPING_CART_EXTRA);
+				updateCarrierList(jsonData.carrier_data);
+				$('#opc_delivery_methods-overlay, #opc_payment_methods-overlay').fadeOut('slow');
+				refreshDeliveryOptions();
+				if (typeof bindUniform !=='undefined')
+					bindUniform();
+			}
+		},
+		error: function(XMLHttpRequest, textStatus, errorThrown) {
+			if (textStatus !== 'abort')
+				alert("TECHNICAL ERROR: unable to save carrier \n\nDetails:\nError thrown: " + XMLHttpRequest + "\n" + 'Text status: ' + textStatus);
+			$('#opc_delivery_methods-overlay, #opc_payment_methods-overlay').fadeOut('slow');
+		}
+	});
+}
+
+function confirmFreeOrder()
+{
+	if ($('#opc_new_account-overlay').length !== 0)
+		$('#opc_new_account-overlay').fadeIn('slow');
+	else
+		$('#opc_account-overlay').fadeIn('slow');
+	$('#opc_delivery_methods-overlay, #opc_payment_methods-overlay').fadeOut('slow');
+	$('#confirmOrder').attr('disabled', 'disabled');
+	$.ajax({
+		type: 'POST',
+		headers: { "cache-control": "no-cache" },
+		url: orderOpcUrl + '?rand=' + new Date().getTime(),
+		async: true,
+		cache: false,
+		dataType : "html",
+		data: 'ajax=true&method=makeFreeOrder&token=' + static_token ,
+		success: function(html)
+		{
+			$('#confirmOrder').attr('disabled', '');
+			var array_split = html.split(':');
+			if (array_split[0] == 'freeorder')
+			{
+				if (isGuest)
+					document.location.href = guestTrackingUrl+'?id_order='+encodeURIComponent(array_split[1])+'&email='+encodeURIComponent(array_split[2]);
+				else
+					document.location.href = historyUrl;
+			}
+		},
+		error: function(XMLHttpRequest, textStatus, errorThrown) {
+			if (textStatus !== 'abort')
+			{
+				error = "TECHNICAL ERROR: unable to confirm the order \n\nDetails:\nError thrown: " + XMLHttpRequest + "\n" + 'Text status: ' + textStatus;
+	            if (!!$.prototype.fancybox)
+	                $.fancybox.open([
+	                    {
+	                        type: 'inline',
+	                        autoScale: true,
+	                        minHeight: 30,
+	                        content: '<p class="fancybox-error">' + error + '</p>'
+	                    }
+	                ], {
+	                    padding: 0
+	                });
+	            else
+	                alert(error);
+			}
+		}
+	});
+}
+
+function saveAddress(type)
+{
+	if (type !== 'delivery' && type !== 'invoice')
+		return false;
+	
+	var params = 'firstname='+encodeURIComponent($('#firstname'+(type == 'invoice' ? '_invoice' : '')).val())+'&lastname='+encodeURIComponent($('#lastname'+(type == 'invoice' ? '_invoice' : '')).val())+'&';
+	if ($('#company'+(type == 'invoice' ? '_invoice' : '')).length)	
+		params += 'company='+encodeURIComponent($('#company'+(type == 'invoice' ? '_invoice' : '')).val())+'&';
+	if ($('#vat_number'+(type == 'invoice' ? '_invoice' : '')).length)
+		params += 'vat_number='+encodeURIComponent($('#vat_number'+(type == 'invoice' ? '_invoice' : '')).val())+'&';
+	if ($('#dni'+(type == 'invoice' ? '_invoice' : '')).length)
+		params += 'dni='+encodeURIComponent($('#dni'+(type == 'invoice' ? '_invoice' : '')).val())+'&';
+	params += 'address1='+encodeURIComponent($('#address1'+(type == 'invoice' ? '_invoice' : '')).val())+'&';
+	params += 'address2='+encodeURIComponent($('#address2'+(type == 'invoice' ? '_invoice' : '')).val())+'&';
+	params += 'postcode='+encodeURIComponent($('#postcode'+(type == 'invoice' ? '_invoice' : '')).val())+'&';
+	params += 'city='+encodeURIComponent($('#city'+(type == 'invoice' ? '_invoice' : '')).val())+'&';
+	params += 'id_country='+encodeURIComponent($('#id_country').val())+'&';
+	if ($('#id_state'+(type == 'invoice' ? '_invoice' : '')).length)
+		params += 'id_state='+encodeURIComponent($('#id_state'+(type == 'invoice' ? '_invoice' : '')).val())+'&';
+	params += 'other='+encodeURIComponent($('#other'+(type == 'invoice' ? '_invoice' : '')).val())+'&';
+	params += 'phone='+encodeURIComponent($('#phone'+(type == 'invoice' ? '_invoice' : '')).val())+'&';
+	params += 'phone_mobile='+encodeURIComponent($('#phone_mobile'+(type == 'invoice' ? '_invoice' : '')).val())+'&';
+	params += 'alias='+encodeURIComponent($('#alias'+(type == 'invoice' ? '_invoice' : '')).val())+'&';
+	if (type == 'delivery' && $('#opc_id_address_delivery').val() != undefined && parseInt($('#opc_id_address_delivery').val()) > 0)
+		params += 'opc_id_address_delivery='+encodeURIComponent($('#opc_id_address_delivery').val())+'&';
+	if (type == 'invoice' && $('#opc_id_address_invoice').val() != undefined && parseInt($('#opc_id_address_invoice').val()) > 0)			
+		params += 'opc_id_address_invoice='+encodeURIComponent($('#opc_id_address_invoice').val())+'&';		
+	// Clean the last &
+	params = params.substr(0, params.length-1);
+
+	var result = false;
+	
+	$.ajax({
+		type: 'POST',
+		headers: { "cache-control": "no-cache" },
+		url: addressUrl + '?rand=' + new Date().getTime(),
+		async: false,
+		cache: false,
+		dataType : "json",
+		data: 'ajax=true&submitAddress=true&type='+type+'&'+params+'&token=' + static_token,
+		success: function(jsonData)
+		{
+			if (jsonData.hasError)
+			{
+				var tmp = '';
+				var i = 0;
+				for(var error in jsonData.errors)
+					//IE6 bug fix
+					if(error !== 'indexOf')
+					{
+						i = i+1;
+						tmp += '<li>'+jsonData.errors[error]+'</li>';
+					}
+				tmp += '</ol>';
+				var errors = '<b>'+txtThereis+' '+i+' '+txtErrors+':</b><ol>'+tmp;
+				$('#opc_account_errors').slideUp('fast', function(){
+					$(this).html(errors).slideDown('slow', function(){
+						$.scrollTo('#opc_account_errors', 800);
+					});
+				});
+				$('#opc_account-overlay, #opc_delivery_methods-overlay, #opc_payment_methods-overlay').fadeOut('slow');
+				result = false;
+			}
+			else
+			{
+				// update addresses id
+				$('input#opc_id_address_delivery').val(jsonData.id_address_delivery);
+				$('input#opc_id_address_invoice').val(jsonData.id_address_invoice);
+				result = true;
+			}
+		},
+		error: function(XMLHttpRequest, textStatus, errorThrown) {
+			if (textStatus !== 'abort')
+			{
+				error = "TECHNICAL ERROR: unable to save adresses \n\nDetails:\nError thrown: " + XMLHttpRequest + "\n" + 'Text status: ' + textStatus;
+	            if (!!$.prototype.fancybox)
+	                $.fancybox.open([
+	                    {
+	                        type: 'inline',
+	                        autoScale: true,
+	                        minHeight: 30,
+	                        content: '<p class="fancybox-error">' + error + '</p>'
+	                    }
+	                ], {
+	                    padding: 0
+	                });
+	            else
+	                alert(error);
+			}
+			$('#opc_account-overlay, #opc_delivery_methods-overlay, #opc_payment_methods-overlay').fadeOut('slow');
+		}
+		});
+
+	return result;
+}
+
+function updateNewAccountToAddressBlock()
+{
+	$('#opc_account-overlay, #opc_delivery_methods-overlay, #opc_payment_methods-overlay').fadeOut('slow');;
+	$.ajax({
+		type: 'POST',
+		headers: { "cache-control": "no-cache" },
+		url: orderOpcUrl + '?rand=' + new Date().getTime(),
+		async: true,
+		cache: false,
+		dataType : "json",
+		data: 'ajax=true&method=getAddressBlockAndCarriersAndPayments&token=' + static_token ,
+		success: function(json)
+		{
+			if (json.hasError)
+			{
+				var errors = '';
+				for(var error in json.errors)
+					//IE6 bug fix
+					if(error !== 'indexOf')
+						errors += $('<div />').html(json.errors[error]).text() + "\n";
+				alert(errors);
+			}
+			else
+			{
+				isLogged = 1;
+				if (json.no_address == 1)
+					document.location.href = addressUrl;
+				
+				$('#opc_new_account').fadeOut('fast', function() {
+					if (typeof json.formatedAddressFieldsValuesList !== 'undefined' && json.formatedAddressFieldsValuesList )
+						formatedAddressFieldsValuesList = json.formatedAddressFieldsValuesList;
+					if (typeof json.order_opc_adress !== 'undefined' && json.order_opc_adress)
+						$('#opc_new_account').html(json.order_opc_adress);
+					// update block user info
+					if (json.block_user_info !== '' && $('#header_user').length == 1)
+					{
+						var elt = $(json.block_user_info).find('#header_user_info').html();					
+						$('#header_user_info').fadeOut('nortmal', function() {
+							$(this).html(elt).fadeIn();
+						});
+					}
+					$(this).fadeIn('fast', function() {
+						//After login, the products are automatically associated to an address
+						$.each(json.summary.products, function() {
+							updateAddressId(this.id_product, this.id_product_attribute, '0', this.id_address_delivery);
+						});
+						updateAddressesDisplay(true);
+						updateCarrierList(json.carrier_data);
+						updateCarrierSelectionAndGift();
+						updatePaymentMethods(json);
+						if ($('#gift-price').length == 1)
+							$('#gift-price').html(json.gift_price);
+						$('#opc_delivery_methods-overlay, #opc_payment_methods-overlay').fadeOut('slow');
+					});
+				});
+			}
+		},
+		error: function(XMLHttpRequest, textStatus, errorThrown) {
+			if (textStatus !== 'abort')
+				alert("TECHNICAL ERROR: unable to send login informations \n\nDetails:\nError thrown: " + XMLHttpRequest + "\n" + 'Text status: ' + textStatus);
+			$('#opc_delivery_methods-overlay, #opc_payment_methods-overlay').fadeOut('slow');
+		}
+	});
 }
 
 function bindInputs()
@@ -721,16 +844,17 @@ function bindInputs()
 				$('#opc_delivery_methods-overlay').fadeOut('slow');
 			}
 		});
-		$("select.form-control,input[type='checkbox']").uniform();  
+		if (typeof bindUniform !=='undefined')
+			bindUniform();
 	});
 	
 	// Recyclable checkbox
-	$('#recyclable').click(function() {
+	$(document).on('click', '#recyclable', function(e){
 		updateCarrierSelectionAndGift();
 	});
 	
 	// Gift checkbox update
-	$('#gift').click(function() {
+	$(document).on('clcik', '#gift', function(e){
 		if ($('#gift').is(':checked'))
 			$('#gift_div').show();
 		else
@@ -750,10 +874,9 @@ function bindInputs()
 	});
 	
 	// Term Of Service (TOS)
-	$('#cgv').click(function() {
+	$(document).on('click', '#cgv', function(e){
 		updatePaymentMethodsDisplay();
 	});
-	$("select.form-control,input[type='checkbox']").uniform();
 }
 
 function multishippingMode(it)
@@ -767,10 +890,10 @@ function multishippingMode(it)
 		$('.addressesAreEquals').hide();
 		$('#address_invoice_form').show();
 		
-		$('#link_multishipping_form').click(function() {return false;});
+		$(document).on('click', '#link_multishipping_form', function(e){e.preventDefault();});
 		$('.address_add a').attr('href', addressMultishippingUrl);
 		
-		$('#link_multishipping_form').click(function(){
+		$(document).on('click', '#link_multishipping_form', function(e){
 			$.fancybox({
 			'transitionIn': 'elastic',
 			'transitionOut': 'elastic',
@@ -806,7 +929,7 @@ function multishippingMode(it)
 				$('.fancybox-inner .cart_quantity_input').typeWatch({ highlight: true, wait: 600, captureLength: 0, callback: function(val) { updateQty(val, false, this.el);} });
 				cleanSelectAddressDelivery();
 				$('.fancybox-outer').append($('<div class="multishipping_close_container"><a id="multishipping-close" class="btn btn-default button button-small" href="#"><span>'+CloseTxt+'</span></a></div>'));
-				$('#multishipping-close').click(function() {
+				$(document).on('click', '#multishipping-close', function(e){
 					var newTotalQty = 0;
 					$('.fancybox-inner .cart_quantity_input').each(function(){
 						newTotalQty += parseInt($(this).val());
@@ -863,19 +986,6 @@ function multishippingMode(it)
 			}
 		});
 	}
-	$("select.form-control,input[type='checkbox']").uniform();  
+	if (typeof bindUniform !=='undefined')
+		bindUniform(); 
 }
-
-$(document).ready(function() {
-	// If the multishipping mode is off assure us the checkbox "I want to specify a delivery address for each products I order." is unchecked.
-	$('#multishipping_mode_checkbox').attr('checked', false);
-	// If the multishipping mode is on, check the box "I want to specify a delivery address for each products I order.".
-	if (typeof(multishipping_mode) !== 'undefined' && multishipping_mode)
-	{
-		$('#multishipping_mode_checkbox').click();
-		$('.addressesAreEquals').hide().find('input').attr('checked', false);
-	}
-	if (typeof(open_multishipping_fancybox) !== 'undefined' && open_multishipping_fancybox)
-		$('#link_multishipping_form').click();
-		$("select.form-control,input[type='checkbox']").uniform();  
-});

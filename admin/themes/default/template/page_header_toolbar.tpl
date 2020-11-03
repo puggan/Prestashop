@@ -37,7 +37,7 @@
 		<h2 class="page-title">
 			{*if isset($toolbar_btn['back'])}
 			<a id="page-header-desc-{$table}{if isset($toolbar_btn['back'].imgclass)}-{$toolbar_btn['back'].imgclass}{/if}" class="page-header-toolbar-back" {if isset($toolbar_btn['back'].href)}href="{$toolbar_btn['back'].href}"{/if} title="{$toolbar_btn['back'].desc}" {if isset($toolbar_btn['back'].target) && $toolbar_btn['back'].target}target="_blank"{/if}{if isset($toolbar_btn['back'].js) && $toolbar_btn['back'].js}onclick="{$toolbar_btn['back'].js}"{/if}>
-				<i class="process-icon-back"></i>
+				
 			</a>
 			{/if*}
 			{if is_array($title)}{$title|end|escape}{else}{$title|escape}{/if}
@@ -46,9 +46,17 @@
 
 		{block name=pageBreadcrumb}
 		<ul class="breadcrumb page-breadcrumb">
+
+			{* Shop *}
+			{if $is_multishop && $shop_list && ($multishop_context & Shop::CONTEXT_GROUP || $multishop_context & Shop::CONTEXT_SHOP)}
+				<li class="breadcrumb-multishop">
+					{$shop_list}
+				</li>
+			{/if}
+
 			{* Container *}
 			{if $breadcrumbs2.container.name != ''}
-				<li>
+				<li class="breadcrumb-container">
 					{if $breadcrumbs2.container.href != ''}<a href="{$breadcrumbs2.container.href|escape}">{/if}
 					{if $breadcrumbs2.container.icon != ''}<i class="{$breadcrumbs2.container.icon|escape}"></i>{/if}
 					{$breadcrumbs2.container.name|escape}
@@ -58,7 +66,7 @@
 			
 			{* Current Tab *}
 			{if $breadcrumbs2.tab.name != '' && $breadcrumbs2.container.name != $breadcrumbs2.tab.name}
-				<li>
+				<li class="breadcrumb-current">
 					{if $breadcrumbs2.tab.href != ''}<a href="{$breadcrumbs2.tab.href|escape}">{/if}
 					{if $breadcrumbs2.tab.icon != ''}<i class="{$breadcrumbs2.tab.icon|escape}"></i>{/if}
 					{$breadcrumbs2.tab.name|escape}
@@ -67,20 +75,20 @@
 			{/if}
 			
 			{* Action *}
-			{if $breadcrumbs2.action.name != ''}
-				<li>
+			{*if $breadcrumbs2.action.name != ''}
+				<li class="breadcrumb-action">
 					{if $breadcrumbs2.action.href != ''}<a href="{$breadcrumbs2.action.href|escape}">{/if}
 					{if $breadcrumbs2.action.icon != ''}<i class="{$breadcrumbs2.action.icon|escape}"></i>{/if}
 					{$breadcrumbs2.action.name|escape}
 					{if $breadcrumbs2.action.href != ''}</a>{/if}
 				</li>
-			{/if}
+			{/if*}
 			</ul>
 		{/block}
 
+		{block name=toolbarBox}
 		<div class="page-bar toolbarBox">
-			<div class="btn-toolbar">
-				{block name=toolbarBox}
+			<div class="btn-toolbar">				
 				<ul class="nav nav-pills pull-right">
 					{foreach from=$toolbar_btn item=btn key=k}
 					{if $k != 'back' && $k != 'modules-list'}
@@ -129,9 +137,9 @@
 						});
 					{/if}
 				//]]>
-				</script>
-				{/block}
+				</script>				
 			</div>
 		</div>
+		{/block}
 	</div>
 </div>

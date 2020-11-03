@@ -34,6 +34,7 @@ class BlockFacebook extends Module
 		$this->name = 'blockfacebook';
 		$this->tab = 'front_office_features';
 		$this->version = '1.0';
+		$this->author = 'PrestaShop';
 
 		$this->bootstrap = true;
 		parent::__construct();
@@ -84,7 +85,10 @@ class BlockFacebook extends Module
 	{
 		$this->page_name = Dispatcher::getInstance()->getController();
 		if ($this->page_name == 'index')
+		{
+			$this->context->controller->addCss(($this->_path).'css/blockfacebook.css');
 			$this->context->controller->addJS(($this->_path).'blockfacebook.js');
+		}
 	}
 
 	public function renderForm()

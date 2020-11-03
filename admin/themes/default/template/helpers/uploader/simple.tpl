@@ -34,8 +34,8 @@
 	<div class="col-lg-12" id="{$id}-images-thumbnails">
 		{foreach $files as $file}
 		{if isset($file.image) && $file.type == 'image'}
-		<div class="img-thumbnail text-center">
-			<p>{$file.image}</p>
+		<div>
+			{$file.image}
 			{if isset($file.size)}<p>{l s='File size'} {$file.size}kb</p>{/if}
 			{if isset($file.delete_url)}
 			<p>
@@ -57,7 +57,7 @@
 </div>
 {else}
 <div class="form-group">
-	<div class="col-lg-12">
+	<div class="col-sm-6">
 		<input id="{$id}" type="file" name="{$name}"{if isset($multiple) && $multiple} multiple="multiple"{/if} class="hide" />
 		<div class="dummyfile input-group">
 			<span class="input-group-addon"><i class="icon-file"></i></span>

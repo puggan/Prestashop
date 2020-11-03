@@ -32,8 +32,8 @@
 		<label class="control-label col-lg-3" for="meta_title_{$id_lang}">
 			{include file="controllers/products/multishop/checkbox.tpl" field="meta_title" type="default" multilang="true"}
 			<span class="label-tooltip" data-toggle="tooltip"
-				title="{l s='Product page title: Leave blank to use the product name'}">
-				{l s='Meta title:'}
+				title="{l s='Public title for the product\'s page, and for search engines. Leave blank to use the product name.'}">
+				{l s='Meta title'}
 			</span>
 		</label>
 		<div class="col-lg-8">
@@ -50,8 +50,8 @@
 		<label class="control-label col-lg-3" for="meta_description_{$id_lang}">
 			{include file="controllers/products/multishop/checkbox.tpl" field="meta_description" type="default" multilang="true"}
 			<span class="label-tooltip" data-toggle="tooltip"
-				title="{l s='A single sentence for the HTML header is needed. '}">
-				{l s='Meta description:'}
+				title="{l s='This description will appear in search engines. You need a single sentence, shorter than 160 characters (including spaces).'}">
+				{l s='Meta description'}
 			</span>
 		</label>
 		<div class="col-lg-8">
@@ -68,8 +68,8 @@
 		<label class="control-label col-lg-3" for="meta_keywords_{$id_lang}">
 			{include file="controllers/products/multishop/checkbox.tpl" field="meta_keywords" type="default" multilang="true"}
 			<span class="label-tooltip" data-toggle="tooltip"
-				title="{l s='Keywords for HTML header, separated by commas.'}">
-				{l s='Meta keywords:'}
+				title="{l s='Keywords for search engines, separated by commas.'}">
+				{l s='Meta keywords'}
 			</span>
 		</label>
 		<div class="col-lg-8">
@@ -83,7 +83,7 @@
 		<label class="control-label col-lg-3" for="link_rewrite_{$id_lang}">
 			{include file="controllers/products/multishop/checkbox.tpl" field="link_rewrite" type="seo_friendly_url" multilang="true"}
 			<span class="label-tooltip" data-toggle="tooltip"
-				title="{l s='friendly URL from the product name.'}">
+				title="{l s='This is the human-readable URL, as generated from the product\'s name. You can change it if you want.'}">
 				{l s='Friendly URL:'}
 			</span>
 
@@ -104,7 +104,7 @@
 			{foreach from=$languages item=language}
 			<div class="alert alert-warning translatable-field lang-{$language.id_lang}">
 				<i class="icon-link"></i> {l s='The product link will look like this:'}<br/>
-				<strong>{$curent_shop_url|escape:'html':'UTF-8'}lang/{if isset($product->id)}{$product->id}{else}id_product{/if}-<span id="friendly-url_{$language.id_lang}">{$product->link_rewrite[$default_language]}</span>.html</strong>
+				<strong>{$curent_shop_url|escape:'html':'UTF-8'}lang/{if isset($product->id)}{$product->id}{else}id_product{/if}-<span id="friendly-url_{$language.id_lang}">{$product->link_rewrite[$default_language]|escape:'html':'UTF-8'}</span>.html</strong>
 			</div>
 			{/foreach}
 		</div>
@@ -116,5 +116,5 @@
 	</div>
 </div>
 <script type="text/javascript">
-	hideOtherLanguage({$id_lang});
+	hideOtherLanguage({$default_form_language});
 </script>

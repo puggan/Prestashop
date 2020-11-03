@@ -819,7 +819,7 @@ class ProductCore extends ObjectModel
 			!$this->deleteTags() ||
 			!$this->deleteCartProducts() ||
 			!$this->deleteAttributesImpacts() ||
-			!$this->deleteAttachments() ||
+			!$this->deleteAttachments(false) ||
 			!$this->deleteCustomization() ||
 			!SpecificPrice::deleteByProductId((int)$this->id) ||
 			!$this->deletePack() ||
@@ -1258,11 +1258,11 @@ class ProductCore extends ObjectModel
 	* @param string $supplier_reference DEPRECATED
 	*/
 	public function addCombinationEntity($wholesale_price, $price, $weight, $unit_impact, $ecotax, $quantity,
-		$id_images, $reference, $id_supplier, $ean13, $default, $location = null, $upc = null, $minimal_quantity = 1,  array $id_shop_list = array())
+		$id_images, $reference, $id_supplier, $ean13, $default, $location = null, $upc = null, $minimal_quantity = 1,  array $id_shop_list = array(), $available_date = null)
 	{
 		$id_product_attribute = $this->addAttribute(
 			$price, $weight, $unit_impact, $ecotax, $id_images,
-			$reference, $ean13, $default, $location, $upc, $minimal_quantity, $id_shop_list);
+			$reference, $ean13, $default, $location, $upc, $minimal_quantity, $id_shop_list, $available_date);
 
 		$this->addSupplierReference($id_supplier, $id_product_attribute);
 		$result = ObjectModel::updateMultishopTable('Combination', array(
@@ -1482,7 +1482,7 @@ class ProductCore extends ObjectModel
 	 * @return mixed $id_product_attribute or false
 	 */
 	public function addAttribute($price, $weight, $unit_impact, $ecotax, $id_images, $reference, $ean13,
-								 $default, $location = null, $upc = null, $minimal_quantity = 1, array $id_shop_list = array())
+								 $default, $location = null, $upc = null, $minimal_quantity = 1, array $id_shop_list = array(), $available_date = null)
 	{
 		if (!$this->id)
 			return;
@@ -1503,6 +1503,7 @@ class ProductCore extends ObjectModel
 		$combination->upc = pSQL($upc);
 		$combination->default_on = (int)$default;
 		$combination->minimal_quantity = (int)$minimal_quantity;
+		$combination->available_date = $available_date;
 
 		// if we add a combination for this shop and this product does not use the combination feature in other shop,
 		// we clone the default combination in every shop linked to this product
@@ -1607,16 +1608,18 @@ class ProductCore extends ObjectModel
 	/**
 	* Delete product attachments
 	*
+	* @param boolean $update_cache If set to true attachment cache will be updated
 	* @return array Deletion result
 	*/
-	public function deleteAttachments()
+	public function deleteAttachments($update_attachment_cache = true)
 	{
 		$res = Db::getInstance()->execute('
 			DELETE FROM `'._DB_PREFIX_.'product_attachment`
 			WHERE `id_product` = '.(int)$this->id
 		);
 		
-		Product::updateCacheAttachment((int)$this->id);
+		if (isset($update_attachment_cache) && (bool)$update_attachment_cache === true)
+			Product::updateCacheAttachment((int)$this->id);
 
 		return $res;
 	}
@@ -2593,7 +2596,7 @@ class ProductCore extends ObjectModel
 			$zipcode,
 			$id_currency,
 			$id_group,
-			$cart_quantity,
+			$quantity,
 			$usetax,
 			$decimals,
 			$only_reduc,
@@ -2604,7 +2607,7 @@ class ProductCore extends ObjectModel
 			$id_customer,
 			$use_customer_price,
 			$id_cart, 
-			$quantity
+			$cart_quantity
 		);
 	}
 
@@ -2739,7 +2742,7 @@ class ProductCore extends ObjectModel
 			$price = $product_tax_calculator->addTaxes($price);
 
 		// Reduction
-		$reduc = 0;
+		$specific_price_reduction = 0;
 		if (($only_reduc || $use_reduc) && $specific_price)
 		{
 			if ($specific_price['reduction_type'] == 'amount')
@@ -2748,26 +2751,30 @@ class ProductCore extends ObjectModel
 
 				if (!$specific_price['id_currency'])
 					$reduction_amount = Tools::convertPrice($reduction_amount, $id_currency);
-				$reduc = !$use_tax ? $product_tax_calculator->removeTaxes($reduction_amount) : $reduction_amount;
+				$specific_price_reduction = !$use_tax ? $product_tax_calculator->removeTaxes($reduction_amount) : $reduction_amount;
 			}
 			else
-				$reduc = $price * $specific_price['reduction'];
+				$specific_price_reduction = $price * $specific_price['reduction'];
 		}
 
-		if ($only_reduc)
-			return Tools::ps_round($reduc, $decimals);
 		if ($use_reduc)
-			$price -= $reduc;
+			$price -= $specific_price_reduction;
 
 		// Group reduction
 		if ($use_group_reduction)
 		{
 			$reduction_from_category = GroupReduction::getValueForProduct($id_product, $id_group);
 			if ($reduction_from_category !== false)
-				$price -= $price * (float)$reduction_from_category;
+				$group_reduction = $price * (float)$reduction_from_category;
 			else // apply group reduction if there is no group reduction for this category
-				$price *= ((100 - Group::getReductionByIdGroup($id_group)) / 100);
+				$group_reduction = ($reduc = Group::getReductionByIdGroup($id_group) != 0) ? ($price * (100 - $reduc) / 100) : 0;
 		}
+		
+		if ($only_reduc)
+			return Tools::ps_round($group_reduction + $specific_price_reduction, $decimals);
+
+		if ($use_reduc)
+			$price -= $group_reduction;
 
 		// Eco Tax
 		if (($result['ecotax'] || isset($result['attribute_ecotax'])) && $with_ecotax)
@@ -3449,8 +3456,8 @@ class ProductCore extends ObjectModel
 			'.Shop::addSqlAssociation('product_attribute', 'pa').'
 			WHERE pa.`id_product` = '.(int)$id_product_old
 		);
-
 		$combinations = array();
+
 		foreach ($result as $row)
 		{
 			$id_product_attribute_old = (int)$row['id_product_attribute'];
@@ -3502,8 +3509,43 @@ class ProductCore extends ObjectModel
 			else
 				Shop::setContext($context_old, $context_shop_id_old);
 		}
+
+		$impacts = self::getAttributesImpacts($id_product_old);
+
+		if (is_array($impacts) && count($impacts))
+		{
+			$impact_sql = 'INSERT INTO `'._DB_PREFIX_.'attribute_impact` (`id_product`, `id_attribute`, `weight`, `price`) VALUES ';
+
+			foreach ($impacts as $id_attribute => $impact)
+				$impact_sql .= '('.(int)$id_product_new.', '.(int)$id_attribute.', '.(float)$impacts[$id_attribute]['weight'].', '
+					.(float)$impacts[$id_attribute]['price'].'),';
+
+			$impact_sql = substr_replace($impact_sql, '', -1);
+			$impact_sql .= ' ON DUPLICATE KEY UPDATE `price` = VALUES(price), `weight` = VALUES(weight)';
+
+			Db::getInstance()->execute($impact_sql);
+		}
+
 		return !$return ? false : $combination_images;
 	}
+
+	public static function getAttributesImpacts($id_product)
+	{
+		$return = array();
+		$result = Db::getInstance()->executeS(
+			'SELECT ai.`id_attribute`, ai.`price`, ai.`weight`
+			FROM `'._DB_PREFIX_.'attribute_impact` ai
+			WHERE ai.`id_product` = '.(int)$id_product);
+
+		if (!$result)
+			return array();
+		foreach ($result as $impact)
+		{
+			$return[$impact['id_attribute']]['price'] = (float)$impact['price'];
+			$return[$impact['id_attribute']]['weight'] = (float)$impact['weight'];
+		}
+		return $return;
+    }
 
 	/**
 	* Get product attribute image associations
@@ -3767,7 +3809,7 @@ class ProductCore extends ObjectModel
 		if (!$this->isFullyLoaded && is_null($this->tags))
 			$this->tags = Tag::getProductTags($this->id);
 
-		if (!($this->tags && key_exists($id_lang, $this->tags)))
+		if (!($this->tags && array_key_exists($id_lang, $this->tags)))
 			return '';
 
 		$result = '';
@@ -4537,14 +4579,13 @@ class ProductCore extends ObjectModel
 	*/
 	public function setWsProductFeatures($product_features)
 	{
-	
-	$db_features = Db::getInstance()->executeS('
-							SELECT p.*, f.`custom`
-							FROM `'._DB_PREFIX_.'feature_product` p
-							LEFT JOIN `'._DB_PREFIX_.'feature_value` f ON (f.`id_feature_value` = p.`id_feature_value`)
-							WHERE `id_product` = '.(int)$this->id
-						);
 
+		$db_features = Db::getInstance()->executeS('
+								SELECT p.*, f.`custom`
+								FROM `'._DB_PREFIX_.'feature_product` p
+								LEFT JOIN `'._DB_PREFIX_.'feature_value` f ON (f.`id_feature_value` = p.`id_feature_value`)
+								WHERE `id_product` = '.(int)$this->id
+							);
 
 		$pfa = array();
 		foreach ($product_features as $product_feature)
@@ -4577,9 +4618,9 @@ class ProductCore extends ObjectModel
 		);
 
  		foreach ($product_features as $product_feature)
- 			$this->addFeaturesToDB($product_feature['id'], $product_feature['id_feature_value'], $product_feature['custom']);
+			$this->addFeaturesToDB($product_feature['id'], $product_feature['id_feature_value'], $product_feature['custom']);
 
- 		return true;
+		return true;
 	}
 
 	/**
@@ -4679,8 +4720,6 @@ class ProductCore extends ObjectModel
 		
 		return true;
 	}
-
-       /**
 
 	/**
 	* Webservice getter : get combination ids of current product for association

@@ -35,14 +35,14 @@ UPDATE `PREFIX_configuration` SET `value`='-' WHERE `name` = 'PS_ATTRIBUTE_ANCHO
 UPDATE `PREFIX_tab` SET class_name = 'AdminDashboard', id_parent = 0, active = 1, module = "" WHERE class_name = 'AdminHome';
 
 INSERT INTO `PREFIX_module` (`name`, `active`, `version`)
-VALUES ('dashactivity', '1', '0.1'),('dashtrends', '1', '0.1'),('dashgoals', '1', '0.1'),('dashproducts', '1', '0.1');
+VALUES ('graphnvd3', '1', '1.0'),('dashactivity', '1', '0.1'),('dashtrends', '1', '0.1'),('dashgoals', '1', '0.1'),('dashproducts', '1', '0.1');
 
 INSERT INTO `PREFIX_module_access` (`id_profile`, `id_module`, `view`, `configure`) (
-	SELECT p.id_profile, m.id_module, 1, 1 FROM `PREFIX_module` m, `PREFIX_profile` p WHERE m.name IN ('dashactivity', 'dashtrends', 'dashgoals', 'dashproducts')
+	SELECT p.id_profile, m.id_module, 1, 1 FROM `PREFIX_module` m, `PREFIX_profile` p WHERE m.name IN ('graphnvd3', 'dashactivity', 'dashtrends', 'dashgoals', 'dashproducts')
 );
 
 INSERT INTO `PREFIX_module_shop` (`id_module`, `id_shop`) (
-	SELECT m.id_module, s.id_shop FROM `PREFIX_module` m, `PREFIX_shop` s WHERE m.name IN ('dashactivity', 'dashtrends', 'dashgoals', 'dashproducts')
+	SELECT m.id_module, s.id_shop FROM `PREFIX_module` m, `PREFIX_shop` s WHERE m.name IN ('graphnvd3', 'dashactivity', 'dashtrends', 'dashgoals', 'dashproducts')
 );
 
 INSERT INTO `PREFIX_hook` (`name`, `title`, `position`, `live_edit`) VALUES
@@ -65,6 +65,9 @@ INSERT INTO `PREFIX_hook_module` (`id_module`, `id_shop`, `id_hook`, `position`)
 INSERT INTO `PREFIX_hook_module` (`id_module`, `id_shop`, `id_hook`, `position`) (
 	SELECT m.id_module, s.id_shop, h.id_hook, 3 FROM `PREFIX_module` m, `PREFIX_shop` s, `PREFIX_hook` h WHERE m.name IN ('dashproducts') AND h.name IN ('dashboardZoneTwo')
 );
+INSERT INTO `PREFIX_hook_module` (`id_module`, `id_shop`, `id_hook`, `position`) (
+	SELECT m.id_module, s.id_shop, h.id_hook, 0 FROM `PREFIX_module` m, `PREFIX_shop` s, `PREFIX_hook` h WHERE m.name IN ('graphnvd3') AND h.name IN ('GraphEngine', 'actionAdminControllerSetMedia')
+);
 
 ALTER TABLE  `PREFIX_employee` ADD  `stats_compare_from` DATE NULL DEFAULT NULL AFTER  `stats_date_to` , ADD  `stats_compare_to` DATE NULL DEFAULT NULL AFTER  `stats_compare_from`;
 
@@ -75,3 +78,17 @@ VALUES (NULL , 'displayHomeTab', 'Home Page Tabs', 'This hook displays new eleme
 (NULL , 'actionBackOfficeCategory', 'Process new elements in the Back Office, tab AdminCategories', 'This hook process modules when the AdminCategories tab is displayed in the Back Office', '1', '1');
 
 ALTER TABLE  `PREFIX_employee` ADD  `stats_compare_option` INT( 1 ) NOT NULL DEFAULT  '1' AFTER  `stats_compare_to`;
+
+INSERT INTO `PREFIX_configuration` (`name`, `value`, `date_add`, `date_upd`) VALUES('DASHACTIVITY_CART_ACTIVE', '30', NOW(), NOW());
+INSERT INTO `PREFIX_configuration` (`name`, `value`, `date_add`, `date_upd`) VALUES('DASHACTIVITY_CART_ABANDONED_MIN', '24', NOW(), NOW());
+INSERT INTO `PREFIX_configuration` (`name`, `value`, `date_add`, `date_upd`) VALUES('DASHACTIVITY_CART_ABANDONED_MAX', '48', NOW(), NOW());
+INSERT INTO `PREFIX_configuration` (`name`, `value`, `date_add`, `date_upd`) VALUES('DASHACTIVITY_VISITOR_ONLINE', '30', NOW(), NOW());
+
+INSERT INTO `PREFIX_configuration` (`name`, `value`, `date_add`, `date_upd`) VALUES('PS_DASHGOALS_CURRENT_YEAR', YEAR(NOW()), NOW(), NOW());
+
+INSERT INTO `PREFIX_configuration` (`name`, `value`, `date_add`, `date_upd`) VALUES('DASHPRODUCT_NBR_SHOW_LAST_ORDER', '10', NOW(), NOW());
+INSERT INTO `PREFIX_configuration` (`name`, `value`, `date_add`, `date_upd`) VALUES('DASHPRODUCT_NBR_SHOW_BEST_SELLER', '10', NOW(), NOW());
+INSERT INTO `PREFIX_configuration` (`name`, `value`, `date_add`, `date_upd`) VALUES('DASHPRODUCT_NBR_SHOW_MOST_VIEWED', '10', NOW(), NOW());
+INSERT INTO `PREFIX_configuration` (`name`, `value`, `date_add`, `date_upd`) VALUES('DASHPRODUCT_NBR_SHOW_TOP_SEARCH', '10', NOW(), NOW());
+
+

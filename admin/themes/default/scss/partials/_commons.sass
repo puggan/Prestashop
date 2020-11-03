@@ -1,6 +1,6 @@
 // helpers class for fixing input width
 .fixed-width-xs
-	width: 40px!important
+	width: 48px!important
 .fixed-width-sm
 	width: 80px!important
 .fixed-width-md
@@ -29,23 +29,42 @@
 	background-color: white
 	border-color: #ccc!important
 
-// highlighting element (ie: a special row in a table)
 .highlight
-	background-color: #FFFF00
+	background-color: #F7E69F
+
+.text-orange
+	color: $amber
 
 .badge
+	padding: 1px 5px
 	font-weight: normal
-	font-size: 1.1em
+	font-size: 1em
+	line-height: inherit
 	letter-spacing: 0.0625em
 	background-color: $brand-primary
+	&.badge-info
+		background-color: $brand-info
 	&.badge-success
 		background-color: $brand-success
-	&.badge-error
+	&.badge-warning
+		background-color: $brand-warning
+	&.badge-danger
 		background-color: $brand-danger
+	&.badge-critical
+		background-color: darken($brand-danger,15%)
 
+.label
+	font-size: 12px
+	font-weight: 400
+	&.label-inactive
+		background-color: #999
 //tabs
 .nav-tabs
 	border-bottom: none
+	li .badge
+		background-color: white
+		border: solid 2px #eee
+		color: #666
 	li a
 		font-size: 1.1em
 		font-family: $headings-font-family
@@ -88,6 +107,9 @@
 
 .alert.alert-info
 	@include alert-panel(icon-question-circle, $brand-info)
+	color: darken($brand-info,10%)
+	border: solid 1px lighten($brand-info,25%)
+	background-color: lighten($brand-info,37%)
 
 .alert.alert-addons
 	$alert-addons-border: lighten($brand-addons,10%)
@@ -95,7 +117,59 @@
 	@include alert-variant(#F3F3F2, $alert-addons-border, $alert-addons-text)
 	@include alert-panel(icon-puzzle-piece, $brand-addons)
 
+.alert.alert-message
+	@include alert-panel(icon-comment, $brand-warning)
+	border: solid 2px $brand-warning
+	background-color: white
+
+.alert h4
+	font-size: 1.45em
+	margin-bottom: 1em
+
 .overflow-y
 	max-height: 200px
 	margin-bottom: 15px
 	overflow-y: auto
+
+.input[type='password']
+	font-size: 2em!important
+
+.pagination
+	margin: 17px 0 0 0 !important
+
+.panel.panel-sm
+	padding: 8px!important
+	.panel-heading
+		margin: -8px -8px 10px -8px !important
+		font-size: 13px!important
+		padding-left: 8px !important
+	.form-group
+		margin-bottom: 8px
+
+.list-detail
+	dd:not(:last-child)
+		margin-bottom: 10px
+
+//stars
+.rating
+	unicode-bidi: bidi-override
+	direction: rtl
+	font-size: 20px
+	span.star
+		font-family: FontAwesome
+		font-weight: normal
+		font-style: normal
+		display: inline-block
+		&:hover
+			cursor: pointer
+		&:before
+			content: "\f006"
+			padding-right: 3px
+			color: #999
+		&:hover:before,
+		&.active:before,
+		&:hover~span.star:before,
+		&.active~span.star:before
+			content: "\f005"
+			color: #e3cf7a
+

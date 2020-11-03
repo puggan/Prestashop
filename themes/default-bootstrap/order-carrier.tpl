@@ -29,7 +29,7 @@
 		<h1 class="page-heading">{l s='Shipping:'}</h1>
 		{include file="$tpl_dir./order-steps.tpl"}
 		{include file="$tpl_dir./errors.tpl"}
-		<form id="form" action="{$link->getPageLink('order', true, NULL, "multi-shipping={$multi_shipping}")|escape:'html':'UTF-8'}" method="post" onsubmit="return acceptCGV();">
+		<form id="form" action="{$link->getPageLink('order', true, NULL, "multi-shipping={$multi_shipping}")|escape:'html':'UTF-8'}" method="post" name="carrier_area">
 {else}
 	<div id="carrier_area" class="opc-main-block">
 		<h1 class="page-heading step-num"><span>2</span> {l s='Delivery methods'}</h1>
@@ -74,7 +74,7 @@
 										<table class="resume table table-bordered">
 											<tr>
 												<td class="delivery_option_radio">
-													<input id="delivery_option_{$id_address}_{$option@index}" class="delivery_option_radio" type="radio" name="delivery_option[{$id_address}]" data-js="delivery_option_radio" data-key="{$key}" data-id_address="{$id_address|intval}" value="{$key}"{if isset($delivery_option[$id_address]) && $delivery_option[$id_address] == $key} checked="checked"{/if} />
+													<input id="delivery_option_{$id_address}_{$option@index}" class="delivery_option_radio" type="radio" name="delivery_option[{$id_address}]" data-key="{$key}" data-id_address="{$id_address|intval}" value="{$key}"{if isset($delivery_option[$id_address]) && $delivery_option[$id_address] == $key} checked="checked"{/if} />
 												</td>
 												<td class="delivery_option_logo">
 													{foreach $option.carrier_list as $carrier}
@@ -246,13 +246,6 @@
 			{/if}
 		</div> <!-- end delivery_options_address -->
 		{if !$opc}
-				<div class="clearfix">
-					<p><strong class="dark">{l s='Leave a message'}</strong></p>
-					<div class="form-group">
-						<p>{l s='If you would like to add a comment about your order, please write it in the field below.'}</p>
-						<textarea class="form-control" cols="120" rows="2" name="message" id="message">{if isset($oldMessage)}{$oldMessage|escape:'html':'UTF-8'}{/if}</textarea>
-					</div>
-				</div>
 				<p class="cart_navigation clearfix">
 					<input type="hidden" name="step" value="3" />
 					<input type="hidden" name="back" value="{$back}" />
@@ -294,13 +287,6 @@
 				</p>
 			</form>
 	{else}
-			<p><strong class="dark">{l s='Leave a message'}</strong></p>
-			<div>
-				<p>{l s='If you would like to add a comment about your order, please write it in the field below.'}</p>
-				<textarea class="form-control" cols="120" rows="2" name="message" id="message">{strip}
-					{if isset($oldMessage)}{$oldMessage|escape:'html':'UTF-8'}{/if}
-				{/strip}</textarea>
-			</div>
 		</div> <!-- end opc_delivery_methods -->
 	{/if}
 </div> <!-- end carrier_area -->

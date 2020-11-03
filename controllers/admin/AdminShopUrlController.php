@@ -124,7 +124,7 @@ class AdminShopUrlControllerCore extends AdminController
 					'input' => array(
 						array(
 							'type' => 'select',
-							'label' => $this->l('Shop:'),
+							'label' => $this->l('Shop'),
 							'name' => 'id_shop',
 							'onchange' => 'checkMainUrlInfo(this.value);',
 							'options' => array(
@@ -141,7 +141,7 @@ class AdminShopUrlControllerCore extends AdminController
 						),
 						array(
 							'type' => 'switch',
-							'label' => $this->l('Main URL:'),
+							'label' => $this->l('Main URL'),
 							'name' => 'main',
 							'class' => 't',
 							'values' => array(
@@ -168,7 +168,7 @@ class AdminShopUrlControllerCore extends AdminController
 						),
 						array(
 							'type' => 'switch',
-							'label' => $this->l('Enabled:'),
+							'label' => $this->l('Enabled'),
 							'name' => 'active',
 							'required' => false,
 							'class' => 't',
@@ -198,37 +198,15 @@ class AdminShopUrlControllerCore extends AdminController
 					'input' => array(
 						array(
 							'type' => 'text',
-							'label' => $this->l('Domain:'),
+							'label' => $this->l('Domain'),
 							'name' => 'domain',
 							'size' => 50,
 						),
 						array(
 							'type' => 'text',
-							'label' => $this->l('Domain SSL:'),
+							'label' => $this->l('Domain SSL'),
 							'name' => 'domain_ssl',
 							'size' => 50,
-						),
-						array(
-							'type' => 'text',
-							'label' => $this->l('Physical URL:'),
-							'name' => 'physical_uri',
-							'desc' => $this->l('This is the physical folder for your store on the server. Leave this field empty if your store is installed on the root path (e.g. if your store is available at www.my-prestashop.com/my-store/, you input my-store/ in this field).'),
-							'size' => 50,
-						),
-						array(
-							'type' => 'text',
-							'label' => $this->l('Virtual URL:'),
-							'name' => 'virtual_uri',
-							'desc' => $desc_virtual_uri,
-							'size' => 50,
-							'hint' => (!$update_htaccess) ? $this->l('Warning: URL rewriting (e.g. mod_rewrite for Apache) seems to be disabled. If your URL doesn\'t work, please check with your host provider on how to activate URL rewriting.') : null,
-						),
-						array(
-							'type' => 'text',
-							'label' => $this->l('Your final URL will be:'),
-							'name' => 'final_url',
-							'size' => 76,
-							'readonly' => true
 						),
 					),
 					'submit' => array(
@@ -236,6 +214,39 @@ class AdminShopUrlControllerCore extends AdminController
 					),
 				),
 			),
+		);
+		
+		if (!defined('_PS_HOST_MODE_'))
+			$this->fields_form[1]['form']['input'] = array_merge($this->fields_form[1]['form']['input'],
+				array(
+					array(
+						'type' => 'text',
+						'label' => $this->l('Physical URL'),
+						'name' => 'physical_uri',
+						'desc' => $this->l('This is the physical folder for your store on the server. Leave this field empty if your store is installed on the root path (e.g. if your store is available at www.my-prestashop.com/my-store/, you input my-store/ in this field).'),
+						'size' => 50,
+					)
+				)
+			);
+
+		$this->fields_form[1]['form']['input'] = array_merge($this->fields_form[1]['form']['input'],
+			array(
+				array(
+					'type' => 'text',
+					'label' => $this->l('Virtual URL'),
+					'name' => 'virtual_uri',
+					'desc' => $desc_virtual_uri,
+					'size' => 50,
+					'hint' => (!$update_htaccess) ? $this->l('Warning: URL rewriting (e.g. mod_rewrite for Apache) seems to be disabled. If your URL doesn\'t work, please check with your host provider on how to activate URL rewriting.') : null,
+				),
+				array(
+					'type' => 'text',
+					'label' => $this->l('Your final URL will be'),
+					'name' => 'final_url',
+					'size' => 76,
+					'readonly' => true
+				),
+			)
 		);
 
 		if (!($obj = $this->loadObject(true)))
@@ -406,7 +417,11 @@ class AdminShopUrlControllerCore extends AdminController
 
 		$return = parent::processSave();
 		if (!$this->errors)
+		{
 			Tools::generateHtaccess();
+			Tools::clearSmartyCache();
+			Media::clearCache();
+		}
 
 		return $return;
 	}

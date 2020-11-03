@@ -43,7 +43,13 @@ class AdminAddressesControllerCore extends AdminController
 
 		$this->addRowAction('edit');
 		$this->addRowAction('delete');
-	 	$this->bulk_actions = array('delete' => array('text' => $this->l('Delete selected'), 'confirm' => $this->l('Delete selected items?')));
+		$this->bulk_actions = array(
+			'delete' => array(
+				'text' => $this->l('Delete selected'),
+				'confirm' => $this->l('Delete selected items?'),
+				'icon' => 'icon-trash'
+			)
+		);
 
 		$this->allow_export = true;
 
@@ -131,7 +137,7 @@ class AdminAddressesControllerCore extends AdminController
 					'name' => 'phone',
 					'required' => false,
 					'col' => '4',
-					'hint' => Configuration::get('PS_ONE_PHONE_AT_LEAST') ? sprintf($this->l('You must register at least one phone number')) : ''
+					'hint' => Configuration::get('PS_ONE_PHONE_AT_LEAST') ? sprintf($this->l('You must register at least one phone number.')) : ''
 				),
 				array(
 					'type' => 'text',
@@ -139,7 +145,7 @@ class AdminAddressesControllerCore extends AdminController
 					'name' => 'phone_mobile',
 					'required' => false,
 					'col' => '4',
-					'hint' => Configuration::get('PS_ONE_PHONE_AT_LEAST') ? sprintf($this->l('You must register at least one phone number')) : ''
+					'hint' => Configuration::get('PS_ONE_PHONE_AT_LEAST') ? sprintf($this->l('You must register at least one phone number.')) : ''
 				),
 				array(
 					'type' => 'textarea',
@@ -344,7 +350,7 @@ class AdminAddressesControllerCore extends AdminController
 		$id_country = (int)Tools::getValue('id_country');
 		$country = new Country((int)$id_country);
 		if ($country && !(int)$country->contains_states && $id_state)
-			$this->errors[] = Tools::displayError('You\'ve selected a state for a country that does not contain states.');
+			$this->errors[] = Tools::displayError('You have selected a state for a country that does not contain states.');
 
 		/* If the selected country contains states, then a state have to be selected */
 		if ((int)$country->contains_states && !$id_state)
@@ -353,11 +359,11 @@ class AdminAddressesControllerCore extends AdminController
 		$postcode = Tools::getValue('postcode');		
 		/* Check zip code format */
 		if ($country->zip_code_format && !$country->checkZipCode($postcode))
-			$this->errors[] = Tools::displayError('Your Postal / Zip Code is incorrect.').'<br />'.Tools::displayError('It must be entered as follows:').' '.str_replace('C', $country->iso_code, str_replace('N', '0', str_replace('L', 'A', $country->zip_code_format)));
+			$this->errors[] = Tools::displayError('Your Zip/postal code is incorrect.').'<br />'.Tools::displayError('It must be entered as follows:').' '.str_replace('C', $country->iso_code, str_replace('N', '0', str_replace('L', 'A', $country->zip_code_format)));
 		elseif(empty($postcode) && $country->need_zip_code)
-			$this->errors[] = Tools::displayError('A Zip / Postal code is required.');
+			$this->errors[] = Tools::displayError('A Zip/postal code is required.');
 		elseif ($postcode && !Validate::isPostCode($postcode))
-			$this->errors[] = Tools::displayError('The Zip / Postal code is invalid.');
+			$this->errors[] = Tools::displayError('The Zip/postal code is invalid.');
 
 		if (Configuration::get('PS_ONE_PHONE_AT_LEAST') && !Tools::getValue('phone') && !Tools::getValue('phone_mobile'))		
 			$this->errors[] = Tools::displayError('You must register at least one phone number.');

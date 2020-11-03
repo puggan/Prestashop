@@ -2,7 +2,6 @@
 @charset "UTF-8"
 //Compass is required to pre-compile this stylesheets to .css
 @import "compass"
-@import "compass/reset"
 
 @import "modules/colors"
 @import "modules/variables"
@@ -16,6 +15,10 @@
 @import "vendor/bootstrap-sass/mixins"
 @import "vendor/bootstrap-sass/normalize"
 //@import "vendor/bootstrap-sass/print"
+
+//fonts
+@import url(https://fonts.googleapis.com/css?family=Ubuntu+Condensed)
+@import url(https://fonts.googleapis.com/css?family=Open+Sans:300,400,700)
 
 //Bootstrap's rules applied only on div#content.bootstrap, nav.bootstrap, header.bootstrap, footer.bootstrap
 .bootstrap
@@ -43,7 +46,7 @@
 	//@import "vendor/bootstrap-sass/jumbotron"
 	@import "vendor/bootstrap-sass/thumbnails"
 	@import "vendor/bootstrap-sass/alerts"
-	//@import "vendor/bootstrap-sass/progress-bars"
+	@import "vendor/bootstrap-sass/progress-bars"
 	@import "vendor/bootstrap-sass/media"
 	@import "vendor/bootstrap-sass/list-group"
 	@import "vendor/bootstrap-sass/panels"
@@ -52,13 +55,13 @@
 	// Components w/ JavaScript
 	@import "vendor/bootstrap-sass/tooltip"
 	//@import "vendor/bootstrap-sass/popovers"
-	//@import "vendor/bootstrap-sass/carousel"
 	//Utility classes
 	@import "vendor/bootstrap-sass/utilities"
 	@import "vendor/bootstrap-sass/responsive-utilities"
 
 //Moved out from .bootstrap prefix since modal's javascript appends the background overlay just before /body.
 @import "vendor/bootstrap-sass/modals"
+@import "vendor/bootstrap-sass/carousel"
 
 //PrestaShop Elements
 @import "partials/content"
@@ -80,6 +83,7 @@
 	@import "partials/date-range-picker"
 	@import "partials/multishop"
 	@import "partials/rtl"
+
 	//Controllers
 	@import "controllers/carrier-wizard"
 	@import "controllers/dashboard"
@@ -89,6 +93,8 @@
 	@import "controllers/translations"
 	@import "controllers/customer-thread"
 
+@import "partials/tinymce"
+
 //Plug-ins
 @import "vendor/growl"
 @import "vendor/chosen"
@@ -96,5 +102,3 @@
 
 //Backward compatibility
 @import "partials/backward"
-@import url(http://fonts.googleapis.com/css?family=Ubuntu+Condensed)
-@import url(http://fonts.googleapis.com/css?family=Open+Sans:300,400,700)

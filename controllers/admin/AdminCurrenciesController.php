@@ -43,11 +43,13 @@ class AdminCurrenciesControllerCore extends AdminController
 			'active' => array('title' => $this->l('Enabled'), 'width' => 25, 'align' => 'center', 'active' => 'status', 'type' => 'bool', 'orderby' => false, 'class' => 'fixed-width-sm'),
 		);
 
-	 	$this->bulk_actions = array(
-			'delete' => array('text' => $this->l('Delete selected'), 'confirm' => $this->l('Delete selected items?')),
-			'enableSelection' => array('text' => $this->l('Enable selection')),
-			'disableSelection' => array('text' => $this->l('Disable selection'))
-			);
+		$this->bulk_actions = array(
+			'delete' => array(
+				'text' => $this->l('Delete selected'),
+				'confirm' => $this->l('Delete selected items?'),
+				'icon' => 'icon-trash'
+			)
+		);
 
 		$this->fields_options = array(
 			'change' => array(
@@ -62,7 +64,7 @@ class AdminCurrenciesControllerCore extends AdminController
 			'cron' => array(
 				'title' =>	$this->l('Automatically update currency rates'),
 				'image' => '../img/admin/tab-tools.gif',
-				'info' => '<div class="alert alert-block"><p>'.$this->l('Use PrestaShop\'s webservice to update your currency exchange rates. Please use caution, rates are provided as-is. You can place this URL in the crontab,or access it manually.').':</p>
+				'info' => '<div class="alert alert-block"><p>'.$this->l('Use PrestaShop\'s webservice to update your currency exchange rates. Please use caution, rates are provided as-is. You can place this URL in the crontab,or access it manually:').'</p>
 					<p><strong><a href="'.Tools::getShopDomain(true, true).__PS_BASE_URI__.basename(_PS_ADMIN_DIR_).'/cron_currency_rates.php?secure_key='.md5(_COOKIE_KEY_.Configuration::get('PS_SHOP_NAME')).'" onclick="return !window.open($(this).attr(\'href\'));">'.Tools::getShopDomain(true, true).__PS_BASE_URI__.basename(_PS_ADMIN_DIR_).'/cron_currency_rates.php?secure_key='.md5(_COOKIE_KEY_.Configuration::get('PS_SHOP_NAME')).'</a></strong></p></div>',
 			)
 		);
@@ -142,8 +144,8 @@ class AdminCurrenciesControllerCore extends AdminController
 					'hint' =>$this->l('Applies to all prices (e.g. $1,240.15).'),
 					'options' => array(
 						'query' => array(
-							array('key' => 1, 'name' => 'X0,000.00 ('.$this->l('as with Dollars').')'),
-							array('key' => 2, 'name' => '0 000,00X ('.$this->l('as with Euros').')'),
+							array('key' => 1, 'name' => 'X0,000.00 ('.$this->l('Such as with Dollars').')'),
+							array('key' => 2, 'name' => '0 000,00X ('.$this->l('Such as with Euros').')'),
 							array('key' => 3, 'name' => 'X0.000,00'),
 							array('key' => 4, 'name' => '0,000.00X'),
 							array('key' => 5, 'name' => 'X0\'000.00') // Added for the switzerland currency

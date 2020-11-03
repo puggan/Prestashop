@@ -78,6 +78,12 @@
 				{if $product->productDownload->id}
 					<input type="hidden" id="virtual_product_id" name="virtual_product_id" value="{$product->productDownload->id}" />
 				{/if}
+				<div class="form-group"{if $is_file} style="display:none"{/if}>
+					<label id="virtual_product_file_label" for="virtual_product_file" class="control-label col-lg-3">{l s='File'}</label>
+					<div class="col-lg-5">
+					{$virtual_product_file_uploader}
+					</div>
+				</div>
 				<div class="form-group">
 					<label class="control-label col-lg-3 required">{l s='Filename'}</label>
 					<div class="col-lg-5">
@@ -85,18 +91,12 @@
 						<p class="help-block">{l s='The full filename with its extension (e.g. Book.pdf)'}</p>
 					</div>
 				</div>
-				<div class="form-group"{if $is_file} style="display:none"{/if}>
-					<label id="virtual_product_file_label" for="virtual_product_file" class="control-label col-lg-3">{l s='File'}</label>
-					<div class="col-lg-5">
-					{$virtual_product_file_uploader}
-					</div>
-				</div>
 				{if $is_file}
 				<div class="form-group">
 					<label class="control-label col-lg-3">{l s='Link to the file:'}</label>
 					<div class="col-lg-5">
 						<a href="{$product->productDownload->getTextLink(true)}" class="btn btn-default"><i class="icon-download"></i> {l s='Download file'}</a>
-						<a href="{$currentIndex}&deleteVirtualProduct=true&updateproduct&token={$token}&id_product={$product->id}" class="btn btn-default" onclick="return confirm('{l s='Do you really want to delete this file?' js=1}');"><i class="icon-trash"></i> {l s='Delete this file'}</a>
+						<a href="{$currentIndex}&amp;deleteVirtualProduct=true&amp;updateproduct&amp;token={$token}&amp;id_product={$product->id}" class="btn btn-default" onclick="return confirm('{l s='Do you really want to delete this file?' js=1}');"><i class="icon-trash"></i> {l s='Delete this file'}</a>
 					</div>
 				</div>
 				{/if}				
@@ -104,12 +104,12 @@
 					<label class="control-label col-lg-3">{l s='Number of allowed downloads'}</label>
 					<div class="col-lg-3">
 						<input type="text" id="virtual_product_nb_downloable" name="virtual_product_nb_downloable" value="{$product->productDownload->nb_downloadable|htmlentities}" class="" size="6" />
-						<p class="help-block">{l s='Number of downloads allowed per customer. (Set to 0 for unlimited downloads)'}</p>
+						<p class="help-block">{l s='Number of downloads allowed per customer. Set to 0 for unlimited downloads.'}</p>
 					</div>
 				</div>
 				<div class="form-group">
 					<label class="control-label col-lg-3">
-						<span class="label-tooltip" data-toggle="tooltip" title="" data-original-title="{l s='Format: YYYY-MM-DD'}">
+						<span class="label-tooltip" data-toggle="tooltip" title="" data-original-title="{l s='Format: YYYY-MM-DD.'}">
 							{l s='Expiration date'}
 						</span>
 					</label>
@@ -121,8 +121,8 @@
 				<div class="form-group">
 					<label class="control-label col-lg-3 required">{l s='Number of days'}</label>
 					<div class="col-lg-3">
-						<input type="text" id="virtual_product_nb_days" name="virtual_product_nb_days" value="{$product->productDownload->nb_days_accessible|htmlentities}" class="" size="4" />
-						<p class="help-block">{l s='Number of days this file can be accessed by customers'} - <em>({l s='Set to zero for unlimited access.'})</em></p>
+						<input type="text" id="virtual_product_nb_days" name="virtual_product_nb_days" value="{if !$product->productDownload->nb_days_accessible}0{else}{$product->productDownload->nb_days_accessible|htmlentities}{/if}" class="" size="4" />
+						<p class="help-block">{l s='Number of days this file can be accessed by customers. Set to zero for unlimited access.'})</p>
 					</div>
 				</div>
 				{* Feature not implemented *}

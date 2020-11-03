@@ -22,24 +22,29 @@
 *  @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 */
-
+//global variables
 var responsiveflag = false;
 
 $(document).ready(function(){
 	highdpi_init();
 	blockHover();
+
+	if (typeof quickView !== 'undefined' && quickView)
+		quick_view();
+
 	responsiveResize();
 	$(window).resize(responsiveResize);
+
 	tmDropDown ('', '#header .current', 'ul.toogle_content', 'active');							// all of this should be defined or left empty brackets
 	//tmDropDown ('cart', 'li#shopping_cart > a', '#cart_block', 'active');			// all of this should be defined or left empty brackets
 
-	if (navigator.userAgent.match(/Android/i)) {
+	if (navigator.userAgent.match(/Android/i))
+	{
 		var viewport = document.querySelector("meta[name=viewport]");
 		viewport.setAttribute('content', 'initial-scale=1.0,maximum-scale=1.0,user-scalable=0,width=device-width,height=device-height');
 	}
-	if (navigator.userAgent.match(/Android/i)) {
+	if (navigator.userAgent.match(/Android/i))
 		window.scrollTo(0,1);
-	}
 
 	if (typeof page_name != 'undefined' && !in_array(page_name, ['index', 'product']))
 	{
@@ -49,23 +54,66 @@ $(document).ready(function(){
 			display(view);
 		else
 			$('.display').find('li#grid').addClass('selected');
-
-		$('.add_to_compare').click(function(e){
-			e.preventDefault();
-			if (typeof addToCompare != 'undefined')
-				addToCompare(parseInt($(this).data('id-product')));
-		});
 		
-		$('#grid').click(function(e){
+		$(document).on('click', '#grid', function(e){
 			e.preventDefault();
 			display('grid');
 		});
 
-		$('#list').click(function(e){
+		$(document).on('click', '#list', function(e){
 			e.preventDefault();
 			display('list');
 		});
+
+ 		$(document).on('change', '.selectProductSort', function(){
+			if (typeof request != 'undefined' && request)
+				var requestSortProducts = request;
+ 			var splitData = $(this).val().split(':');
+			if (typeof requestSortProducts != 'undefined' && requestSortProducts)
+				document.location.href = requestSortProducts + ((requestSortProducts.indexOf('?') < 0) ? '?' : '&') + 'orderby=' + splitData[0] + '&orderway=' + splitData[1];
+    	});
+
+		$(document).on('change', 'select[name=n]', function(){
+			$(this.form).submit();
+		});
+
+		$(document).on('change', 'select[name=manufacturer_list], select[name=supplier_list]', function(){
+			autoUrl($(this).attr('id'), '');
+		});
+
+		$(document).on('change', 'select[name=currency_payement]', function(){
+			setCurrency($(this).val());
+		});
 	}
+	
+	jQuery.curCSS = jQuery.css;
+	if (!!$.prototype.cluetip)
+		$('a.cluetip').cluetip({
+			local:true,
+			cursor: 'pointer',
+			dropShadow: false,
+			dropShadowSteps: 0,
+			showTitle: false,
+			tracking: true,
+			sticky: false,
+			mouseOutClose: true,
+			fx: {             
+		    	open:       'fadeIn',
+		    	openSpeed:  'fast'
+			}
+		}).css('opacity', 0.8);
+
+		if (!!$.prototype.fancybox)
+			$.extend($.fancybox.defaults.tpl, {
+					closeBtn : '<a title="' + FancyboxboxI18nClose + '" class="fancybox-item fancybox-close" href="javascript:;"></a>',
+					next     : '<a title="' + FancyboxI18nNext + '" class="fancybox-nav fancybox-next" href="javascript:;"><span></span></a>',
+					prev     : '<a title="' + FancyboxI18nPrev + '" class="fancybox-nav fancybox-prev" href="javascript:;"><span></span></a>'
+			});
+
+		$(document).on('click', '.back', function(e){
+			e.preventDefault();
+			history.back();
+		});
 });
 
 function highdpi_init()
@@ -86,23 +134,24 @@ function highdpi_init()
 	}
 }
 
-function blockHover(status) 
+function blockHover(status)
 {
-	$('.product_list.grid li.ajax_block_product').each(function() {
-		$(this).find('.product-container').hover(
-		function(){
+	$(document).off('mouseenter').on('mouseenter', '.product_list.grid li.ajax_block_product .product-container',
+		function(e){
 			if ($('body').find('.container').width() == 1170){
 				var pcHeight = $(this).parent().outerHeight();
 				var pcPHeight = $(this).parent().find('.button-container').outerHeight() + $(this).parent().find('.comments_note').outerHeight() + $(this).parent().find('.functional-buttons').outerHeight();
-				$(this).parent().addClass('hovered'),
-				$(this).parent().css('height', pcHeight + pcPHeight).css('margin-bottom',pcPHeight*-1)
+				$(this).parent().addClass('hovered');
+				$(this).parent().css('height', pcHeight + pcPHeight).css('margin-bottom', pcPHeight * (-1));
 			}
-		},
-		function(){
-			if ($('body').find('.container').width() == 1170)
-			$(this).parent().removeClass('hovered').removeProp('style');
 		}
-	)});	
+	);
+
+	$(document).off('mouseleave').on('mouseleave', '.product_list.grid li.ajax_block_product .product-container', function(e){
+			if ($('body').find('.container').width() == 1170)
+				$(this).parent().removeClass('hovered').removeAttr('style');
+		}
+	);
 }
 
 function display(view)
@@ -148,7 +197,7 @@ function display(view)
 		$.totalStorage('display', 'list');
 		if (typeof ajaxCart != 'undefined')      // cart button reload
 			ajaxCart.overrideButtonsInThePage();
-		if (typeof quick_view != 'undefined') 	// qick view button reload
+		if (typeof quickView !== 'undefined' && quickView) 	// qick view button reload
 			quick_view();
 	}
 	else 
@@ -190,10 +239,31 @@ function display(view)
 		$.totalStorage('display', 'grid');			
 		if (typeof ajaxCart != 'undefined') 	// cart button reload
 			ajaxCart.overrideButtonsInThePage();
-		if (typeof quick_view != 'undefined') 	// qick view button reload
+		if (typeof quickView !== 'undefined' && quickView) 	// qick view button reload
 			quick_view();
-		blockHover();
 	}	
+}
+
+function quick_view()
+{
+	$(document).on('click', '.quick-view', function(e) 
+	{
+		e.preventDefault();
+		var url = this.rel;
+		if (url.indexOf('?') != -1)
+			url += '&';
+		else
+			url += '?';
+
+		if (!!$.prototype.fancybox)
+			$.fancybox({
+				'padding':  0,
+				'width':    1087,
+				'height':   610,
+				'type':     'iframe',
+				'href':     url + 'content_only=1'
+			});
+	});
 }
 
 /*********************************************************** TMMenuDropDown **********************************/

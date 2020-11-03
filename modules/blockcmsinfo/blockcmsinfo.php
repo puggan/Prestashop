@@ -37,6 +37,7 @@ class Blockcmsinfo extends Module
 		$this->name = 'blockcmsinfo';
 		$this->tab = 'front_office_features';
 		$this->version = '1.0';
+		$this->author = 'PrestaShop';
 		$this->bootstrap = true;
 		$this->need_instance = 0;
 		parent::__construct();
@@ -48,11 +49,11 @@ class Blockcmsinfo extends Module
 	{
 			return parent::install() &&
 			$this->installDB() &&
-			Configuration::updateValue('blockcmsinfo_nbblocks', 2) &&
+			Configuration::updateValue('BLOCKCMSINFO_NBBLOCKS', 2) &&
 			$this->registerHook('home') && $this->installFixtures() &&
 			$this->disableDevice(Context::DEVICE_TABLET | Context::DEVICE_MOBILE);
 	}
-	
+
 	public function installDB()
 	{
 		$return = true;
@@ -62,7 +63,7 @@ class Blockcmsinfo extends Module
 				`id_shop` int(10) unsigned NOT NULL ,
 				PRIMARY KEY (`id_info`)
 			) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8 ;');
-		
+
 		$return &= Db::getInstance()->execute('
 			CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.'info_lang` (
 				`id_info` INT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -77,7 +78,7 @@ class Blockcmsinfo extends Module
 	public function uninstall()
 	{
 		// Delete configuration
-			return Configuration::deleteByName('blockcmsinfo_nbblocks') &&
+			return Configuration::deleteByName('BLOCKCMSINFO_NBBLOCKS') &&
 			$this->uninstallDB() &&
 			parent::uninstall();
 	}
@@ -92,14 +93,15 @@ class Blockcmsinfo extends Module
 		if (isset($_POST['nbblocks']))
 		{
 			for ($i = 1; $i <= (int)$_POST['nbblocks']; $i++)
-			{
-				
-				Db::getInstance()->execute('INSERT INTO `'._DB_PREFIX_.'info` (`text`)
-											VALUES ("'.((isset($_POST['info'.$i.'_text']) && $_POST['info'.$i.'_text'] != '') ? pSQL($_POST['info'.$i.'_text']) : '').'")');
-			}
+				Db::getInstance()->execute('
+					INSERT INTO `'._DB_PREFIX_.'info` (`text`)
+					VALUES ("'.((isset($_POST['info'.$i.'_text']) && $_POST['info'.$i.'_text'] != '') ? pSQL($_POST['info'.$i.'_text']) : '').'")'
+				);
+
 			return true;
-		} else
-			return false;
+		}
+		
+		return false;
 	}
 
 	public function removeFromDB()
@@ -129,7 +131,7 @@ class Blockcmsinfo extends Module
 			else
 				$html .= '<div class="conf error">'.$this->l('An error occurred while attempting to save.').'</div>';
 		}
-		
+
 		if (Tools::isSubmit('updateblockcmsinfo') || Tools::isSubmit('addblockcmsinfo'))
 		{
 			$helper = $this->initForm();
@@ -138,7 +140,7 @@ class Blockcmsinfo extends Module
 				{
 					$info = new infoClass((int)$id_info);
 					$helper->fields_value['text'][(int)$lang['id_lang']] = $info->text[(int)$lang['id_lang']];
-				}	
+				}
 				else
 					$helper->fields_value['text'][(int)$lang['id_lang']] = Tools::getValue('text_'.(int)$lang['id_lang'], '');
 			if ($id_info = Tools::getValue('id_info'))
@@ -146,7 +148,7 @@ class Blockcmsinfo extends Module
 				$this->fields_form[0]['form']['input'][] = array('type' => 'hidden', 'name' => 'id_info');
 				$helper->fields_value['id_info'] = (int)$id_info;
  			}
-				
+
 			return $html.$helper->generateForm($this->fields_form);
 		}
 		else if (Tools::isSubmit('deleteblockcmsinfo'))
@@ -164,7 +166,7 @@ class Blockcmsinfo extends Module
 
 		if (isset($_POST['submitModule']))
 		{
-			Configuration::updateValue('blockcmsinfo_nbblocks', ((isset($_POST['nbblocks']) && $_POST['nbblocks'] != '') ? (int)$_POST['nbblocks'] : ''));
+			Configuration::updateValue('BLOCKCMSINFO_NBBLOCKS', ((isset($_POST['nbblocks']) && $_POST['nbblocks'] != '') ? (int)$_POST['nbblocks'] : ''));
 			if ($this->removeFromDB() && $this->addToDB())
 			{
 				$this->_clearCache('blockcmsinfo.tpl');
@@ -201,8 +203,8 @@ class Blockcmsinfo extends Module
 					'cols' => 40,
 					'rows' => 10,
 					'class' => 'rte',
-       				'autoload_rte' => true, 
-					
+					'autoload_rte' => true, 
+
 				)
 			),
 			'submit' => array(
@@ -299,21 +301,21 @@ class Blockcmsinfo extends Module
 		$return = true;
 		$tab_texts = array(
 			array('text' => '<ul>
-<li><em class="icon-truck"></em>
+<li><em class="icon-truck" id="icon-truck"></em>
 <div class="type-text">
-<h3>Free Shipping</h3>
+<h3>Lorem Ipsum</h3>
 <p>Lorem ipsum dolor sit amet conse ctetur voluptate velit esse cillum dolore eu</p>
 </div>
 </li>
-<li><em class="icon-phone"></em>
+<li><em class="icon-phone" id="icon-phone"></em>
 <div class="type-text">
-<h3>Call us: (800)2345-6789</h3>
+<h3>Dolor Sit Amet</h3>
 <p>Lorem ipsum dolor sit amet conse ctetur voluptate velit esse cillum dolore eu</p>
 </div>
 </li>
-<li><em class="icon-credit-card"></em>
+<li><em class="icon-credit-card" id="icon-credit-card"></em>
 <div class="type-text">
-<h3>Gift cards</h3>
+<h3>Ctetur Voluptate</h3>
 <p>Lorem ipsum dolor sit amet conse ctetur voluptate velit esse cillum dolore eu</p>
 </div>
 </li>

@@ -38,7 +38,7 @@
 		<!-- Shopping Cart -->
 		{include file="$tpl_dir./shopping-cart.tpl"}
 		<!-- End Shopping Cart -->
-		{if $isLogged AND !$isGuest}
+		{if $is_logged AND !$is_guest}
 			{include file="$tpl_dir./order-address.tpl"}
 		{else}
 			<!-- Create account / Guest account / Login block -->
@@ -73,16 +73,11 @@
 {addJsDef displayPrice=$priceDisplay}
 {addJsDef taxEnabled=$use_taxes}
 {addJsDef conditionEnabled=$conditions|intval}
-{addJsDef countries=array()}
-{addJsDef countriesNeedIDNumber=array()}
-{addJsDef countriesNeedZipCode=array()}
 {addJsDef vat_management=$vat_management|intval}
 {addJsDef errorCarrier=$errorCarrier|@addcslashes:'\''}
 {addJsDef errorTOS=$errorTOS|@addcslashes:'\''}
 {addJsDef checkedCarrier=$checked|intval}
 {addJsDef addresses=array()}
-{addJsDef isLogged=$isLogged|intval}
-{addJsDef isGuest=$isGuest|intval}
 {addJsDef isVirtualCart=$isVirtualCart|intval}
 {addJsDef isPaymentStep=$isPaymentStep|intval}
 {addJsDefL name=txtWithTax}{l s='(tax incl.)' js=1}{/addJsDefL}
@@ -101,5 +96,20 @@
 {addJsDefL name=txtInstantCheckout}{l s='Instant checkout' js=1}{/addJsDefL}
 {addJsDefL name=txtSelectAnAddressFirst}{l s='Please start by selecting an address.' js=1}{/addJsDefL}
 {addJsDefL name=txtFree}{l s='Free' js=1}{/addJsDefL}
+
+{capture}{if $back}&mod={$back|urlencode}{/if}{/capture}
+{capture name=addressUrl}{$link->getPageLink('address', true, NULL, 'back='|cat:$back_order_page|cat:'?step=1'|cat:$smarty.capture.default)|addslashes}{/capture}
+{addJsDef addressUrl=$smarty.capture.addressUrl}
+{capture}{'&multi-shipping=1'|urlencode}{/capture}
+{addJsDef addressMultishippingUrl=$smarty.capture.addressUrl|cat:$smarty.capture.default}
+{capture name=addressUrlAdd}{$smarty.capture.addressUrl|cat:'&id_address='}{/capture}
+{addJsDef addressUrlAdd=$smarty.capture.addressUrlAdd}
+{addJsDef opc=$opc|boolval}
+{capture}<h3 class="page-subheading">{l s='Your billing address' js=1}</h3>{/capture}
+{addJsDefL name=titleInvoice}{$smarty.capture.default|@addcslashes:'\''}{/addJsDefL}
+{capture}<h3 class="page-subheading">{l s='Your delivery address' js=1}</h3>{/capture}
+{addJsDefL name=titleDelivery}{$smarty.capture.default|@addcslashes:'\''}{/addJsDefL}
+{capture}<a class="button button-small btn btn-default" href="{$smarty.capture.addressUrlAdd}" title="{l s='Update' js=1}"><span>{l s='Update' js=1}<i class="icon-chevron-right right"></i></span></a>{/capture}
+{addJsDefL name=liUpdate}{$smarty.capture.default|@addcslashes:'\''}{/addJsDefL}
 {/strip}
 {/if}

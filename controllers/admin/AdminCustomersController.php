@@ -48,7 +48,13 @@ class AdminCustomersControllerCore extends AdminController
 		$this->addRowAction('edit');
 		$this->addRowAction('view');
 		$this->addRowAction('delete');
-		$this->bulk_actions = array('delete' => array('text' => $this->l('Delete selected'), 'confirm' => $this->l('Would you like to delete the selected items?')));
+		$this->bulk_actions = array(
+			'delete' => array(
+				'text' => $this->l('Delete selected'),
+				'confirm' => $this->l('Delete selected items?'),
+				'icon' => 'icon-trash'
+			)
+		);
 
 		$this->context = Context::getContext();
 
@@ -76,7 +82,7 @@ class AdminCustomersControllerCore extends AdminController
 		$this->fields_list = array(
 			'id_customer' => array(
 				'title' => $this->l('ID'),
-				'align' => 'center',
+				'align' => 'text-center',
 				'class' => 'fixed-width-xs'
 			),
 			'title' => array(
@@ -96,18 +102,29 @@ class AdminCustomersControllerCore extends AdminController
 			'email' => array(
 				'title' => $this->l('Email address')
 			),
+		);
+
+		if (Configuration::get('PS_B2B_ENABLE'))
+		{
+			$this->fields_list = array_merge($this->fields_list, array(
+				'company' => array(
+					'title' => $this->l('Company')
+				),
+			));
+		}
+
+		$this->fields_list = array_merge($this->fields_list, array(
 			'total_spent' => array(
 				'title' => $this->l('Sales'),
 				'type' => 'price',
-				'prefix' => '<span class="badge badge-success">',
-				'suffix' => '</span>',
 				'search' => false,
 				'havingFilter' => true,
-				'align' => 'right'
+				'align' => 'text-right',
+				'badge_success' => true
 			),
 			'active' => array(
 				'title' => $this->l('Enabled'),
-				'align' => 'center',
+				'align' => 'text-center',
 				'active' => 'status',
 				'type' => 'bool',
 				'orderby' => false,
@@ -115,14 +132,14 @@ class AdminCustomersControllerCore extends AdminController
 			),
 			'newsletter' => array(
 				'title' => $this->l('News.'),
-				'align' => 'center',
+				'align' => 'text-center',
 				'type' => 'bool',
 				'callback' => 'printNewsIcon',
 				'orderby' => false
 			),
 			'optin' => array(
 				'title' => $this->l('Opt.'),
-				'align' => 'center',
+				'align' => 'text-center',
 				'type' => 'bool',
 				'callback' => 'printOptinIcon',
 				'orderby' => false
@@ -130,7 +147,7 @@ class AdminCustomersControllerCore extends AdminController
 			'date_add' => array(
 				'title' => $this->l('Registration'),
 				'type' => 'date',
-				'align' => 'right'
+				'align' => 'text-right'
 			),
 			'connect' => array(
 				'title' => $this->l('Last visit'),
@@ -138,7 +155,7 @@ class AdminCustomersControllerCore extends AdminController
 				'search' => false,
 				'havingFilter' => true
 			)
-		);
+		));
 
 		$this->shopLinkType = 'shop';
 		$this->shopShareDatas = Shop::SHARE_CUSTOMER;
@@ -186,6 +203,16 @@ class AdminCustomersControllerCore extends AdminController
 			);
 		}
 	}
+
+	public function getList($id_lang, $orderBy = null, $orderWay = null, $start = 0, $limit = null, $id_lang_shop = null)
+	{
+		parent::getList($id_lang, $orderBy, $orderWay, $start, $limit, $id_lang_shop);
+
+		if ($this->_list)
+			foreach ($this->_list as &$row)
+				$row['badge_success'] = $row['total_spent'] > 0;
+	}
+
 
 	public function initToolbarTitle()
 	{
@@ -332,7 +359,8 @@ class AdminCustomersControllerCore extends AdminController
 					'name' => 'passwd',
 					'required' => ($obj->id ? false : true),
 					'col' => '4',
-					'hint' => ($obj->id ? $this->l('Leave this field blank if there\'s no change.') : $this->l('Minimum of five characters.'))
+					'hint' => ($obj->id ? $this->l('Leave this field blank if there\'s no change.') :
+						sprintf($this->l('Minimum of %s characters.'), Validate::PASSWORD_LENGTH))
 				),
 				array(
 					'type' => 'birthday',
@@ -384,7 +412,7 @@ class AdminCustomersControllerCore extends AdminController
 							'label' => $this->l('Disabled')
 						)
 					),
-					'hint' => $this->l('Customers will receive your newsletter via email.')
+					'hint' => $this->l('This customer will receive your newsletter via email.')
 				),
 				array(
 					'type' => 'switch',
@@ -405,7 +433,7 @@ class AdminCustomersControllerCore extends AdminController
 							'label' => $this->l('Disabled')
 						)
 					),
-					'hint' => $this->l('Customer will receive your ads via email.')
+					'hint' => $this->l('This customer will receive your ads via email.')
 				),
 			)
 		);
@@ -425,7 +453,7 @@ class AdminCustomersControllerCore extends AdminController
 			array(
 				array(
 					'type' => 'group',
-					'label' => $this->l('Group access:'),
+					'label' => $this->l('Group access'),
 					'name' => 'groupBox',
 					'values' => $groups,
 					'required' => true,
@@ -434,7 +462,7 @@ class AdminCustomersControllerCore extends AdminController
 				),
 				array(
 					'type' => 'select',
-					'label' => $this->l('Default customer group:'),
+					'label' => $this->l('Default customer group'),
 					'name' => 'id_default_group',
 					'options' => array(
 						'query' => $groups,
@@ -471,40 +499,40 @@ class AdminCustomersControllerCore extends AdminController
 
 			$this->fields_form['input'][] = array(
 				'type' => 'text',
-				'label' => $this->l('Company:'),
+				'label' => $this->l('Company'),
 				'name' => 'company'
 			);
 			$this->fields_form['input'][] = array(
 				'type' => 'text',
-				'label' => $this->l('SIRET:'),
+				'label' => $this->l('SIRET'),
 				'name' => 'siret'
 			);
 			$this->fields_form['input'][] = array(
 				'type' => 'text',
-				'label' => $this->l('APE:'),
+				'label' => $this->l('APE'),
 				'name' => 'ape'
 			);
 			$this->fields_form['input'][] = array(
 				'type' => 'text',
-				'label' => $this->l('Website:'),
+				'label' => $this->l('Website'),
 				'name' => 'website'
 			);
 			$this->fields_form['input'][] = array(
 				'type' => 'text',
-				'label' => $this->l('Outstanding allowed:'),
+				'label' => $this->l('Allowed outstanding amount'),
 				'name' => 'outstanding_allow_amount',
 				'hint' => $this->l('Valid characters:').' 0-9',
 				'suffix' => $this->context->currency->sign
 			);
 			$this->fields_form['input'][] = array(
 				'type' => 'text',
-				'label' => $this->l('Maximum number of payment days:'),
+				'label' => $this->l('Maximum number of payment days'),
 				'name' => 'max_payment_days',
 				'hint' => $this->l('Valid characters:').' 0-9'
 			);
 			$this->fields_form['input'][] = array(
 				'type' => 'select',
-				'label' => $this->l('Risk:'),
+				'label' => $this->l('Risk rating'),
 				'name' => 'id_risk',
 				'required' => false,
 				'class' => 't',
@@ -641,7 +669,6 @@ class AdminCustomersControllerCore extends AdminController
 		$total_orders = count($orders);
 		for ($i = 0; $i < $total_orders; $i++)
 		{
-			$orders[$i]['date_add'] = $orders[$i]['date_add'];
 			$orders[$i]['total_paid_real_not_formated'] = $orders[$i]['total_paid_real'];
 			$orders[$i]['total_paid_real'] = Tools::displayPrice($orders[$i]['total_paid_real'], new Currency((int)$orders[$i]['id_currency']));
 		}
@@ -670,7 +697,7 @@ class AdminCustomersControllerCore extends AdminController
 		foreach ($orders as $order)
 		{
 			if (!isset($order['order_state']))
-				$order['order_state'] = $this->l('The state isn\'t defined for this order');
+				$order['order_state'] = $this->l('There is no state defined for this order.');
 
 			if ($order['valid'])
 			{
@@ -743,6 +770,7 @@ class AdminCustomersControllerCore extends AdminController
 		for ($i = 0; $i < $total_referrers; $i++)
 			$referrers[$i]['date_add'] = Tools::displayDate($referrers[$i]['date_add'],null , true);
 
+		$customerLanguage = new Language($customer->id_lang);
 		$shop = new Shop($customer->id_shop);
 		$this->tpl_view_vars = array(
 			'customer' => $customer,
@@ -759,7 +787,7 @@ class AdminCustomersControllerCore extends AdminController
 			'last_update' => Tools::displayDate($customer->date_upd,null , true),
 			'customer_exists' => Customer::customerExists($customer->email),
 			'id_lang' => $customer->id_lang,
-			'customerLanguage' => (new Language($customer->id_lang)),
+			'customerLanguage' => $customerLanguage,
 			// Add a Private note
 			'customer_note' => Tools::htmlentitiesUTF8($customer->note),
 			// Messages
@@ -949,7 +977,7 @@ class AdminCustomersControllerCore extends AdminController
 	{
 		return '<a class="list-action-enable '.($value ? 'action-enabled' : 'action-disabled').'" href="index.php?tab=AdminCustomers&id_customer='
 			.(int)$customer['id_customer'].'&changeOptinVal&token='.Tools::getAdminTokenLite('AdminCustomers').'">
-				'.($value ? '<i class="icon-check"></i>' : '<i class="icon-ban-circle"></i>').
+				'.($value ? '<i class="icon-check"></i>' : '<i class="icon-remove"></i>').
 			'</a>';
 	}
 

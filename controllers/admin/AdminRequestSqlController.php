@@ -67,7 +67,13 @@ class AdminRequestSqlControllerCore extends AdminController
 			)
 		);
 
-	 	$this->bulk_actions = array('delete' => array('text' => $this->l('Delete selected'),'confirm' => $this->l('Delete selected items?')));
+		$this->bulk_actions = array(
+			'delete' => array(
+				'text' => $this->l('Delete selected'),
+				'confirm' => $this->l('Delete selected items?'),
+				'icon' => 'icon-trash'
+			)
+		);
 
 		parent::__construct();
 	}
@@ -109,8 +115,8 @@ class AdminRequestSqlControllerCore extends AdminController
 		<ul>
 			<li>'.$this->l('Click "Add New".').'</li>
 			<li>'.$this->l('Fill in the fields and click "Save".').'</li>
-			<li>'.$this->l('You can then view the query results by clicking on the tab:').' <i class="icon-pencil"></i></li>
-			<li>'.$this->l('You can also export the query results as CSV file by clicking on the tab:').' <i class="icon-upload"></i></li>
+			<li>'.$this->l('You can then view the query results by clicking on this icon in the dropdown menu:').' <i class="icon-pencil"></i></li>
+			<li>'.$this->l('You can also export the query results as CSV file by clicking on this icon in the dropdown menu:').' <i class="icon-upload"></i></li>
 		</ul>');
 
 		$this->addRowAction('export');
@@ -397,7 +403,7 @@ class AdminRequestSqlControllerCore extends AdminController
 							$e[$key]['attribut'][1]
 						);
 					else if (isset($e[$key]['*']))
-						$this->errors[] = Tools::displayError('The "*" operator can be used in a nested query.');
+						$this->errors[] = Tools::displayError('The "*" operator cannot be used in a nested query.');
 					else
 						$this->errors[] = Tools::displayError('Error.');
 				break;

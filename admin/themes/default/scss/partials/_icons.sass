@@ -1,5 +1,6 @@
 //migrationfromfont-awesomev3tov4
 [class^="icon-"]
+	font-size: 14px
 	@extend .icon
 .icon-ban-circle
 	@extend .icon-ban
@@ -286,13 +287,10 @@
 .icon-zoom-out
 	@extend .icon-search-minus
 
-//icons
+//icons page-head
 [class^="icon-Admin"]
-	@extend .icon
+	@extend .icon-fw
 	@extend .icon-2x
-	margin-right: 4px
-	text-align: center
-
 .icon-AdminDashboard
 	@extend .icon-dashboard
 .icon-AdminCatalog
@@ -327,12 +325,20 @@
 	@extend .icon-magic
 .icon-AdminShop
 	@extend .icon-sitemap
+.icon-AdminFlash
+	@extend .icon-flash
 
 //Toolbar
 [class^="process-icon-"],[class*="process-icon-"]
+	display: block
+	width: 30px
+	margin: 0 auto
+	font-size: 28px
 	@extend .icon
 	@extend .icon-2x
-	display: block
+	@extend .icon-fw
+	//@extend .icon-puzzle-piece
+	background: transparent!important
 .process-icon-save, .process-icon-save-and-stay, .process-icon-save-and-preview
 	@extend .icon-save
 .process-icon-ok
@@ -399,3 +405,7 @@
 	@extend .icon-cogs
 .process-icon-download-alt
 	@extend .icon-download-alt
+.process-icon-mail-reply
+	@extend .icon-mail-reply
+.process-icon-power
+	@extend .icon-power-off

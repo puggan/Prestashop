@@ -75,8 +75,8 @@ class AdminModulesControllerCore extends AdminController
 		$this->list_modules_categories['administration']['name'] = $this->l('Administration');
 		$this->list_modules_categories['advertising_marketing']['name'] = $this->l('Advertising and Marketing');
 		$this->list_modules_categories['analytics_stats']['name'] = $this->l('Analytics and Stats');
-		$this->list_modules_categories['billing_invoicing']['name'] = $this->l('Billing and Invoicing');
-		$this->list_modules_categories['checkout']['name'] = $this->l('Checkout');
+		$this->list_modules_categories['billing_invoicing']['name'] = $this->l('Taxes & Invoicing');
+/* 		$this->list_modules_categories['checkout']['name'] = $this->l('Checkout'); */
 		$this->list_modules_categories['content_management']['name'] = $this->l('Content Management');
 		$this->list_modules_categories['export']['name'] = $this->l('Export');
 		$this->list_modules_categories['emailing']['name'] = $this->l('Emailing');
@@ -85,18 +85,22 @@ class AdminModulesControllerCore extends AdminController
 		$this->list_modules_categories['merchandizing']['name'] = $this->l('Merchandizing');
 		$this->list_modules_categories['migration_tools']['name'] = $this->l('Migration Tools');
 		$this->list_modules_categories['payments_gateways']['name'] = $this->l('Payments and Gateways');
-		$this->list_modules_categories['payment_security']['name'] = $this->l('Payment Security');
+		$this->list_modules_categories['payment_security']['name'] = $this->l('Site certification & Fraud prevention');
 		$this->list_modules_categories['pricing_promotion']['name'] = $this->l('Pricing and Promotion');
 		$this->list_modules_categories['quick_bulk_update']['name'] = $this->l('Quick / Bulk update');
-		$this->list_modules_categories['search_filter']['name'] = $this->l('Search and Filter');
+/* 		$this->list_modules_categories['search_filter']['name'] = $this->l('Search and Filter'); */
 		$this->list_modules_categories['seo']['name'] = $this->l('SEO');
 		$this->list_modules_categories['shipping_logistics']['name'] = $this->l('Shipping and Logistics');
 		$this->list_modules_categories['slideshows']['name'] = $this->l('Slideshows');
-		$this->list_modules_categories['smart_shopping']['name'] = $this->l('Smart Shopping');
+		$this->list_modules_categories['smart_shopping']['name'] = $this->l('Comparison site & Feed management');
 		$this->list_modules_categories['market_place']['name'] = $this->l('Marketplace');
 		$this->list_modules_categories['social_networks']['name'] = $this->l('Social Networks');
 		$this->list_modules_categories['others']['name'] = $this->l('Other Modules');
 		$this->list_modules_categories['mobile']['name'] = $this->l('Mobile');
+		$this->list_modules_categories['dashboard']['name'] = $this->l('Dashboard');
+		$this->list_modules_categories['dashboard']['name'] = $this->l('Internationalization & Localization');
+		$this->list_modules_categories['dashboard']['name'] = $this->l('Emailing & SMS');
+		$this->list_modules_categories['dashboard']['name'] = $this->l('Social Networks');
 
 		uasort($this->list_modules_categories, array($this, 'checkCategoriesNames'));
 
@@ -391,6 +395,11 @@ class AdminModulesControllerCore extends AdminController
 					$success = true;
 			}
 		}
+
+		$path_parts = pathinfo($file);
+		if (isset($path_parts['filename']) && @filemtime(_PS_MODULE_DIR_.$path_parts['filename']))
+			Tools::chmodr(_PS_MODULE_DIR_.$path_parts['filename'], 0777);
+
 		if (!$success)
 			$this->errors[] = Tools::displayError('There was an error while extracting the module (file may be corrupted).');
 		else
@@ -502,13 +511,23 @@ class AdminModulesControllerCore extends AdminController
 					$this->errors[] = Tools::displayError('You do not have the permission to use this module.');
 				else
 				{
-					if ($module->uninstall())
-						if ($module->install())
+					if (Tools::getValue('keep_data') == '1' && method_exists($module, 'reset'))
+					{
+						if ($module->reset())
 							Tools::redirectAdmin(self::$currentIndex.'&conf=21'.'&token='.$this->token.'&tab_module='.$module->tab.'&module_name='.$module->name.'&anchor='.ucfirst($module->name));
 						else
-							$this->errors[] = Tools::displayError('Cannot install this module.');
+							$this->errors[] = Tools::displayError('Cannot reset this module.');
+					}
 					else
-						$this->errors[] = Tools::displayError('Cannot uninstall this module.');
+					{
+						if ($module->uninstall())
+							if ($module->install())
+								Tools::redirectAdmin(self::$currentIndex.'&conf=21'.'&token='.$this->token.'&tab_module='.$module->tab.'&module_name='.$module->name.'&anchor='.ucfirst($module->name));
+							else
+								$this->errors[] = Tools::displayError('Cannot install this module.');
+						else
+							$this->errors[] = Tools::displayError('Cannot uninstall this module.');
+					}
 				}
 			}
 			else
@@ -800,22 +819,29 @@ class AdminModulesControllerCore extends AdminController
 							$reset_link = $this->context->link->getAdminLink('AdminModules').'&module_name='.$module->name.'&reset&tab_module='.$module->tab;
 							$update_link =  $this->context->link->getAdminLink('AdminModules').'&checkAndUpdate=1';
 
-							$this->context->smarty->assign(array(
-								'module_name' => $module->name,
-								'module_display_name' => $module->displayName,
-								'back_link' => $back_link,
-								'module_hook_link' => $hook_link,
-								'module_disable_link' => $disable_link,
-								'module_uninstall_link' => $uninstall_link,
-								'module_reset_link' => $reset_link,
-								'module_update_link' => $update_link,
-								'trad_link' => $trad_link,
-								'module_languages' => Language::getLanguages(false),
-								'theme_language_dir' => _THEME_LANG_DIR_,
-								'page_header_toolbar_title' => $this->page_header_toolbar_title,
-								'page_header_toolbar_btn' => $this->page_header_toolbar_btn,
-								'add_permission' => $this->tabAccess['add'],
-							));
+							$is_reset_ready = false;
+							if (method_exists($module, 'reset'))
+								$is_reset_ready = true;
+
+							$this->context->smarty->assign(
+								array(
+									'module_name' => $module->name,
+									'module_display_name' => $module->displayName,
+									'back_link' => $back_link,
+									'module_hook_link' => $hook_link,
+									'module_disable_link' => $disable_link,
+									'module_uninstall_link' => $uninstall_link,
+									'module_reset_link' => $reset_link,
+									'module_update_link' => $update_link,
+									'trad_link' => $trad_link,
+									'module_languages' => Language::getLanguages(false),
+									'theme_language_dir' => _THEME_LANG_DIR_,
+									'page_header_toolbar_title' => $this->page_header_toolbar_title,
+									'page_header_toolbar_btn' => $this->page_header_toolbar_btn,
+									'add_permission' => $this->tabAccess['add'],
+									'is_reset_ready' => $is_reset_ready
+								)
+							);
 							
 							// Display checkbox in toolbar if multishop
 							if (Shop::isFeatureActive())
@@ -829,14 +855,19 @@ class AdminModulesControllerCore extends AdminController
 								}
 								else
 									$shop_context = 'all shops';
-
 								$this->context->smarty->assign(array(
 									'module' => $module,
 									'display_multishop_checkbox' => true,
 									'current_url' => $this->getCurrentUrl('enable'),
-									'shop_context' => $shop_context
+									'shop_context' => $shop_context,
 								));
 							}
+
+							$this->context->smarty->assign(array(
+								'shop_list' => Helper::renderShopList(),
+								'is_multishop' => Shop::isFeatureActive(),
+								'multishop_context' => Shop::CONTEXT_ALL | Shop::CONTEXT_GROUP | Shop::CONTEXT_SHOP
+							));
 
 
 							if (Shop::isFeatureActive() && isset(Context::getContext()->tmpOldShop))
@@ -1140,10 +1171,12 @@ class AdminModulesControllerCore extends AdminController
 	
 	public function initContent()
 	{
+		$this->meta_title = 'Modules';
+
 		// If we are on a module configuration, no need to load all modules
 		if (Tools::getValue('configure') != '')
 			return true;
-			
+
 		$this->initToolbar();
 		$this->initPageHeaderToolbar();
 
@@ -1208,7 +1241,7 @@ class AdminModulesControllerCore extends AdminController
 
 				if (in_array($module->name, $module_names))
 					$module_success[] = array('name' => $module->displayName, 'message' => array(
-							0 => $this->l('Current version: ').$module->version));
+							0 => sprintf($this->l('Current version: %s'),$module->version)));
 			}
 
 			//if we are in favorites view we only display installed modules
@@ -1249,7 +1282,7 @@ class AdminModulesControllerCore extends AdminController
 						require_once(_PS_MODULE_DIR_.$module->name.'/'.$module->name.'.php');
 						$object = new $module->name();
 						$module_success[] = array('name' => $module->name, 'message' => array(
-							0 => $this->l('Current version: ').$object->version,
+							0 => sprintf($this->l('Current version: %s'), $object->version),
 							1 => $this->l('No file upgrades applied (none exist).'))
 						);
 					}
@@ -1262,11 +1295,9 @@ class AdminModulesControllerCore extends AdminController
 			$this->makeModulesStats($module);
 
 			// Assign warnings
-			if ($module->active && isset($module->warning) && !empty($module->warning))
+			if ($module->active && isset($module->warning) && !empty($module->warning) && !$this->ajax)
 			{
-
 				$href = Context::getContext()->link->getAdminLink('AdminModules', true).'&module_name='.$module->name.'&tab_module='.$module->tab.'&configure='.$module->name;
-
 				$this->context->smarty->assign('text', sprintf($this->l('%1$s: %2$s'), $module->displayName, $module->warning));
 				$this->context->smarty->assign('module_link', $href);
 				$this->displayWarning($this->context->smarty->fetch('controllers/modules/warning_module.tpl'));
@@ -1299,6 +1330,9 @@ class AdminModulesControllerCore extends AdminController
 				
 			if (in_array($module->name, $this->list_partners_modules))
 				$module->type = 'addonsPartner';
+
+			if (isset($module->description_full) && trim($module->description_full) != '')
+				$module->show_quick_view = true;
 		}
 
 		// Don't display categories without modules
@@ -1318,6 +1352,11 @@ class AdminModulesControllerCore extends AdminController
 			$html = $this->generateHtmlMessage($module_success);
 			$this->confirmations[] = sprintf($this->l('The following module(s) were upgraded successfully:').' %s', $html);
 		}
+
+		ConfigurationKPI::updateValue('UPDATE_MODULES', count($upgrade_available));
+
+		if (count($upgrade_available) == 0 && (int)Tools::getValue('check') == 1)
+			$this->confirmations[] = $this->l('Everything is up-to-date');
 
 		// Init tpl vars for smarty
 		$tpl_vars = array();
@@ -1360,5 +1399,27 @@ class AdminModulesControllerCore extends AdminController
 			$tpl_vars['username_addons'] = $this->context->cookie->username_addons;
 		}
 		$smarty->assign($tpl_vars);
+	}
+
+	public function ajaxProcessGetModuleQuickView()
+	{
+		$modules = Module::getModulesOnDisk();
+
+		foreach ($modules as $module)
+			if ($module->name == Tools::getValue('module'))
+				break;
+
+		$this->context->smarty->assign(array(
+			'displayName' => $module->displayName,
+			'image' => $module->image,
+			'nb_rates' => (int)$module->nb_rates[0],
+			'avg_rate' => (int)$module->avg_rate[0],
+			'badges' => $module->badges,
+			'compatibility' => $module->compatibility,
+			'description_full' => $module->description_full,
+			'additional_description' => $module->additional_description,
+			'url' => $module->url
+		));
+		$this->smartyOutputContent('controllers/modules/quickview.tpl');
 	}
 }

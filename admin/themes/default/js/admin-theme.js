@@ -38,6 +38,7 @@ $(document).ready(function() {
 		toggleShopModuleCheckbox(id, checked);
 	});
 
+	//set main navigation aside
 	function navSidebar(){
 		var sidebar = $('#nav-sidebar');
 		sidebar.off();
@@ -71,6 +72,7 @@ $(document).ready(function() {
 		});
 	}
 
+	//set main navigation on top
 	function navTopbar(){
 		$('#nav-sidebar').attr('id','nav-topbar');
 		var topbar = $('#nav-topbar');
@@ -86,15 +88,15 @@ $(document).ready(function() {
 		});
 		// hide element over menu width on load
 		topbar.find('li.maintab').each(function(){
-			navEllipsis();
+			navTopbarEllipsis();
 		});
 		//hide element over menu width on resize
 		$(window).on('resize', function() {
-			navEllipsis();
+			navTopbarEllipsis();
 		});
 	}
-
-	function navEllipsis() {
+	//agregate out of bounds items from top menu into ellipsis dropdown
+	function navTopbarEllipsis() {
 		var ellipsed = [];
 		$('#ellipsistab').remove();
 		$('#nav-topbar ul.menu').find('li.maintab').each(function(){
@@ -112,6 +114,7 @@ $(document).ready(function() {
 		}
 	}
 
+	//set main navigation for mobile devices
 	function mobileNav() {
 		// clean actual menu type
 		// get it in navigation whatever type it is
@@ -136,7 +139,6 @@ $(document).ready(function() {
 				$(this).addClass('expanded');
 			}
 		});
-
 		//get click for item which has submenu
 		navigation.on('click.submenu','.maintab.has_submenu a.title', function(e){
 			e.preventDefault();
@@ -149,7 +151,6 @@ $(document).ready(function() {
 			navigation.append(submenu);
 			submenu.show();
 		});
-
 		navigation.on('click.back','#nav-mobile-submenu-back',function(e){
 			e.preventDefault();
 			submenu.remove();
@@ -157,8 +158,9 @@ $(document).ready(function() {
 		});
 	}
 
+	//unset mobile nav
 	function removeMobileNav(){
-		navigation = $('#nav-mobile');
+		var navigation = $('#nav-mobile');
 		$('#nav-mobile-submenu').remove();
 		$('span.menu-collapse').html('<i class="icon-align-justify"></i>');
 		navigation.off();
@@ -171,6 +173,7 @@ $(document).ready(function() {
 		}
 	}
 
+	// switch between top and side nav without reloading page
 	function navSwitch(){
 		if ($('body').hasClass('page-sidebar')){
 			navTopbar();
@@ -179,6 +182,7 @@ $(document).ready(function() {
 		}
 	}
 
+	//init main navigation
 	function initNav(){
 		if ($('body').hasClass('page-sidebar')){
 			navSidebar();
@@ -189,21 +193,49 @@ $(document).ready(function() {
 	}
 	initNav();
 
-	// wip prevent mouseout
-	$("li.maintab.has_submenu").not(".active").on("mouseenter",function(e){
-		$("li.maintab").removeClass("hover");
-		$(this).addClass("hover");
-		$(this).on("mouseleave",function(){
-			var $submenu = $(this);
-			setTimeout(function(){
-				$submenu.removeClass("hover");
-			}, 300);
-		});
+	// prevent mouseout + direct path to submenu on sidebar uncollapsed navigation + avoid out of bounds
+	var closingMenu, openingMenu;
+	$('li.maintab.has_submenu').hover(function() {
+		var submenu = $(this);
+		if (submenu.is('.active') && submenu.children('ul.submenu').is(':visible')) {
+			return;
+		}
+		clearTimeout(openingMenu);
+		clearTimeout(closingMenu);
+		openingMenu = setTimeout(function(){
+			$('li.maintab').removeClass('hover');
+			$('ul.submenu.outOfBounds').removeClass('outOfBounds').css('top',0);
+			submenu.addClass('hover');
+			h = $( window ).height();
+			x = submenu.find('.submenu li').last().offset();
+			l = x.top + submenu.find('.submenu li').last().height();
+			f = 25;
+			if ($('#footer').is(':visible')){
+				f = $('#footer').height() + f;
+			}
+			s = $(document).scrollTop();
+			position = h - l - f + s;
+			var out = false;
+			if ( position < 0) {
+				out = true;
+				submenu.find('.submenu').addClass('outOfBounds').css('top', position);
+			}
+		},50);
+	}, function() {
+		var submenu = $(this);
+		closingMenu = setTimeout(function(){
+			submenu.removeClass('hover');
+		},250);
 	});
 
+	$('ul.submenu').on('mouseenter', function(e){
+		clearTimeout(openingMenu);
+	});
+
+	//bootstrap components init
 	$('.dropdown-toggle').dropdown();
 	$('.label-tooltip, .help-tooltip').tooltip();
-	$("#error-modal").modal("show");
+	$('#error-modal').modal('show');
 
 	//scroll top
 	function animateGoTop() {
@@ -214,7 +246,7 @@ $(document).ready(function() {
 			$('#go-top').stop(true, true).fadeOut();
 		}
 	}
-
+	//show footer when reach bottom
 	function animateFooter(){
 		if($(window).scrollTop() + $(window).height() === $(document).height()) {
 			$('#footer:hidden').removeClass('hide');
@@ -222,10 +254,12 @@ $(document).ready(function() {
 			$('#footer').addClass('hide');
 		}
 	}
+	//init footer
 	animateFooter();
 
-	$("#go-top").on('click',function() {
-		$("html, body").animate({ scrollTop: 0 }, "slow");
+	// go on top of the page
+	$('#go-top').on('click',function() {
+		$('html, body').animate({ scrollTop: 0 }, 'slow');
 		return false;
 	});
 
@@ -234,22 +268,21 @@ $(document).ready(function() {
 		animateFooter();
 	});
 
+	// 
 	function toggleShopModuleCheckbox(id_shop, toggle){
 		var formGroup = $("[for='to_disable_shop"+id_shop+"']").parent();
-		if (toggle === true)
-		{
+		if (toggle === true) {
 			formGroup.removeClass('hide');
 			formGroup.find('input').each(function(){$(this).prop('checked', 'checked');});
 		}
-		else
-		{
+		else {
 			formGroup.addClass('hide');
 			formGroup.find('input').each(function(){$(this).prop('checked', '');});
 		}
 	}
 
 	//media queries - depends of enquire.js
-	enquire.register("screen and (max-width: 768px)", {
+	enquire.register('screen and (max-width: 768px)', {
 		match : function() {
 			$('body.page-sidebar').addClass('page-sidebar-closed');
 		},
@@ -268,21 +301,31 @@ $(document).ready(function() {
 		}
 	});
 
+	// search with nav sidebar closed
+	$(document).on('click', '.page-sidebar-closed .searchtab' ,function(){
+		$(this).addClass('search-expanded');
+		$(this).find('#bo_query').focus();
+	});
+	$('#bo_query').on('blur',function(){
+		$('.searchtab').removeClass('search-expanded');
+	});
+
 	//erase button search input
 	if ($('#bo_query').val() !== ''){
 		$('.clear_search').removeClass('hide');
 	}
 	$('.clear_search').on('click', function(e){
 		e.preventDefault();
-		$("#bo_query").val('').focus();
+		$('#bo_query').val('').focus();
 		$('.clear_search').addClass('hide');
 	});
-	$("#bo_query").on('change', function(){
+	$('#bo_query').on('change', function(){
 		if ($('#bo_query').val() !== ''){
 			$('.clear_search').removeClass('hide');
 		}
 	});
 
+	// open contextual help into popup
 	$('a.btn-help').on('click', function(e){
 		e.preventDefault();
 		var url = $(this).attr('href');
@@ -290,6 +333,56 @@ $(document).ready(function() {
 			url,
 			'PrestaShop',
 			'width=500,height=600,toolbar=0,menubar=0,location=0,status=1,scrollbars=1,resizable=1,left=50,top=50'
-		)
+		);
 	});
+});
+
+function confirm_modal(heading, question, left_button_txt, right_button_txt, left_button_callback, right_button_callback) {
+	var confirmModal =
+		$('<div class="bootstrap modal hide fade">' +
+			'<div class="modal-dialog">' +
+			'<div class="modal-content">' +
+			'<div class="modal-header">' +
+			'<a class="close" data-dismiss="modal" >&times;</a>' +
+			'<h3>' + heading + '</h3>' +
+			'</div>' +
+
+			'<div class="modal-body">' +
+			'<p>' + question + '</p>' +
+			'</div>' +
+			'<div class="modal-footer">' +
+			'<a href="#" id="confirm_modal_left_button" class="btn btn-primary">' +
+			left_button_txt +
+			'</a>' +
+			'<a href="#" id="confirm_modal_right_button" class="btn btn-primary">' +
+			right_button_txt +
+			'</a>' +
+			'</div>' +
+			'</div>' +
+			'</div>' +
+			'</div>');
+
+	confirmModal.find('#confirm_modal_left_button').click(function (event) {
+		left_button_callback();
+		confirmModal.modal('hide');
+	});
+
+	confirmModal.find('#confirm_modal_right_button').click(function (event) {
+		right_button_callback();
+		confirmModal.modal('hide');
+	});
+	confirmModal.modal('show');
+};
+
+$(".reset_ready").click(function () {
+	var href = $(this).attr('href');
+	confirm_modal(header_confirm_reset, body_confirm_reset, left_button_confirm_reset, right_button_confirm_reset,
+		function ()
+		{
+			window.location.href = href + '&keep_data=1';
+		}, function ()
+		{
+			window.location.href = href + '&keep_data=0';
+		});
+	return false;
 });

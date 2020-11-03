@@ -114,6 +114,14 @@ class AdminThemesControllerCore extends AdminController
 		parent::init();
 		$this->can_display_themes = (!Shop::isFeatureActive() || Shop::getContext() == Shop::CONTEXT_SHOP) ? true : false;
 
+		$themes = Theme::getThemes();
+
+		foreach ($themes as $key => $theme)
+		{
+			if (!file_exists(_PS_ALL_THEMES_DIR_.$theme->directory.'/preview.jpg'))
+				unset($themes[$key]);
+
+		}
 		$this->fields_options = array(
 			'theme' => array(
 				'title' => sprintf($this->l('Select a theme for shop %s'), $this->context->shop->name),
@@ -121,7 +129,7 @@ class AdminThemesControllerCore extends AdminController
 				'fields' => array(
 					'theme_for_shop' => array(
 						'type' => 'theme',
-						'themes' => Theme::getThemes(),
+						'themes' => $themes,
 						'id_theme' => $this->context->shop->id_theme,
 						'can_display_themes' => $this->can_display_themes,
 						'no_multishop_checkbox' => true,
@@ -138,7 +146,7 @@ class AdminThemesControllerCore extends AdminController
 						'hint' => $this->l('Will appear on main page. Recommended height: 52px. Maximum height on default theme: 65px.'),
 						'type' => 'file',
 						'name' => 'PS_LOGO',
-						'thumb' => _PS_IMG_.Configuration::get('PS_LOGO').'?date='.time()
+						'thumb' => _PS_IMG_.Configuration::get('PS_LOGO')
 					),
 					'PS_LOGO_MOBILE' => array(
 						'title' => $this->l('Header logo for mobile'),
@@ -147,7 +155,7 @@ class AdminThemesControllerCore extends AdminController
 							$this->l('Will appear on the main page of your mobile template. If left undefined, the header logo will be used.'),
 						'type' => 'file',
 						'name' => 'PS_LOGO_MOBILE',
-						'thumb' => (Configuration::get('PS_LOGO_MOBILE') !== false && file_exists(_PS_IMG_DIR_.Configuration::get('PS_LOGO_MOBILE'))) ? _PS_IMG_.Configuration::get('PS_LOGO_MOBILE').'?date='.time() : _PS_IMG_.Configuration::get('PS_LOGO').'?date='.time()
+						'thumb' => (Configuration::get('PS_LOGO_MOBILE') !== false && file_exists(_PS_IMG_DIR_.Configuration::get('PS_LOGO_MOBILE'))) ? _PS_IMG_.Configuration::get('PS_LOGO_MOBILE') : _PS_IMG_.Configuration::get('PS_LOGO')
 					),
 					'PS_LOGO_MAIL' => array(
 						'title' => $this->l('Mail logo'),
@@ -156,7 +164,7 @@ class AdminThemesControllerCore extends AdminController
 							$this->l('Will appear on email headers. If undefined, the header logo will be used.'),
 						'type' => 'file',
 						'name' => 'PS_LOGO_MAIL',
-						'thumb' => (Configuration::get('PS_LOGO_MAIL') !== false && file_exists(_PS_IMG_DIR_.Configuration::get('PS_LOGO_MAIL'))) ? _PS_IMG_.Configuration::get('PS_LOGO_MAIL').'?date='.time() : _PS_IMG_.Configuration::get('PS_LOGO').'?date='.time()
+						'thumb' => (Configuration::get('PS_LOGO_MAIL') !== false && file_exists(_PS_IMG_DIR_.Configuration::get('PS_LOGO_MAIL'))) ? _PS_IMG_.Configuration::get('PS_LOGO_MAIL') : _PS_IMG_.Configuration::get('PS_LOGO')
 					),
 					'PS_LOGO_INVOICE' => array(
 						'title' => $this->l('Invoice logo'),
@@ -165,23 +173,21 @@ class AdminThemesControllerCore extends AdminController
 							$this->l('Will appear on invoice headers.').' '.$this->l('Warning: you can use a PNG file for transparency, but it can take up to 1 second per page for processing. Please consider using JPG instead.'),
 						'type' => 'file',
 						'name' => 'PS_LOGO_INVOICE',
-						'thumb' => (Configuration::get('PS_LOGO_INVOICE') !== false && file_exists(_PS_IMG_DIR_.Configuration::get('PS_LOGO_INVOICE'))) ? _PS_IMG_.Configuration::get('PS_LOGO_INVOICE').'?date='.time() : _PS_IMG_.Configuration::get('PS_LOGO').'?date='.time()
+						'thumb' => (Configuration::get('PS_LOGO_INVOICE') !== false && file_exists(_PS_IMG_DIR_.Configuration::get('PS_LOGO_INVOICE'))) ? _PS_IMG_.Configuration::get('PS_LOGO_INVOICE') : _PS_IMG_.Configuration::get('PS_LOGO')
 					),
 					'PS_FAVICON' => array(
 						'title' => $this->l('Favicon'),
-						'hint' => $this->l('Only ICO format allowed'),
 						'hint' => $this->l('Will appear in the address bar of your web browser.'),
 						'type' => 'file',
 						'name' => 'PS_FAVICON',
-						'thumb' => _PS_IMG_.Configuration::get('PS_FAVICON').'?date='.time()
+						'thumb' => _PS_IMG_.Configuration::get('PS_FAVICON')
 					),
 					'PS_STORES_ICON' => array(
 						'title' => $this->l('Store icon'),
-						'hint' => $this->l('Only GIF format allowed.'),
 						'hint' => $this->l('Will appear on the store locator (inside Google Maps).').'<br />'.$this->l('Suggested size: 30x30, transparent GIF.'),
 						'type' => 'file',
 						'name' => 'PS_STORES_ICON',
-						'thumb' => _PS_IMG_.Configuration::get('PS_STORES_ICON').'?date='.time()
+						'thumb' => _PS_IMG_.Configuration::get('PS_STORES_ICON')
 					),
 					'PS_NAVIGATION_PIPE' => array(
 						'title' => $this->l('Navigation pipe'),
@@ -191,13 +197,13 @@ class AdminThemesControllerCore extends AdminController
 						'size' => 20
 					),
 					'PS_ALLOW_MOBILE_DEVICE' => array(
-						'title' => $this->l('Enable the mobile theme.'),
+						'title' => $this->l('Enable the mobile theme'),
 						'hint' => $this->l('Allows visitors browsing on mobile devices to view a lighter version of your website.'),
 						'type' => 'radio',
 						'required' => true,
 						'validation' => 'isGenericName',
 						'choices' => array(
-							0 => $this->l('I\'d like to disable it, please. '),
+							0 => $this->l('I\'d like to disable it, please.'),
 							1 => $this->l('I\'d like to enable it only on smart phones.'),
 							2 => $this->l('I\'d like to enable it only on tablets.'),
 							3 => $this->l('I\'d like to enable it on both smart phones and tablets.')
@@ -252,30 +258,6 @@ class AdminThemesControllerCore extends AdminController
 		);
 	}
 
-	protected function checkMobileNeeds()
-	{
-		$allow_mobile = (bool)Configuration::get('PS_ALLOW_MOBILE_DEVICE');
-		if (!$allow_mobile && Context::getContext()->shop->getTheme() == 'default')
-			return;
-
-		$iso_code = Country::getIsoById((int)Configuration::get('PS_COUNTRY_DEFAULT'));
-		$paypal_installed = (bool)Module::isInstalled('paypal');
-		$paypal_countries = array(
-			'ES',
-			'FR',
-			'PL',
-			'IT'
-		);
-
-		if (!$paypal_installed && in_array($iso_code, $paypal_countries))
-		{
-			if (!$this->isXmlHttpRequest())
-				$this->warnings[] = $this->l('At this time, the mobile theme only works with PayPal\'s payment module. Please activate and configure the PayPal module to enable mobile payments.')
-					.'<br>'.
-					$this->l('In order to use the mobile theme, you must install and configure the PayPal module.');
-		}
-	}
-
 	public function renderForm()
 	{
 		$get_available_themes = Theme::getAvailable(false);
@@ -323,7 +305,7 @@ class AdminThemesControllerCore extends AdminController
 					$theme_metas = $theme->getMetas();
 				}
 
-				$image_url = '<img alt="preview" src="../themes/'.$theme->directory.'/preview.jpg">';
+				$image_url = '<img alt="preview" src="'.__PS_BASE_URI__.'themes/'.$theme->directory.'/preview.jpg">';
 				foreach ($theme_metas as $theme_meta)
 				{
 					$formated_metas[$theme_meta['id_meta']]['id_theme_meta'] = (int)$theme_meta['id_theme_meta'];
@@ -447,7 +429,7 @@ class AdminThemesControllerCore extends AdminController
 					'name' => 'name',
 					'default' => array(
 						'value' => 0,
-						'label' => '&nbsp;-&nbsp;'
+						'label' => '-'
 					),
 					'query' => $theme_query,
 				)
@@ -590,6 +572,11 @@ class AdminThemesControllerCore extends AdminController
 		}
 
 		$theme = parent::processAdd();
+		if ((int)$theme->product_per_page == 0)
+		{
+			$theme->product_per_page = 1;
+			$theme->save();
+		}
 		if (is_object($theme) && (int)$theme->id > 0)
 		{
 
@@ -618,7 +605,11 @@ class AdminThemesControllerCore extends AdminController
 			$theme->responsive = Tools::getValue('responsive');
 			$theme->default_left_column = Tools::getValue('default_left_column');
 			$theme->default_right_column = Tools::getValue('default_right_column');
-			$theme->product_per_page = (int)Tools::getValue('product_per_page');
+			$nb_product_per_page = (int)Tools::getValue('product_per_page');
+			if ($nb_product_per_page == 0)
+				$nb_product_per_page = 1;
+
+			$theme->product_per_page = $nb_product_per_page;
 
 			if (isset($_FILES['image_preview']) && $_FILES['image_preview']['error'] == 0)
 			{
@@ -639,6 +630,14 @@ class AdminThemesControllerCore extends AdminController
 		Tools::redirectAdmin(Context::getContext()->link->getAdminLink('AdminThemes').'&conf=29');
 	}
 
+	protected function processUpdateOptions()
+	{
+		parent::processUpdateOptions();
+
+		if (!count($this->errors))
+			Tools::redirectAdmin(Context::getContext()->link->getAdminLink('AdminThemes').'&conf=6');
+	}
+
 	public function processDelete()
 	{
 		$obj = $this->loadObject();
@@ -651,7 +650,14 @@ class AdminThemesControllerCore extends AdminController
 
 				return false;
 			}
-			if (is_dir(_PS_ALL_THEMES_DIR_.$obj->directory))
+			$themes = array();
+			foreach (Theme::getThemes() as $theme)
+			{
+				if ($theme->id != $obj->id)
+					$themes[] = $theme->directory;
+			}
+
+			if (is_dir(_PS_ALL_THEMES_DIR_.$obj->directory) && !in_array($obj->directory, $themes))
 				Tools::deleteDirectory(_PS_ALL_THEMES_DIR_.$obj->directory.'/');
 			$obj->removeMetas();
 		}
@@ -724,8 +730,6 @@ class AdminThemesControllerCore extends AdminController
 			return false;
 		else
 			return true;
-
-		return false;
 	}
 
 	private function checkNames()
@@ -836,7 +840,7 @@ class AdminThemesControllerCore extends AdminController
 			foreach ($this->to_export as $row)
 			{
 				if (!in_array($row, $this->native_modules))
-					$this->archiveThisFile($zip, $row, dirname(__FILE__).'/../../modules/', 'modules/');
+					$this->archiveThisFile($zip, $row, _PS_ROOT_DIR_.'/modules/', 'modules/');
 			}
 
 			$zip->close();
@@ -1488,25 +1492,32 @@ class AdminThemesControllerCore extends AdminController
 
 	/**
 	 * @param SimpleXMLElement $xml
+	 * @param bool             $theme_dir only used if the theme directory to import is already located on the shop
 	 *
-	 * @return bool|Theme return theme on success, otherwise the error as a string is returned
+	 * @return string|Theme return theme on success, otherwise the error as a string is returned
 	 */
-	protected function importThemeXmlConfig(SimpleXMLElement $xml)
+	protected function importThemeXmlConfig(SimpleXMLElement $xml, $theme_dir = false)
 	{
 		$themes = Theme::getThemes();
 
 		$name = strval($xml->variations->variation[0]['name']);
 
-		foreach ($themes as $theme_object)
-		{
-			if ($theme_object->name == $name)
-				return $this->l('Theme already installed.');
-		}
-
 		$new_theme = new Theme();
 		$new_theme->name = $name;
 
 		$new_theme->directory = strval($xml->variations->variation[0]['directory']);
+
+		if ($theme_dir)
+		{
+			$new_theme->name = $theme_dir;
+			$new_theme->directory = $theme_dir;
+		}
+
+		foreach ($themes as $theme_object)
+		{
+			if ($theme_object->name == $new_theme->name)
+				return $this->l('Theme already installed.');
+		}
 
 		$new_theme->product_per_page = Configuration::get('PS_PRODUCTS_PER_PAGE');
 
@@ -1683,6 +1694,8 @@ class AdminThemesControllerCore extends AdminController
 
 	public function initContent()
 	{
+		if ($this->display == 'list')
+			$this->display = '';
 		if (isset($this->display) && method_exists($this, 'render'.$this->display))
 		{
 			$this->content .= $this->initPageHeaderToolbar();
@@ -1697,13 +1710,9 @@ class AdminThemesControllerCore extends AdminController
 		}
 		else
 		{
-			$this->checkMobileNeeds();
-
 			$themes = array();
 			foreach (Theme::getThemes() as $theme)
-			{
 				$themes[] = $theme->directory;
-			}
 
 			foreach (scandir(_PS_ALL_THEMES_DIR_) as $theme_dir)
 			{
@@ -1711,15 +1720,25 @@ class AdminThemesControllerCore extends AdminController
 					&& is_dir(_PS_ALL_THEMES_DIR_.$theme_dir)
 					&& file_exists(_PS_ALL_THEMES_DIR_.$theme_dir.'/preview.jpg')
 					&& !in_array($theme_dir, $themes)
-					&& file_exists(_PS_ROOT_DIR_.'/config/xml/'.$theme_dir.'.xml')
 				)
 				{
-					$this->importThemeXmlConfig(simplexml_load_file(_PS_ROOT_DIR_.'/config/xml/'.$theme_dir.'.xml'));
+
+					$config_file = false;
+					$default_config = _PS_ROOT_DIR_.'/config/xml/default.xml';
+					$theme_config = _PS_ROOT_DIR_.'/config/xml/'.$theme_dir.'.xml';
+
+					if (file_exists($theme_config))
+						$config_file = $theme_config;
+					elseif (file_exists($default_config))
+						$config_file = $default_config;
+
+					if ($config_file)
+						$this->importThemeXmlConfig(simplexml_load_file($config_file), $theme_dir);
 				}
 			}
 
 			$content = '';
-			if (file_exists(_PS_IMG_DIR_.'logo.jpg') && Configuration::get('PS_LOGO'))
+			if (Configuration::hasKey('PS_LOGO') && file_exists(_PS_IMG_DIR_.Configuration::get('PS_LOGO')))
 			{
 				list($width, $height, $type, $attr) = getimagesize(_PS_IMG_DIR_.Configuration::get('PS_LOGO'));
 				Configuration::updateValue('SHOP_LOGO_HEIGHT', (int)round($height));
@@ -1886,32 +1905,20 @@ class AdminThemesControllerCore extends AdminController
 			{
 				case 0:
 					foreach ($xml->modules as $row)
-					{
 						foreach ($row->module as $row2)
-						{
 							$natives[] = (string)$row2['name'];
-						}
-					}
 					break;
 				case 1:
 					foreach ($xml->modules as $row)
-					{
 						if ($row['type'] == 'native')
 							foreach ($row->module as $row2)
-							{
 								$natives[] = (string)$row2['name'];
-							}
-					}
 					break;
 				case 2:
 					foreach ($xml->modules as $row)
-					{
 						if ($row['type'] == 'partner')
 							foreach ($row->module as $row2)
-							{
 								$natives[] = (string)$row2['name'];
-							}
-					}
 					break;
 			}
 
@@ -2063,12 +2070,8 @@ class AdminThemesControllerCore extends AdminController
 	{
 		$fmtArr = array();
 		foreach ($originArr as $key => $type)
-		{
 			foreach ($type as $module)
-			{
 				$fmtArr[$key.'_module'.$module] = true;
-			}
-		}
 
 		return $fmtArr;
 	}
@@ -2222,7 +2225,7 @@ class AdminThemesControllerCore extends AdminController
 
 				$fields_form['form']['input'][] = array(
 					'type' => 'checkbox',
-					'label' => sprintf($this->l('Select the old %1s theme\'s modules you wish to disable:'), $shop_theme->directory),
+					'label' => sprintf($this->l('Select the modules from the old %1s theme that you wish to disable'), $shop_theme->directory),
 					'form_group_class' => $class,
 					'values' => array(
 						'query' => $to_shop_uninstall_formated,
@@ -2272,16 +2275,7 @@ class AdminThemesControllerCore extends AdminController
 		if (isset($xml->images->image))
 			foreach ($xml->images->image as $row)
 			{
-				if ($result = (bool)Db::getInstance()->executes(sprintf('SELECT * FROM `'._DB_PREFIX_.'image_type` WHERE `name` = \'%s\' ', pSQL($row['name']))))
-				{
-					$return['error'][] = array(
-						'name' => strval($row['name']),
-						'width' => (int)$row['width'],
-						'height' => (int)$row['height']
-					);
-				}
-				else
-				{
+				Db::getInstance()->delete('image_type', '`name` = \''.pSQL($row['name']).'\'');
 					Db::getInstance()->execute('
 					INSERT INTO `'._DB_PREFIX_.'image_type` (`name`, `width`, `height`, `products`, `categories`, `manufacturers`, `suppliers`, `scenes`)
 					VALUES (\''.pSQL($row['name']).'\',
@@ -2298,7 +2292,6 @@ class AdminThemesControllerCore extends AdminController
 						'width' => (int)$row['width'],
 						'height' => (int)$row['height']
 					);
-				}
 			}
 
 		return $return;
@@ -2315,7 +2308,6 @@ class AdminThemesControllerCore extends AdminController
 		{
 			foreach ($hooks as $hook)
 			{
-
 				$sql_hook_module = 'INSERT INTO `'._DB_PREFIX_.'hook_module` (`id_module`, `id_shop`, `id_hook`, `position`)
 									VALUES ('.(int)$id_module.', '.(int)$shop.', '.(int)Hook::getIdByName($hook['hook']).', '.(int)$hook['position'].')';
 
@@ -2331,8 +2323,6 @@ class AdminThemesControllerCore extends AdminController
 				Db::getInstance()->execute($sql_hook_module);
 			}
 		}
-
-
 	}
 
 	public function processThemeInstall()
@@ -2353,18 +2343,13 @@ class AdminThemesControllerCore extends AdminController
 
 		$xml = false;
 		if (file_exists(_PS_ROOT_DIR_.'/config/xml/'.$theme->directory.'.xml'))
-		{
 			$xml = simplexml_load_file(_PS_ROOT_DIR_.'/config/xml/'.$theme->directory.'.xml');
-		}
 		elseif (file_exists(_PS_ROOT_DIR_.'/config/xml/default.xml'))
-		{
 			$xml = simplexml_load_file(_PS_ROOT_DIR_.'/config/xml/default.xml');
-		}
 
 		if ($xml)
 		{
 			$module_hook = array();
-
 			foreach ($xml->modules->hooks->hook as $row)
 			{
 				$name = strval($row['module']);
@@ -2381,47 +2366,55 @@ class AdminThemesControllerCore extends AdminController
 
 			$this->img_error = $this->updateImages($xml);
 
+			$this->modules_errors = array();
 			foreach ($shops as $id_shop)
 			{
-
 				foreach ($_POST as $key => $value)
 				{
 					if (strncmp($key, 'to_install', strlen('to_install')) == 0)
 					{
-
-						if (file_exists(_PS_MODULE_DIR_.$value))
+						$module = Module::getInstanceByName($value);
+						if ($module)
 						{
-							if (!class_exists($value) && file_exists(_PS_MODULE_DIR_.$value.'/'.$value.'.php'))
-								require(_PS_MODULE_DIR_.$value.'/'.$value.'.php');
-
-							if (class_exists($value))
+							$is_installed_success = true;
+							if (!Module::isInstalled($module->name))
+								$is_installed_success = $module->install();
+							if ($is_installed_success)
 							{
-								$module = Module::getInstanceByName($value);
-								if (!Module::isInstalled($module->name))
-									$module->install();
 								if (!Module::isEnabled($module->name))
 									$module->enable();
 
 								if ((int)$module->id > 0 && isset($module_hook[$module->name]))
 									$this->hookModule($module->id, $module_hook[$module->name], $id_shop);
 							}
+							else
+								$this->modules_errors[] = array('module_name' => $module->name, 'errors' => $module->getErrors());
+
 							unset($module_hook[$module->name]);
 						}
+
 					}
 					else if (strncmp($key, 'to_enable', strlen('to_enable')) == 0)
 					{
-						$module_obj = Module::getInstanceByName($value);
-						if (Validate::isLoadedObject($module_obj))
+						$module = Module::getInstanceByName($value);
+						if ($module)
 						{
-							if (!Module::isInstalled($module_obj->name))
-								$module_obj->install();
-							else if (!Module::isEnabled($module_obj->name))
-								$module_obj->enable();
+							$is_installed_success = true;
+							if (!Module::isInstalled($module->name))
+								$is_installed_success = $module->install();
 
-							if ((int)$module_obj->id > 0 && isset($module_hook[$module_obj->name]))
-								$this->hookModule($module_obj->id, $module_hook[$module_obj->name], $id_shop);
+							if ($is_installed_success)
+							{
+								if (!Module::isEnabled($module->name))
+									$module->enable();
 
-							unset($module_hook[$module_obj->name]);
+								if ((int)$module->id > 0 && isset($module_hook[$module->name]))
+									$this->hookModule($module->id, $module_hook[$module->name], $id_shop);
+							}
+							else
+								$this->modules_errors[] = array('module_name' => $module->name, 'errors' => $module->getErrors());
+
+							unset($module_hook[$module->name]);
 						}
 
 					}
@@ -2456,13 +2449,9 @@ class AdminThemesControllerCore extends AdminController
 			}
 
 			$this->doc = array();
-
 			foreach ($xml->docs->doc as $row)
-			{
-				$this->doc[strval($row['name'])] = '../themes/'.$theme->directory.'/docs/'.basename(strval($row['path']));
-			}
+				$this->doc[strval($row['name'])] = __PS_BASE_URI__.'themes/'.$theme->directory.'/docs/'.basename(strval($row['path']));
 		}
-
 
 		Tools::clearCache($this->context->smarty);
 		$this->theme_name = $theme->name;
@@ -2475,7 +2464,9 @@ class AdminThemesControllerCore extends AdminController
 			'doc' => $this->doc,
 			'theme_name' => $this->theme_name,
 			'img_error' => $this->img_error,
-			'back_link' => Context::getContext()->link->getAdminLink('AdminThemes')
+			'modules_errors' => $this->modules_errors,
+			'back_link' => Context::getContext()->link->getAdminLink('AdminThemes'),
+			'image_link' => Context::getContext()->link->getAdminLink('AdminImages')
 		);
 
 		return parent::renderView();
@@ -2489,9 +2480,7 @@ class AdminThemesControllerCore extends AdminController
 	public function postProcess()
 	{
 		if (Tools::isSubmit('submitOptionstheme') && Tools::isSubmit('id_theme') && !Tools::isSubmit('deletetheme') && Tools::getValue('action') != 'ThemeInstall' && $this->context->shop->id_theme != Tools::getValue('id_theme'))
-		{
 			$this->display = "ChooseThemeModule";
-		}
 		else
 		{
 			// new check compatibility theme feature (1.4) :
@@ -2559,16 +2548,23 @@ class AdminThemesControllerCore extends AdminController
 		if (isset($_FILES[$field_name]['tmp_name']) && $_FILES[$field_name]['tmp_name'])
 		{
 			if ($error = ImageManager::validateUpload($_FILES[$field_name], Tools::getMaxUploadSize()))
+			{
 				$this->errors[] = $error;
+				return false;
+			}
 
 			$tmp_name = tempnam(_PS_TMP_IMG_DIR_, 'PS');
 			if (!$tmp_name || !move_uploaded_file($_FILES[$field_name]['tmp_name'], $tmp_name))
 				return false;
 
 			$ext = ($field_name == 'PS_STORES_ICON') ? '.gif' : '.jpg';
-			$logo_name = $logo_prefix.'-'.(int)$id_shop.$ext;
-			if (Context::getContext()->shop->getContext() == Shop::CONTEXT_ALL || $id_shop == 0 || Shop::isFeatureActive() == false)
-				$logo_name = $logo_prefix.$ext;
+			$logo_name = Tools::link_rewrite(Context::getContext()->shop->name).'-'
+				.Configuration::get('PS_IMG_UPDATE_TIME').'-'.(int)$id_shop.$ext;
+
+			if (Context::getContext()->shop->getContext() == Shop::CONTEXT_ALL || $id_shop == 0
+				|| Shop::isFeatureActive() == false)
+				$logo_name = Tools::link_rewrite(Context::getContext()->shop->name).'-'
+					.Configuration::get('PS_IMG_UPDATE_TIME').$ext;
 
 			if ($field_name == 'PS_STORES_ICON')
 			{
@@ -2581,10 +2577,11 @@ class AdminThemesControllerCore extends AdminController
 					$this->errors[] = Tools::displayError('An error occurred while attempting to copy your logo.');
 			}
 
-			Configuration::updateValue($field_name, $logo_name);
-			$this->fields_options['appearance']['fields'][$field_name]['thumb'] = _PS_IMG_.$logo_name.'?date='.time();
+			if (!count($this->errors) && @filemtime(_PS_IMG_DIR_.Configuration::get($field_name)))
+				@unlink(_PS_IMG_DIR_.Configuration::get($field_name));
 
-			unlink($tmp_name);
+			Configuration::updateValue($field_name, $logo_name);
+			@unlink($tmp_name);
 		}
 	}
 
@@ -2676,7 +2673,7 @@ class AdminThemesControllerCore extends AdminController
 
 		parent::initProcess();
 		// This is a composite page, we don't want the "options" display mode
-		if ($this->display == 'options')
+		if ($this->display == 'options' || $this->display == 'list')
 			$this->display = '';
 	}
 

@@ -145,16 +145,11 @@ class HelperListCore extends Helper
 		$this->orderBy = preg_replace('/^([a-z _]*!)/Ui', '', $this->orderBy);
 		$this->orderWay = preg_replace('/^([a-z _]*!)/Ui', '', $this->orderWay);
 
-		// Display list header (filtering, pagination and column names)
-		$tpl_vars['header'] = $this->displayListHeader();
-
-		// Show the content of the table
-		$tpl_vars['content'] = $this->displayListContent();
-
-		// Close list table and submit button
-		$tpl_vars['footer'] = $this->displayListFooter();
-
-		$this->tpl->assign($tpl_vars);
+		$this->tpl->assign(array(
+			'header' => $this->displayListHeader(), // Display list header (filtering, pagination and column names)
+			'content' => $this->displayListContent(), // Show the content of the table
+			'footer' => $this->displayListFooter() // Close list table and submit button
+		));
 		return parent::generate();
 	}
 
@@ -204,7 +199,9 @@ class HelperListCore extends Helper
 
 		foreach ($this->_list as $index => $tr)
 		{
-			$id = $tr[$this->identifier];
+			$id = null;
+			if (isset($tr[$this->identifier]))
+				$id = $tr[$this->identifier];
 			$name = isset($tr['name']) ? $tr['name'] : null;
 
 			if ($this->shopLinkType)
@@ -337,9 +334,10 @@ class HelperListCore extends Helper
 			'view' => in_array('view', $this->actions),
 			'edit' => in_array('edit', $this->actions),
 			'has_actions' => !empty($this->actions),
-			'has_bulk_actions' =>  (count($this->_list) <= 1 && !$this->force_show_bulk_actions) ? false : !empty($this->bulk_actions),
 			'list_skip_actions' => $this->list_skip_actions,
 			'row_hover' => $this->row_hover,
+			'list_id' => isset($this->list_id) ? $this->list_id : $this->table,
+			'checked_boxes' => Tools::getValue((isset($this->list_id) ? $this->list_id : $this->table).'Box')
 		)));
 		return $this->content_tpl->fetch();
 	}
@@ -597,6 +595,9 @@ class HelperListCore extends Helper
 		{
 			if (isset($field['value']) && $field['value'] !== false && $field['value'] !== '')
 			{
+				if (is_array($field['value']) && trim(implode('', $field['value'])) == '')
+					continue;
+
 				$has_value = true;
 				break;
 			}
@@ -615,7 +616,7 @@ class HelperListCore extends Helper
 			'show_toolbar' => $this->show_toolbar,
 			'toolbar_scroll' => $this->toolbar_scroll,
 			'toolbar_btn' => $this->toolbar_btn,
-			'has_bulk_actions' => (count($this->_list) <= 1 && !$has_value && !$this->force_show_bulk_actions) ? false : !empty($this->bulk_actions),
+			'has_bulk_actions' => $this->hasBulkActions($has_value),
 		));
 
 		$this->header_tpl->assign(array_merge($this->tpl_vars, array(
@@ -643,6 +644,31 @@ class HelperListCore extends Helper
 		)));
 
 		return $this->header_tpl->fetch();
+	}
+
+	public function hasBulkActions($has_value = false)
+	{
+		if ($this->force_show_bulk_actions)
+			return true;
+
+		if (count($this->_list) <= 1 && !$has_value)
+			return false;
+
+		if (isset($this->list_skip_actions) && count($this->list_skip_actions)
+			&& isset($this->bulk_actions) && is_array($this->bulk_actions) && count($this->bulk_actions))
+		{
+			foreach ($this->bulk_actions as $action => $data)
+				if (array_key_exists($action, $this->list_skip_actions))
+				{
+					foreach ($this->_list as $key => $row)
+						if (!in_array($row[$this->identifier], $this->list_skip_actions[$action]))
+							return true;
+
+					return false;
+				}
+		}
+
+		return !empty($this->bulk_actions);
 	}
 
 	/**

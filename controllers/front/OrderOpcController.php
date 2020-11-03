@@ -51,6 +51,7 @@ class OrderOpcControllerCore extends ParentOrderController
 			{
 				if (Tools::isSubmit('method'))
 				{
+
 					switch (Tools::getValue('method'))
 					{
 						case 'updateMessage':
@@ -142,12 +143,17 @@ class OrderOpcControllerCore extends ParentOrderController
 								$this->context->smarty->assign('isVirtualCart', $this->context->cart->isVirtualCart());
 								$this->_processAddressFormat();
 								$this->_assignAddress();
+
+								if (!($formatedAddressFieldsValuesList = $this->context->smarty->getTemplateVars('formatedAddressFieldsValuesList')))
+									$formatedAddressFieldsValuesList = array();
+
 								// Wrapping fees
 								$wrapping_fees = $this->context->cart->getGiftWrappingPrice(false);
 								$wrapping_fees_tax_inc = $wrapping_fees = $this->context->cart->getGiftWrappingPrice();
 								$return = array_merge(array(
 									'order_opc_adress' => $this->context->smarty->fetch(_PS_THEME_DIR_.'order-address.tpl'),
 									'block_user_info' => (isset($blockUserInfo) ? $blockUserInfo->hookDisplayTop(array()) : ''),
+									'formatedAddressFieldsValuesList' => $formatedAddressFieldsValuesList,
 									'carrier_data' => $this->_getCarrierList(),
 									'HOOK_TOP_PAYMENT' => Hook::exec('displayPaymentTop'),
 									'HOOK_PAYMENT' => $this->_getPaymentMethods(),
@@ -292,14 +298,17 @@ class OrderOpcControllerCore extends ParentOrderController
 			}
 		}
 		elseif (Tools::isSubmit('ajax'))
-			throw new PrestaShopException('Method is not defined');
+		{
+			$this->errors[] = Tools::displayError('No product in your cart.');
+			die('{"hasError" : true, "errors" : ["'.implode('\',\'', $this->errors).'"]}');
+		}
 	}
 
 	public function setMedia()
 	{
 		parent::setMedia();
 
-		if ($this->context->getMobileDevice() == false)
+		if (!$this->useMobileTheme())
 		{
 			// Adding CSS style sheet
 			$this->addCSS(_THEME_CSS_DIR_.'order-opc.css');
@@ -310,9 +319,12 @@ class OrderOpcControllerCore extends ParentOrderController
 		else
 			$this->addJS(_THEME_MOBILE_JS_DIR_.'opc.js');
 
-		$this->addJS(_PS_JS_DIR_.'validate.js');
-		$this->addJS(_THEME_JS_DIR_.'tools/statesManagement.js');
-		$this->addJS(_THEME_JS_DIR_.'validate_fields.js');
+		$this->addJS(array(
+			_THEME_JS_DIR_.'tools/vatManagement.js',
+			_THEME_JS_DIR_.'tools/statesManagement.js',
+			_THEME_JS_DIR_.'order-carrier.js',
+			_PS_JS_DIR_.'validate.js'
+		));
 	}
 
 	/**
@@ -434,7 +446,6 @@ class OrderOpcControllerCore extends ParentOrderController
 			'sl_year' => $birthday[0],
 			'sl_month' => $birthday[1],
 			'sl_day' => $birthday[2],
-			'id_address_invoice' => $id_address_invoice,
 			'company_invoice' => Tools::htmlentitiesUTF8($address_invoice->company),
 			'lastname_invoice' => Tools::htmlentitiesUTF8($address_invoice->lastname),
 			'firstname_invoice' => Tools::htmlentitiesUTF8($address_invoice->firstname),

@@ -41,6 +41,7 @@ function refreshDashboard(module_name, use_push, extra) {
 				dashboard_use_push: Number(use_push),
 				extra: extra
 			},
+			global: false,
 			dataType: 'json',
 			success : function(widgets){
 				for (var widget_name in widgets) {
@@ -142,7 +143,11 @@ function data_table(widget_name, data) {
 		
 		//fill body
 		$('#'+data_id+' tbody').html('');
-		if (data[data_id].body.length) {
+
+		if(typeof data[data_id].body === 'string') {
+			$('#'+data_id+' tbody').html('<tr><td class="text-center" colspan="'+data[data_id].header.length+'"><br/>'+data[data_id].body+'</td></tr>');
+		}
+		else if (data[data_id].body.length) {
 			for (var body_content_id in data[data_id].body) {
 				tr = '<tr>';
 				for (var body_content in data[data_id].body[body_content_id]) {

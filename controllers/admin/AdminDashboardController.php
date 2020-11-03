@@ -79,8 +79,12 @@ class AdminDashboardControllerCore extends AdminController
 		}
 
 		foreach ($modules as $module)
-			if ($module->tab == 'payments_gateways' && $module->id)
+			if (isset($module->tab) && $module->tab == 'payments_gateways' && $module->id)
 			{
+				$moduleClass = Module::getInstanceByName($module->name);
+				if (!$moduleClass->isEnabledForShopContext())
+					continue;
+
 				$forms['payment']['fields']['CONF_'.strtoupper($module->name).'_FIXED'] = array(
 					'title' => $module->displayName,
 					'desc' => sprintf($this->l('Choose a fixed fee for each order placed in %1$s with %2$s.'), $currency->iso_code, $module->displayName),
@@ -127,7 +131,7 @@ class AdminDashboardControllerCore extends AdminController
 		{
 			$forms['carriers']['fields']['CONF_'.strtoupper($carrier['id_reference']).'_SHIP'] = array(
 				'title' => $carrier['name'],
-				'desc' => sprintf($this->l('%% of what you charged the customer for domestic delivery with %s.'), $carrier['name']),
+				'desc' => sprintf($this->l('For the carrier named %s, indicate the domestic delivery costs  in percentage of the price charged to customers.'), $carrier['name']),
 				'validation' => 'isPercentage',
 				'cast' => 'floatval',
 				'type' => 'text',
@@ -136,7 +140,7 @@ class AdminDashboardControllerCore extends AdminController
 			);
 			$forms['carriers']['fields']['CONF_'.strtoupper($carrier['id_reference']).'_SHIP_OVERSEAS'] = array(
 				'title' => $carrier['name'],
-				'desc' => sprintf($this->l('%% of what you charged the customer for overseas delivery with %s.'), $carrier['name']),
+				'desc' => sprintf($this->l('For the carrier named %s, indicate the overseas delivery costs in percentage of the price charged to customers.'), $carrier['name']),
 				'validation' => 'isPercentage',
 				'cast' => 'floatval',
 				'type' => 'text',
@@ -145,9 +149,11 @@ class AdminDashboardControllerCore extends AdminController
 			);
 		}
 
+		$forms['carriers']['description'] = $this->l('Method: Indicate the percentage of your carrier margin. For example, if you charge $10 of shipping fees to your customer for each shipment, but you really pay $4 to this carrier, then you should indicate "40" in the percentage field.');
+
 		$forms['other']['fields']['CONF_AVERAGE_PRODUCT_MARGIN'] = array(
-			'title' => $this->l('Average gross margin (Selling price / Buying price)'),
-			'desc' => $this->l('Only used if you do not specify your buying price for each product.'),
+			'title' => $this->l('Average gross margin'),
+			'desc' => $this->l('This percentage is calculated as follows: ((total sales revenue) - (cost of goods sold)) / (total sales revenue) * 100.').$this->l('This value is only used if you do not specify the wholesale price for each product.'),
 			'validation' => 'isPercentage',
 			'cast' => 'intval',
 			'type' => 'text',
@@ -156,7 +162,8 @@ class AdminDashboardControllerCore extends AdminController
 		);
 
 		$forms['other']['fields']['CONF_ORDER_FIXED'] = array(
-			'title' => $this->l('Other fee per order'),
+			'title' => $this->l('Other fees per order'),
+			'desc' => $this->l('Add up all of your additional costs per order.'),
 			'validation' => 'isPrice',
 			'cast' => 'floatval',
 			'type' => 'text',
@@ -237,17 +244,33 @@ class AdminDashboardControllerCore extends AdminController
 			'calendar' => $calendar_helper->generate(),
 			'PS_DASHBOARD_SIMULATION' => Configuration::get('PS_DASHBOARD_SIMULATION'),
 			'datepickerFrom' => Tools::getValue('datepickerFrom', $this->context->employee->stats_date_from),
-			'datepickerTo' => Tools::getValue('datepickerTo', $this->context->employee->stats_date_to)
+			'datepickerTo' => Tools::getValue('datepickerTo', $this->context->employee->stats_date_to),
+			'preselect_date_range' => Tools::getValue('preselectDateRange', $this->context->employee->preselect_date_range)
 		);
 		return parent::renderView();
 	}
 
 	public function postProcess()
 	{
+		if (Tools::isSubmit('submitDateRealTime'))
+		{
+			if ($use_realtime = (int)Tools::getValue('submitDateRealTime'))
+			{
+				$this->context->employee->stats_date_from = date('Y-m-d');
+				$this->context->employee->stats_date_to = date('Y-m-d');
+				$this->context->employee->stats_compare_option = HelperCalendar::DEFAULT_COMPARE_OPTION;
+				$this->context->employee->stats_compare_from = null;
+				$this->context->employee->stats_compare_to = null;
+				$this->context->employee->update();
+			}
+			Configuration::updateValue('PS_DASHBOARD_USE_PUSH', $use_realtime);
+		}
+
 		if (Tools::isSubmit('submitDateRange'))
 		{
 			$this->context->employee->stats_date_from = Tools::getValue('date_from');
 			$this->context->employee->stats_date_to = Tools::getValue('date_to');
+			$this->context->employee->preselect_date_range = Tools::getValue('preselectDateRange');
 
 			if (Tools::getValue('datepicker_compare'))
 			{
@@ -379,5 +402,3 @@ class AdminDashboardControllerCore extends AdminController
 		die(Tools::jsonEncode($return));
 	}	
 }
-
-

@@ -39,7 +39,7 @@ class AdminCartsControllerCore extends AdminController
 		$this->allow_export = true;
 		$this->_orderWay = 'DESC';
 
-		$this->_select = 'CONCAT(LEFT(c.`firstname`, 1), \'. \', c.`lastname`) `customer`, a.id_cart total, ca.name carrier, o.id_order, IF(co.id_guest, 1, 0) id_guest';
+		$this->_select = 'CONCAT(LEFT(c.`firstname`, 1), \'. \', c.`lastname`) `customer`, a.id_cart total, ca.name carrier, IFNULL(o.id_order, \''.$this->l('Non ordered').'\') id_order, IF(o.id_order, 1, 0) badge_success, IF(o.id_order, 0, 1) badge_danger, IF(co.id_guest, 1, 0) id_guest';
 		$this->_join = 'LEFT JOIN '._DB_PREFIX_.'customer c ON (c.id_customer = a.id_customer)
 		LEFT JOIN '._DB_PREFIX_.'currency cu ON (cu.id_currency = a.id_currency)
 		LEFT JOIN '._DB_PREFIX_.'carrier ca ON (ca.id_carrier = a.id_carrier)
@@ -49,16 +49,16 @@ class AdminCartsControllerCore extends AdminController
 		$this->fields_list = array(
 			'id_cart' => array(
 				'title' => $this->l('ID'),
-				'align' => 'center',
+				'align' => 'text-center',
 				'class' => 'fixed-width-xs'
 			),
 			'id_order' => array(
 				'title' => $this->l('Order ID'),
-				'align' => 'center'
+				'align' => 'text-center',
+				'badge_danger' => true
 			),
 			'customer' => array(
 				'title' => $this->l('Customer'),
-				'width' => 'auto',
 				'filter_key' => 'c!lastname'
 			),
 			'total' => array(
@@ -67,30 +67,37 @@ class AdminCartsControllerCore extends AdminController
 				'orderby' => false,
 				'search' => false,
 				'align' => 'text-right',
-				'prefix' => '<span class="badge">',
-				'suffix' => '</span>',
+				'badge_success' => true
 			),
 			'carrier' => array(
 				'title' => $this->l('Carrier'),
-				'align' => 'center',
+				'align' => 'text-center',
 				'callback' => 'replaceZeroByShopName',
 				'filter_key' => 'ca!name'
 			),
 			'date_add' => array(
 				'title' => $this->l('Date'),
-				'align' => 'right',
+				'align' => 'text-right',
 				'type' => 'datetime',
 				'filter_key' => 'a!date_add'
 			),
 			'id_guest' => array(
 				'title' => $this->l('Online'),
-				'align' => 'center',
+				'align' => 'text-center',
 				'type' => 'bool',
 				'havingFilter' => true,
 				'icon' => array(0 => 'blank.gif', 1 => 'tab-customers.gif')
 			)
 		);
  		$this->shopLinkType = 'shop';
+
+		$this->bulk_actions = array(
+			'delete' => array(
+				'text' => $this->l('Delete selected'),
+				'confirm' => $this->l('Delete selected items?'),
+				'icon' => 'icon-trash'
+			)
+		);
 
 		parent::__construct();
 	}
@@ -109,7 +116,65 @@ class AdminCartsControllerCore extends AdminController
 	
 	public function renderKpis()
 	{
-		return @AdminOrdersController::renderKpis();
+		$time = time();
+		$kpis = array();
+
+		/* The data generation is located in AdminStatsControllerCore */
+		$helper = new HelperKpi();
+		$helper->id = 'box-conversion-rate';
+		$helper->icon = 'icon-sort-by-attributes-alt';
+		//$helper->chart = true;
+		$helper->color = 'color1';
+		$helper->title = $this->l('Conversion Rate', null, null, false);
+		$helper->subtitle = $this->l('30 days', null, null, false);
+		if (ConfigurationKPI::get('CONVERSION_RATE') !== false)
+			$helper->value = ConfigurationKPI::get('CONVERSION_RATE');
+		if (ConfigurationKPI::get('CONVERSION_RATE_CHART') !== false)
+			$helper->data = ConfigurationKPI::get('CONVERSION_RATE_CHART');
+		if (ConfigurationKPI::get('CONVERSION_RATE_EXPIRE') < $time)
+			$helper->source = $this->context->link->getAdminLink('AdminStats').'&ajax=1&action=getKpi&kpi=conversion_rate';
+		$kpis[] = $helper->generate();
+
+		$helper = new HelperKpi();
+		$helper->id = 'box-carts';
+		$helper->icon = 'icon-shopping-cart';
+		$helper->color = 'color2';
+		$helper->title = $this->l('Abandoned Carts', null, null, false);
+		$helper->subtitle = $this->l('Today', null, null, false);
+		$helper->href = $this->context->link->getAdminLink('AdminCarts');
+		if (ConfigurationKPI::get('ABANDONED_CARTS') !== false)
+			$helper->value = ConfigurationKPI::get('ABANDONED_CARTS');
+		if (ConfigurationKPI::get('ABANDONED_CARTS_EXPIRE') < $time)
+			$helper->source = $this->context->link->getAdminLink('AdminStats').'&ajax=1&action=getKpi&kpi=abandoned_cart';
+		$kpis[] = $helper->generate();
+
+		$helper = new HelperKpi();
+		$helper->id = 'box-average-order';
+		$helper->icon = 'icon-money';
+		$helper->color = 'color3';
+		$helper->title = $this->l('Average Order Value', null, null, false);
+		$helper->subtitle = $this->l('30 days', null, null, false);
+		if (ConfigurationKPI::get('AVG_ORDER_VALUE') !== false)
+			$helper->value = ConfigurationKPI::get('AVG_ORDER_VALUE');
+		if (ConfigurationKPI::get('AVG_ORDER_VALUE_EXPIRE') < $time)
+			$helper->source = $this->context->link->getAdminLink('AdminStats').'&ajax=1&action=getKpi&kpi=average_order_value';
+		$kpis[] = $helper->generate();
+
+		$helper = new HelperKpi();
+		$helper->id = 'box-net-profit-visitor';
+		$helper->icon = 'icon-user';
+		$helper->color = 'color4';
+		$helper->title = $this->l('Net Profit per Visitor', null, null, false);
+		$helper->subtitle = $this->l('30 days', null, null, false);
+		if (ConfigurationKPI::get('NETPROFIT_VISITOR') !== false)
+			$helper->value = ConfigurationKPI::get('NETPROFIT_VISITOR');
+		if (ConfigurationKPI::get('NETPROFIT_VISITOR_EXPIRE') < $time)
+			$helper->source = $this->context->link->getAdminLink('AdminStats').'&ajax=1&action=getKpi&kpi=netprofit_visitor';
+		$kpis[] = $helper->generate();
+
+		$helper = new HelperKpiRow();
+		$helper->kpis = $kpis;
+		return $helper->generate();
 	}
 
 	public function renderView()
@@ -362,7 +427,7 @@ class AdminCartsControllerCore extends AdminController
 				$this->context->cart->save();
 			}
 			else
-				$errors[] = Tools::displayError('This product cannot be added to the cart');
+				$errors[] = Tools::displayError('This product cannot be added to the cart.');
 
 			if (!count($errors))
 			{
@@ -525,12 +590,12 @@ class AdminCartsControllerCore extends AdminController
 		{
 			$errors = array();
 			if (!($id_cart_rule = Tools::getValue('id_cart_rule')) || !$cart_rule = new CartRule((int)$id_cart_rule))
-				$errors[] = Tools::displayError('Invalid voucher');
+				$errors[] = Tools::displayError('Invalid voucher.');
 			elseif ($err = $cart_rule->checkValidity($this->context))
 				$errors[] = $err;
 			if (!count($errors))
 				if (!$this->context->cart->addCartRule((int)$cart_rule->id))
-					$errors[] = Tools::displayError('Can\'t add the voucher');
+					$errors[] = Tools::displayError('Can\'t add the voucher.');
 			echo Tools::jsonEncode(array_merge($this->ajaxReturnVars(), array('errors' => $errors)));
 		}
 	}
@@ -760,9 +825,50 @@ class AdminCartsControllerCore extends AdminController
 	{
 		// don't display ordered carts
 		foreach ($this->_list as $row)
-			if ($row['id_cart'] == $id && isset($row['id_order']) && $row['id_order'])
+			if ($row['id_cart'] == $id && isset($row['id_order']) && is_numeric($row['id_order']))
 				return ;
 		
 		return $this->helper->displayDeleteLink($token, $id, $name);
+	}
+
+	public function renderList()
+	{
+		if (!($this->fields_list && is_array($this->fields_list)))
+			return false;
+		$this->getList($this->context->language->id);
+
+		$helper = new HelperList();
+		
+		// Empty list is ok
+		if (!is_array($this->_list))
+		{
+			$this->displayWarning($this->l('Bad SQL query', 'Helper').'<br />'.htmlspecialchars($this->_list_error));
+			return false;
+		}
+
+		$this->setHelperDisplay($helper);
+		$helper->tpl_vars = $this->tpl_list_vars;
+		$helper->tpl_delete_link_vars = $this->tpl_delete_link_vars;
+
+		// For compatibility reasons, we have to check standard actions in class attributes
+		foreach ($this->actions_available as $action)
+		{
+			if (!in_array($action, $this->actions) && isset($this->$action) && $this->$action)
+				$this->actions[] = $action;
+		}
+		$helper->is_cms = $this->is_cms;
+		$skip_list = array();
+
+		foreach ($this->_list as $row)
+			if (isset($row['id_order']) && is_numeric($row['id_order']))
+				$skip_list[] = $row['id_cart'];
+
+		if (array_key_exists('delete', $helper->list_skip_actions))
+			$helper->list_skip_actions['delete'] = array_merge($helper->list_skip_actions['delete'], (array)$skip_list);
+		else
+			$helper->list_skip_actions['delete'] = (array)$skip_list;
+
+		$list = $helper->generateList($this->_list, $this->fields_list);
+		return $list;
 	}
 }

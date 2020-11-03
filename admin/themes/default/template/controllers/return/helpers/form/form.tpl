@@ -36,6 +36,16 @@
 		<p>
 			<a class="text-muted" href="{$url_order}">{l s='View details on the order page'}</a>
 		</p>
+	{elseif $input.type == 'pdf_order_return'}
+		<p>
+			{if $state_order_return == 2}
+				<a class="btn" href="{$link->getPageLink('pdf-order-return', true, NULL, "id_order_return={$id_order_return|intval}")|escape:'html':'UTF-8'}">
+					<i class="icon-file-text"></i> {l s='Print out'}
+				</a>
+			{else}
+				--
+			{/if}
+		</p>
 	{elseif $input.type == 'list_products'}
 		<table class="table">
 			<thead>
@@ -53,30 +63,44 @@
 						<td>{$returnedCustomization['name']}</td>
 						<td class="text-center">{$returnedCustomization['product_quantity']|intval}</td>
 						<td class="text-center">
-							<a class="btn btn-default" href="{$current}&deleteorder_return_detail&id_order_detail={$returnedCustomization['id_order_detail']}&id_order_return={$id_order_return}&id_customization={$returnedCustomization['id_customization']}&token={$token}">
+							<a class="btn btn-default" href="{$current}&amp;deleteorder_return_detail&amp;id_order_detail={$returnedCustomization['id_order_detail']}&amp;id_order_return={$id_order_return}&amp;id_customization={$returnedCustomization['id_customization']}&amp;token={$token}">
 								<i class="icon-remove"></i>
 								{l s='Delete'}
 							</a>
 						</td>
 					</tr>
-					{foreach $customizationDatas as $type => $datas}
+					{assign var='productId' value=$returnedCustomization.product_id}
+					{assign var='productAttributeId' value=$returnedCustomization.product_attribute_id}
+					{assign var='customizationId' value=$returnedCustomization.id_customization}
+					{assign var='addressDeliveryId' value=$returnedCustomization.id_address_delivery}
+					{foreach $customizedDatas.$productId.$productAttributeId.$addressDeliveryId.$customizationId.datas as $type => $datas}
 						<tr>
 							<td colspan="4">
-							{if $type == 'type_file'}
-								<ul>
-								{foreach $datas a $data name='loop'}
-									<li>
-										<a href="displayImage.php?img={$data['value']}&name={$order->id|intval}-file{$loop.iteration}" target="_blank"><img src="{$picture_folder}{$data['value']}_small" alt="" /></a>
-									</li>
-								{/foreach}
-								</ul>
-							{elseif $type == 'type_textfield'}
-								<ul>
-									{foreach $datas as $data name='loop'}
-										<li>{if $data['name']}$data['name']{else}{l s='Text #%d' sprintf=$loop.iteration}{/if}{l s=':'} {$data['value']}</li>
-									{/foreach}
-								</ul>
-							{/if}
+								<div class="form-horizontal">
+									{if $type == $smarty.const._CUSTOMIZE_FILE_}
+										{foreach from=$datas item='data'}
+											<div class="form-group">
+												<span class="col-lg-3 control-label"><strong>{l s='Attachment'}</strong></span>
+												<div class="col-lg-9">
+													<a href="displayImage.php?img={$data['value']}&name={$returnedCustomization['id_order_detail']|intval}-file{$smarty.foreach.data.iteration.iteration}" target="_blank"><img class="img-thumbnail" src="{$picture_folder}{$data['value']}_small" alt="" /></a>
+												</div>
+											</div>
+										{/foreach}
+									{elseif $type == $smarty.const._CUSTOMIZE_TEXTFIELD_}
+
+										
+											{foreach from=$datas item='data'}
+												<div class="form-group">
+													<span class="control-label col-lg-3"><strong>{if $data['name']}{$data['name']}{else}{l s='Text #%d' sprintf=$smarty.foreach.data.iteration}{/if}</strong></span>
+													<div class="col-lg-9">
+														<p class="form-control-static">
+															{$data['value']}
+														</p>
+													</div>
+												</div>
+											{/foreach}
+									{/if}
+								</div>
 							</td>
 						</tr>
 					{/foreach}
@@ -90,7 +114,7 @@
 							<td class="text-center">{$product['product_name']}</td>
 							<td class="text-center">{$product['product_quantity']}</td>
 							<td class="text-center">
-								<a class="btn btn-default"  href="{$current}&deleteorder_return_detail&id_order_detail={$product['id_order_detail']}&id_order_return={$id_order_return}&token={$token}">
+								<a class="btn btn-default"  href="{$current}&amp;deleteorder_return_detail&amp;id_order_detail={$product['id_order_detail']}&amp;id_order_return={$id_order_return}&amp;token={$token}">
 									<i class="icon-remove"></i>
 									{l s='Delete'}
 								</a>

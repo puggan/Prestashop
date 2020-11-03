@@ -34,8 +34,7 @@ $(document).ready(function()
 	openCloseFilter();
 
 	// Click on color
-	$('#layered_form input[type=button], #layered_form label.layered_color').live('click', function()
-	{
+	$(document).on('click', '#layered_form input[type=button], #layered_form label.layered_color', function(e) {
 		if (!$('input[name='+$(this).attr('name')+'][type=hidden]').length)
 			$('<input />').attr('type', 'hidden').attr('name', $(this).attr('name')).val($(this).attr('rel')).appendTo('#layered_form');
 		else
@@ -44,13 +43,16 @@ $(document).ready(function()
 	});
 
 	// Click on checkbox
-	$('#layered_form input[type=checkbox], #layered_form input[type=radio], #layered_form select').live('change', function()
-	{
+	$(document).on('change', '#layered_form select', function(e) {
+		reloadContent();
+	});
+
+	$(document).on('click', '#layered_form input[type=checkbox], #layered_form input[type=radio]', function(e) {
 		reloadContent();
 	});
 
 	// Changing content of an input text
-	$('#layered_form input.layered_input_range').live('keyup', function()
+	$(document).on('keyup', '#layered_form input.layered_input_range', function(e)
 	{
 		if ($(this).attr('timeout_id'))
 			window.clearTimeout($(this).attr('timeout_id'));
@@ -82,7 +84,8 @@ $(document).ready(function()
 		}, 500, this));
 	});
 
-	$('#layered_block_left .radio').live('click', function() {
+	$(document).on('click', '#layered_block_left .radio', function(e) 
+	{
 		var name = $(this).attr('name');
 		$.each($(this).parent().parent().find('input[type=button]'), function (it, item) {
 			if ($(item).hasClass('on') && $(item).attr('name') != name) {
@@ -93,8 +96,9 @@ $(document).ready(function()
 	});
 
 	// Click on label
-	$('#layered_block_left label a').live({
-		click: function() {
+	$('#layered_block_left label a').on({
+		click: function(e) {
+			e.preventDefault();
 			var disable = $(this).parent().parent().find('input').attr('disabled');
 			if (disable == ''
 			|| typeof(disable) == 'undefined'
@@ -103,12 +107,12 @@ $(document).ready(function()
 				$(this).parent().parent().find('input').click();
 				reloadContent();
 			}
-			return false;
 		}
 	});
 
 	layered_hidden_list = {};
-	$('.hide-action').live('click', function() {
+	$('.hide-action').on('click', function(e)
+	{
 		if (typeof(layered_hidden_list[$(this).parent().find('ul').attr('id')]) == 'undefined' || layered_hidden_list[$(this).parent().find('ul').attr('id')] == false)
 		{
 			layered_hidden_list[$(this).parent().find('ul').attr('id')] = true;
@@ -123,42 +127,16 @@ $(document).ready(function()
 		hideFilterValueAction(this);
 	});
 
-	// To be sure there is no other events attached to the selectProductSort, change the ID
-	var id = 1;
-	while ($('#selectPrductSort').length) { // Because ids are duplicated
-		// Unbind event change on #selectPrductSort
-		$('#selectPrductSort').unbind('change');
-		$('#selectPrductSort').attr('onchange', '');
-		$('#selectPrductSort').addClass('selectProductSort');
-		$('#selectPrductSort').attr('id', 'selectPrductSort'+id);
-		$('label[for=selectPrductSort]').attr('for', 'selectPrductSort'+id);
-		id++;
-	}
-
-	while ($('#selectProductSort').length) { // Because ids are duplicated
-		// Unbind event change on #selectProductSort
-		$('#selectProductSort').unbind('change');
-		$('#selectProductSort').attr('onchange', '');
-		$('#selectProductSort').addClass('selectProductSort');
-		$('#selectProductSort').attr('id', 'selectProductSort'+id);
-		$('label[for=selectProductSort]').attr('for', 'selectProductSort'+id);
-		id++;
-	}
-
-	// Since 1.5, event is add to .selectProductSort and not to #selectPrductSort
-	setTimeout(function() {
-		$('.selectProductSort').unbind('change');
-	}, 100);
-
-	$('.selectProductSort').live('change', function(event) {
+	$('.selectProductSort').unbind('change').bind('change', function(event) {
 		$('.selectProductSort').val($(this).val());
-		reloadContent();
+
+		if($('#layered_form').length > 0)
+			reloadContent();
 	});
 
-	$('.js-nb_item').unbind('change').attr('onchange', '');
-
-	$('.js-nb_item').live('change', function(event) {
-		$('.js-nb_item').val($(this).val());
+	$(document).off('change').on('change', 'select[name=n]', function(e) 
+	{
+		$('select[name=n]').val($(this).val());
 		reloadContent();
 	});
 
@@ -166,9 +144,75 @@ $(document).ready(function()
 	initLayered();
 });
 
+function initFilters()
+{
+	if (typeof filters !== 'undefined')
+	{
+		for (key in filters)
+		{
+			if (filters.hasOwnProperty(key))
+				var filter = filters[key];
+
+			if (typeof filter.slider !== 'undefined' && parseInt(filter.filter_type) == 0)
+			{
+				var filterRange = parseInt(filter.max)-parseInt(filter.min);
+				var step = filterRange / 100;
+
+				if (step > 1)
+					step = parseInt(step);
+
+				addSlider(filter.type,
+				{
+					range: true,
+					step: step,
+					min: parseInt(filter.min),
+					max: parseInt(filter.max),
+					values: [filter.values[0], filter.values[1]],
+					slide: function(event, ui) {
+						stopAjaxQuery();
+
+						if (parseInt($(event.target).data('format')) < 5)
+						{
+							from = formatCurrency(ui.values[0], parseInt($(event.target).data('format')),
+								$(event.target).data('unit'));
+							to = formatCurrency(ui.values[1], parseInt($(event.target).data('format')),
+								$(event.target).data('unit'));
+						}
+						else
+						{
+							from = ui.values[0] + $(event.target).data('unit');
+							to = ui.values[1] + $(event.target).data('unit');
+						}
+
+						$('#layered_' + $(event.target).data('type') + '_range').html(from + ' - ' + to);
+					},
+					stop: function () {
+						reloadContent();
+					}
+				}, filter.unit, parseInt(filter.format));
+			}
+			else if(typeof filter.slider !== 'undefined' && parseInt(filter.filter_type) == 1)
+			{
+				$('#layered_' + filter.type + '_range_min').attr('limitValue', filter.min);
+				$('#layered_' + filter.type + '_range_max').attr('limitValue', filter.max);
+			}
+			
+			$('.layered_' + filter.type).show();
+		}
+
+		initUniform();
+	}
+}
+
+function initUniform()
+{
+	$("#layered_form input[type='checkbox'], #layered_form input[type='radio'], select.form-control").uniform();
+}
+
 function hideFilterValueAction(it)
 {
-	if (typeof(layered_hidden_list[$(it).parent().find('ul').attr('id')]) == 'undefined' || layered_hidden_list[$(it).parent().find('ul').attr('id')] == false)
+	if (typeof(layered_hidden_list[$(it).parent().find('ul').attr('id')]) == 'undefined'
+		|| layered_hidden_list[$(it).parent().find('ul').attr('id')] == false)
 	{
 		$(it).parent().find('.hiddable').hide();
 		$(it).parent().find('.hide-action.less').hide();
@@ -205,8 +249,8 @@ function initSliders()
 			case 2:
 			case 3:
 			case 4:
-				from = blocklayeredFormatCurrency($('#layered_'+slider['type']+'_slider').slider('values', 0), slider['format'], slider['unit']);
-				to = blocklayeredFormatCurrency($('#layered_'+slider['type']+'_slider').slider('values', 1), slider['format'], slider['unit']);
+				from = formatCurrency($('#layered_'+slider['type']+'_slider').slider('values', 0), slider['format'], slider['unit']);
+				to = formatCurrency($('#layered_'+slider['type']+'_slider').slider('values', 1), slider['format'], slider['unit']);
 				break;
 			case 5:
 				from =  $('#layered_'+slider['type']+'_slider').slider('values', 0)+slider['unit']
@@ -219,6 +263,7 @@ function initSliders()
 
 function initLayered()
 {
+	initFilters();
 	initSliders();
 	initLocationChange();
 	updateProductUrl();
@@ -230,6 +275,9 @@ function initLayered()
 }
 
 function paginationButton(nbProductsIn) {
+	if (typeof(current_friendly_url) === 'undefined')
+		current_friendly_url = '#';
+
 	$('div.pagination a').not(':hidden').each(function () {
 		if ($(this).attr('href').search('&p=') == -1) {
 			var page = 1;
@@ -247,7 +295,9 @@ function paginationButton(nbProductsIn) {
 		else if ($(this).hasClass('pagination_previous'))
 			nbPage = parseInt($('div.pagination li.current').children().children().html())- 1;
 
-		$(this).children().children().click(function () {
+		$(this).children().children().on('click', function(e)
+		{
+			e.preventDefault();
 			if (nbPage == 0)
 				p = parseInt($(this).html()) + parseInt(nbPage);
 			else
@@ -255,7 +305,6 @@ function paginationButton(nbProductsIn) {
 			p = '&p='+ p;
 			reloadContent(p);
 			nbPage = 0;
-			return false;
 		});
 	});
 
@@ -296,7 +345,7 @@ function paginationButton(nbProductsIn) {
 
 function cancelFilter()
 {
-	$('#enabled_filters a').live('click', function(e)
+	$(document).on('click', '#enabled_filters a', function(e)
 	{
 		if ($(this).attr('rel').search(/_slider$/) > 0)
 		{
@@ -332,7 +381,7 @@ function cancelFilter()
 
 function openCloseFilter()
 {
-	$('#layered_form span.layered_close a').live('click', function(e)
+	$(document).on('click', '#layered_form span.layered_close a', function(e)
 	{
 		if ($(this).html() == '&lt;')
 		{
@@ -410,9 +459,9 @@ function reloadContent(params_plus)
 		}
 		data += '&orderby='+splitData[0]+'&orderway='+splitData[1];
 	}
-	if ($('.js-nb_item').length)
+	if ($('select[name=n]:first').length)
 	{
-		data += '&n='+$('.js-nb_item').val();
+		data += '&n=' + $('select[name=n]:first').val();
 	}
 
 	var slideUp = true;
@@ -424,9 +473,9 @@ function reloadContent(params_plus)
 
 	// Get nb items per page
 	var n = '';
-	$('div.pagination .js-nb_item').children().each(function(it, option) {
+	$('div.pagination select[name=n]').children().each(function(it, option) {
 		if (option.selected)
-			n = '&n='+option.value;
+			n = '&n=' + option.value;
 	});
 
 	ajaxQuery = $.ajax(
@@ -449,7 +498,7 @@ function reloadContent(params_plus)
 
 			if (result.heading != '')
 			{
-				$('h1.page-heading').html(result.heading);
+				$('h1.page-heading .cat-name').html(result.heading);
 				$('span.category-name').html(result.heading);
 			}
 
@@ -498,9 +547,11 @@ function reloadContent(params_plus)
 			ajaxLoaderOn = 0;
 
 			// On submiting nb items form, relaod with the good nb of items
-			$('div.pagination form').submit(function() {
-				val = $('div.pagination .js-nb_item').val();
-				$('div.pagination .js-nb_item').children().each(function(it, option) {
+			$('div.pagination form').on('submit', function(e)
+			{
+				e.preventDefault();
+				val = $('div.pagination select[name=n]').val();
+				$('div.pagination select[name=n]').children().each(function(it, option) {
 					if (option.value == val)
 						$(option).attr('selected', true);
 					else
@@ -508,17 +559,21 @@ function reloadContent(params_plus)
 				});
 				// Reload products and pagination
 				reloadContent();
-				return false;
 			});
 			if (typeof(ajaxCart) != "undefined")
 				ajaxCart.overrideButtonsInThePage();
 
 			if (typeof(reloadProductComparison) == 'function')
 				reloadProductComparison();
+
+			filters = result.filters;
+			initFilters();
 			initSliders();
 
+			current_friendly_url = result.current_friendly_url;
+
 			// Currente page url
-			if (typeof(current_friendly_url) == 'undefined')
+			if (typeof(current_friendly_url) === 'undefined')
 				current_friendly_url = '#';
 
 			// Get all sliders value
@@ -539,9 +594,11 @@ function reloadContent(params_plus)
 					current_friendly_url += '/'+blocklayeredSliderName[sliderType]+'-'+$('#layered_'+sliderType+'_range_min').val()+'-'+$('#layered_'+sliderType+'_range_max').val();
 				}
 			});
+
 			if (current_friendly_url == '#')
 				current_friendly_url = '#/';
-			window.location = current_friendly_url;
+
+			window.location.href = current_friendly_url;
 			lockLocationChecking = true;
 
 			if(slideUp)
@@ -587,6 +644,9 @@ function initLocationChange(func, time)
 
 function getUrlParams()
 {
+	if (typeof(current_friendly_url) === 'undefined')
+		current_friendly_url = '#';
+
 	var params = current_friendly_url;
 	if(window.location.href.split('#').length == 2 && window.location.href.split('#')[1] != '')
 		params = '#'+window.location.href.split('#')[1];
@@ -635,51 +695,4 @@ function utf8_decode (utfstr) {
 		}
 	}
 	return res;
-}
-
-
-/**
- * Return a formatted price
- * Copy from tools.js
- */
-function blocklayeredFormatCurrency(price, currencyFormat, currencySign, currencyBlank)
-{
-	// if you modified this function, don't forget to modify the PHP function displayPrice (in the Tools.php class)
-	blank = '';
-	price = parseFloat(price.toFixed(6));
-	price = ps_round(price, priceDisplayPrecision);
-	if (currencyBlank > 0)
-		blank = ' ';
-	if (currencyFormat == 1)
-		return currencySign + blank + blocklayeredFormatNumber(price, priceDisplayPrecision, ',', '.');
-	if (currencyFormat == 2)
-		return (blocklayeredFormatNumber(price, priceDisplayPrecision, ' ', ',') + blank + currencySign);
-	if (currencyFormat == 3)
-		return (currencySign + blank + blocklayeredFormatNumber(price, priceDisplayPrecision, '.', ','));
-	if (currencyFormat == 4)
-		return (blocklayeredFormatNumber(price, priceDisplayPrecision, ',', '.') + blank + currencySign);
-	return price;
-}
-
-
-/**
- * Return a formatted number
- * Copy from tools.js
- */
-function blocklayeredFormatNumber(value, numberOfDecimal, thousenSeparator, virgule)
-{
-	value = value.toFixed(numberOfDecimal);
-	var val_string = value+'';
-	var tmp = val_string.split('.');
-	var abs_val_string = (tmp.length == 2) ? tmp[0] : val_string;
-	var deci_string = ('0.' + (tmp.length == 2 ? tmp[1] : 0)).substr(2);
-	var nb = abs_val_string.length;
-
-	for (var i = 1 ; i < 4; i++)
-		if (value >= Math.pow(10, (3 * i)))
-			abs_val_string = abs_val_string.substring(0, nb - (3 * i)) + thousenSeparator + abs_val_string.substring(nb - (3 * i));
-
-	if (parseInt(numberOfDecimal) == 0)
-		return abs_val_string;
-	return abs_val_string + virgule + (deci_string > 0 ? deci_string : '00');
 }

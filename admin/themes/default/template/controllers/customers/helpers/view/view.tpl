@@ -26,34 +26,6 @@
 {extends file="helpers/view/view.tpl"}
 
 {block name="override_tpl"}
-<script type="text/javascript">
-	function saveCustomerNote()
-	{
-		$('#note_feedback').html('<img src="../img/loader.gif" alt="" />').show();
-		var noteContent = $('#noteContent').val();
-
-		$.ajax({
-			type: "POST",
-			url: "index.php",
-			data: "token={getAdminToken tab='AdminCustomers'}&tab=AdminCustomers&ajax=1&action=updateCustomerNote&id_customer={$customer->id}&note="+encodeURIComponent(noteContent),
-			async : true,
-			success: function(r) {
-				$('#note_feedback').html('').hide();
-				if (r == 'ok')
-				{
-					$('#note_feedback').html("<b style='color:green'>{l s='Your note has been saved.'}</b>").fadeIn(400);
-					$('#submitCustomerNote').attr('disabled', true);
-				}
-				else if (r == 'error:validation')
-					$('#note_feedback').html("<b style='color:red'>({l s='Error: Your note is not valid.'}</b>").fadeIn(400);
-				else if (r == 'error:update')
-					$('#note_feedback').html("<b style='color:red'>{l s='Error: Your note cannot be saved.'}</b>").fadeIn(400);
-				$('#note_feedback').fadeOut(3000);
-			}
-		});
-	}
-</script>
-
 <div id="container-customer">
 	<div class="row">
 		{*left*}
@@ -68,7 +40,7 @@
 					<a href="mailto:{$customer->email}"><i class="icon-envelope"></i>
 						{$customer->email}
 					</a>
-					<a class="btn btn-default pull-right" href="{$current}&updatecustomer&id_customer={$customer->id}&token={$token}">
+					<a class="btn btn-default pull-right" href="{$current}&amp;updatecustomer&amp;id_customer={$customer->id}&amp;token={$token}">
 						<i class="icon-edit"></i>
 						{l s='Edit'}
 					</a>
@@ -139,24 +111,24 @@
 							<p class="form-control-static">
 								{if $customer->newsletter}
 									<span class="label label-success">
-										<i class="icon-check-sign"></i>
+										<i class="icon-check"></i>
 										{l s='Newsletter'}
 									</span>
 								{else}
-									<span class="label label-warning">
-										<i class="icon-ban-circle"></i>
+									<span class="label label-danger">
+										<i class="icon-remove"></i>
 										{l s='Newsletter'}
 									</span>
 								{/if}
 								&nbsp;
 								{if $customer->optin}
 									<span class="label label-success">
-										<i class="icon-check-sign"></i>
+										<i class="icon-check"></i>
 										{l s='Opt in'}
 									</span>
 									{else}
-									<span class="label label-warning">
-										<i class="icon-ban-circle"></i>
+									<span class="label label-danger">
+										<i class="icon-remove"></i>
 										{l s='Opt in'}
 									</span>
 								{/if}
@@ -175,12 +147,12 @@
 							<p class="form-control-static">
 								{if $customer->active}
 									<span class="label label-success">
-										<i class="icon-check-sign"></i>
+										<i class="icon-check"></i>
 										{l s='Active'}
 									</span>
 								{else}
-									<span class="label label-warning">
-										<i class="icon-ban-circle"></i>
+									<span class="label label-danger">
+										<i class="icon-remove"></i>
 										{l s='Inactive'}
 									</span>
 								{/if}
@@ -191,7 +163,7 @@
 				{if $customer->isGuest()}
 					{l s='This customer is registered as.'} <b>{l s='Guest'}</b>
 					{if !$customer_exists}
-					<form method="post" action="index.php?tab=AdminCustomers&id_customer={$customer->id}&token={getAdminToken tab='AdminCustomers'}">
+					<form method="post" action="index.php?tab=AdminCustomers&amp;id_customer={$customer->id}&amp;token={getAdminToken tab='AdminCustomers'}">
 						<input type="hidden" name="id_lang" value="{$id_lang}" />
 						<p class="text-center">
 							<input class="button" type="submit" name="submitGuestToCustomer" value="{l s='Transform to a customer account'}" />
@@ -248,10 +220,10 @@
 									<td>{dateFormat date=$order['date_add'] full=0}</td>
 									<td>{$order['payment']}</td>
 									<td>{$order['order_state']}</td>
-									<td align="right">{$order['nb_products']}</td>
-									<td align="right">{$order['total_paid_real']}</td>
-									<td class="text-right">
-										<a class="btn btn-default" href="?tab=AdminOrders&id_order={$order['id_order']}&vieworder&token={getAdminToken tab='AdminOrders'}">
+									<td>{$order['nb_products']}</td>
+									<td>{$order['total_paid_real']}</td>
+									<td>
+										<a class="btn btn-default" href="?tab=AdminOrders&amp;id_order={$order['id_order']}&amp;vieworder&amp;token={getAdminToken tab='AdminOrders'}">
 											<i class='icon-search'></i> {l s='View'}
 										</a>
 									</td>
@@ -277,7 +249,7 @@
 								{foreach $orders_ko AS $key => $order}
 								<tr onclick="document.location = '?tab=AdminOrders&id_order={$order['id_order']}&vieworder&token={getAdminToken tab='AdminOrders'}'">
 									<td>{$order['id_order']}</td>
-									<td><a href="?tab=AdminOrders&id_order={$order['id_order']}&vieworder&token={getAdminToken tab='AdminOrders'}">{dateFormat date=$order['date_add'] full=0}</a></td>
+									<td><a href="?tab=AdminOrders&amp;id_order={$order['id_order']}&amp;vieworder&amp;token={getAdminToken tab='AdminOrders'}">{dateFormat date=$order['date_add'] full=0}</a></td>
 									<td>{$order['payment']}</td>
 									<td>{$order['order_state']}</td>
 									<td>{$order['nb_products']}</td>
@@ -313,7 +285,7 @@
 							<tr onclick="document.location = '?tab=AdminCarts&id_cart={$cart['id_cart']}&viewcart&token={getAdminToken tab='AdminCarts'}'">
 								<td>{$cart['id_cart']}</td>
 								<td>
-									<a href="index.php?tab=AdminCarts&id_cart={$cart['id_cart']}&viewcart&token={getAdminToken tab='AdminCarts'}">
+									<a href="index.php?tab=AdminCarts&amp;id_cart={$cart['id_cart']}&amp;viewcart&amp;token={getAdminToken tab='AdminCarts'}">
 										{dateFormat date=$cart['date_upd'] full=0}
 									</a>
 								</td>
@@ -347,7 +319,7 @@
 						<tr onclick="document.location = '?tab=AdminOrders&id_order={$product['id_order']}&vieworder&token={getAdminToken tab='AdminOrders'}'">
 							<td>{dateFormat date=$order['date_add'] full=0}</td>
 							<td>
-								<a class="btn btn-default" href="?tab=AdminOrders&id_order={$product['id_order']}&vieworder&token={getAdminToken tab='AdminOrders'}">
+								<a href="?tab=AdminOrders&amp;id_order={$product['id_order']}&amp;vieworder&amp;token={getAdminToken tab='AdminOrders'}">
 									{$product['product_name']}
 								</a>
 							</td>
@@ -389,7 +361,7 @@
 					<i class="icon-eye-close"></i> {l s='Add a private note'}
 				</div>
 				<div class="alert alert-info">{l s='This note will be displayed to all employees but not to customers.'}</div>
-				<form id="customer_note" class="form-horizontal" action="ajax.php" method="post" onsubmit="saveCustomerNote();return false;" >
+				<form id="customer_note" class="form-horizontal" action="ajax.php" method="post" onsubmit="saveCustomerNote({$customer->id});return false;" >
 					<div class="form-group">
 						<div class="col-lg-12">
 							<textarea name="note" id="noteContent" onkeyup="$(this).val().length > 0 ? $('#submitCustomerNote').removeAttr('disabled') : $('#submitCustomerNote').attr('disabled', 'disabled')">{$customer_note}</textarea>
@@ -421,7 +393,7 @@
 							<tr>
 								<td>{$message['status']}</td>
 								<td>
-									<a href="index.php?tab=AdminCustomerThreads&id_customer_thread={$message.id_customer_thread}&viewcustomer_thread&token={getAdminToken tab='AdminCustomerThreads'}">
+									<a href="index.php?tab=AdminCustomerThreads&amp;id_customer_thread={$message.id_customer_thread}&amp;viewcustomer_thread&amp;token={getAdminToken tab='AdminCustomerThreads'}">
 										{$message['message']}...
 									</a>
 								</td>
@@ -463,10 +435,10 @@
 									{/if}
 								</td>
 								<td>
-									<a href="?tab=AdminCartRules&id_cart_rule={$discount['id_cart_rule']}&addcart_rule&token={getAdminToken tab='AdminCartRules'}">
+									<a href="?tab=AdminCartRules&amp;id_cart_rule={$discount['id_cart_rule']}&amp;addcart_rule&amp;token={getAdminToken tab='AdminCartRules'}">
 										<i class="icon-pencil"></i>
 									</a>
-									<a href="?tab=AdminCartRules&id_cart_rule={$discount['id_cart_rule']}&deletecart_rule&token={getAdminToken tab='AdminCartRules'}">
+									<a href="?tab=AdminCartRules&amp;id_cart_rule={$discount['id_cart_rule']}&amp;deletecart_rule&amp;token={getAdminToken tab='AdminCartRules'}">
 										<i class="icon-remove"></i>
 									</a>
 								</td>
@@ -516,7 +488,7 @@
 					<i class="icon-group"></i>
 					{l s='Groups'}
 					<span class="badge">{count($groups)}</span>
-					<a class="btn btn-default pull-right" href="{$current}&updatecustomer&id_customer={$customer->id}&token={$token}">
+					<a class="btn btn-default pull-right" href="{$current}&amp;updatecustomer&amp;id_customer={$customer->id}&amp;token={$token}">
 						<i class="icon-edit"></i> {l s='Edit'}
 					</a>
 				</div>
@@ -530,10 +502,10 @@
 					</thead>
 					<tbody>
 						{foreach $groups AS $key => $group}
-						<tr onclick="document.location = '?tab=AdminGroups&id_group={$group['id_group']}&viewgroup&token={getAdminToken tab='AdminGroups'}'">
+						<tr onclick="document.location = '?tab=AdminGroups&amp;id_group={$group['id_group']}&amp;viewgroup&amp;token={getAdminToken tab='AdminGroups'}'">
 							<td>{$group['id_group']}</td>
 							<td>
-								<a href="?tab=AdminGroups&id_group={$group['id_group']}&viewgroup&token={getAdminToken tab='AdminGroups'}">
+								<a href="?tab=AdminGroups&amp;id_group={$group['id_group']}&amp;viewgroup&amp;token={getAdminToken tab='AdminGroups'}">
 									{$group['name']}
 								</a>
 							</td>
@@ -616,7 +588,7 @@
 								</td>
 								<td class="text-right">
 									<div class="btn-group">
-										<a class="btn btn-default" href="?tab=AdminAddresses&id_address={$address['id_address']}&addaddress&token={getAdminToken tab='AdminAddresses'}">
+										<a class="btn btn-default" href="?tab=AdminAddresses&amp;id_address={$address['id_address']}&amp;addaddress=1&amp;token={getAdminToken tab='AdminAddresses'}">
 											<i class="icon-edit"></i> {l s='Edit'}
 										</a>
 										<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
@@ -624,7 +596,7 @@
 										</button>
 										<ul class="dropdown-menu">
 											<li>
-												<a href="?tab=AdminAddresses&id_address={$address['id_address']}&deleteaddress&token={getAdminToken tab='AdminAddresses'}">
+												<a href="?tab=AdminAddresses&amp;id_address={$address['id_address']}&amp;deleteaddress&amp;token={getAdminToken tab='AdminAddresses'}">
 													<i class="icon-trash"></i>
 													{l s='Delete'}
 												</a>

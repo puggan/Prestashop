@@ -235,7 +235,7 @@ class AdminCountriesControllerCore extends AdminController
 				),
 				array(
 					'type' => 'switch',
-					'label' => $this->l('Does it need zip/postal code?'),
+					'label' => $this->l('Does it need Zip/postal code?'),
 					'name' => 'need_zip_code',
 					'required' => false,
 					'is_bool' => true,
@@ -254,10 +254,10 @@ class AdminCountriesControllerCore extends AdminController
 				),
 				array(
 					'type' => 'text',
-					'label' => $this->l('Zip/post code format'),
+					'label' => $this->l('Zip/postal code format'),
 					'name' => 'zip_code_format',
 					'required' => true,
-					'hint' => $this->l('Zip Code format (L for a letter, N for a number and C for the ISO code). For example, NNNNN for the United States. No verification if undefined.')
+					'desc' => $this->l('Indicate the format of the postal code: use L for a letter, N for a number, and C for the country\'s ISO 3166-1 alpha-2 code. For example, NNNNN for the United States, France, Poland and many other; LNNNNLLL for Argentina, etc. If you do not want PrestaShop to verify the postal code for this country, leave it blank.')
 				),
 				array(
 					'type' => 'address_layout',
@@ -309,7 +309,7 @@ class AdminCountriesControllerCore extends AdminController
 				),			
 				array(
 					'type' => 'switch',
-					'label' => $this->l('Contains following  states'),
+					'label' => $this->l('Contains states'),
 					'name' => 'contains_states',
 					'required' => false,
 					'values' => array(
@@ -390,22 +390,22 @@ class AdminCountriesControllerCore extends AdminController
 		if (Validate::isLoadedObject($country) && Tools::getValue('id_zone'))
 		{
 			$old_id_zone = $country->id_zone;
-			//we change zone for states attached to this country, only if they have the same id zone before change
-			if (parent::processUpdate())
+			$results = Db::getInstance()->executeS('SELECT `id_state` FROM `'._DB_PREFIX_.'state` WHERE `id_country` = '.(int)$country->id.' AND `id_zone` = '.(int)$old_id_zone);
+
+			if ($results && count($results))
 			{
-				$results = Db::getInstance()->executeS('SELECT `id_state` FROM `'._DB_PREFIX_.'state` WHERE `id_country` = '.(int)$country->id.' AND `id_zone` = '.(int)$old_id_zone);
 				$ids = array();
 				foreach ($results as $res)
 					$ids[] = (int)$res['id_state'];
 				
-				Db::getInstance()->execute(
-					'UPDATE `'._DB_PREFIX_.'state` 
-					SET `id_zone` = '.(int)Tools::getValue('id_zone').' 
-					WHERE `id_state` IN ('.implode(',', $ids).')');
+				if (count($ids))
+					$res = Db::getInstance()->execute(
+							'UPDATE `'._DB_PREFIX_.'state` 
+							SET `id_zone` = '.(int)Tools::getValue('id_zone').' 
+							WHERE `id_state` IN ('.implode(',', $ids).')');
 			}
 		}
-		else
-			parent::processUpdate();
+		return parent::processUpdate();
 	}
 
 	public function postProcess()
@@ -425,14 +425,14 @@ class AdminCountriesControllerCore extends AdminController
 		if (Tools::isSubmit('standardization'))
 			Configuration::updateValue('PS_TAASC', (bool)Tools::getValue('standardization', false));	
 
+		return parent::postProcess();
+	}
+	
+	public function processSave()
+	{
 		if (!count($this->errors))
-			$res = parent::postProcess();
-		else
-			return false;
-
-		if (Tools::getValue('submitAdd'.$this->table) && $res)
 		{
-			$id_country = ($id_country = Tools::getValue('id_country')) ? $id_country : $res['id'];
+			$id_country = Tools::getValue('id_country');
 			$tmp_addr_format = new AddressFormat($id_country);
 
 			$save_status = false;
@@ -445,11 +445,10 @@ class AdminCountriesControllerCore extends AdminController
 			}
 
 			$tmp_addr_format->format = Tools::getValue('address_layout');
-
 			if (strlen($tmp_addr_format->format) > 0)
 			{
 				if ($tmp_addr_format->checkFormatFields())
-					$save_status = ($is_new) ? $tmp_addr_format->save(): $tmp_addr_format->update();
+					$address_format_result = $tmp_addr_format->save();
 				else
 				{
 					$error_list = $tmp_addr_format->getErrorList();
@@ -457,12 +456,13 @@ class AdminCountriesControllerCore extends AdminController
 						$this->errors[] = $error;
 				}
 
-				if (!$save_status)
+				if (!isset($address_format_result) || !$address_format_result)
 					$this->errors[] = Tools::displayError('Invalid address layout '.Db::getInstance()->getMsgError());
 			}
 			unset($tmp_addr_format);
 		}
-		return $res;
+
+		return parent::processSave();
 	}
 	
 	public function processStatus()
@@ -490,6 +490,15 @@ class AdminCountriesControllerCore extends AdminController
 
 	protected function displayValidFields()
 	{
+		/* The following translations are needed later - don't remove the comments!
+		$this->l('Customer');
+		$this->l('Warehouse');
+		$this->l('Country');
+		$this->l('State');
+		$this->l('Address');
+		*/
+
+
 		$html_tabnav = '<ul class="nav nav-tabs" id="custom-address-fields">';
 		$html_tabcontent = '<div class="tab-content" >';
 
@@ -504,11 +513,11 @@ class AdminCountriesControllerCore extends AdminController
 			if ($i != 0){ $class_tab_active = ''; }
 			$fields = array();
 			$html_tabnav .= '<li class="'.$class_tab_active.'"">
-				<a href="#availableListFieldsFor_'.$class_name.'"><i class="icon-caret-down"></i>&nbsp;'.$class_name.'</a></li>';
+				<a href="#availableListFieldsFor_'.$class_name.'"><i class="icon-caret-down"></i>&nbsp;'.Translate::getAdminTranslation($class_name, 'AdminCountries').'</a></li>';
 			
 			foreach (AddressFormat::getValidateFields($class_name) as $name)
 				$fields[] = '<a href="javascript:void(0);" class="addPattern btn btn-default btn-xs" id="'.($class_name == 'Address' ? $name : $class_name.':'.$name).'">
-					<i class="icon-plus-sign"></i>&nbsp;'.$name.'</a>';
+					<i class="icon-plus-sign"></i>&nbsp;'.ObjectModel::displayFieldName($name, $class_name).'</a>';
 			$html_tabcontent .= '
 				<div class="tab-pane availableFieldsList panel '.$class_tab_active.'" id="availableListFieldsFor_'.$class_name.'">
 				'.implode(' ', $fields).'</div>';

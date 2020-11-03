@@ -91,10 +91,12 @@ class AdminLanguagesControllerCore extends AdminController
 		);
 
 		$this->bulk_actions = array(
-			'delete' => array('text' => $this->l('Delete selected'), 'confirm' => $this->l('Delete selected items?'), 'icon' => 'icon-trash'),
-			'enableSelection' => array('text' => $this->l('Enable selection'), 'icon' => 'icon-ok'),
-			'disableSelection' => array('text' => $this->l('Disable selection'), 'icon' => 'icon-ban-circle')
-			);
+			'delete' => array(
+				'text' => $this->l('Delete selected'),
+				'confirm' => $this->l('Delete selected items?'),
+				'icon' => 'icon-trash'
+			)
+		);
 		$this->specificConfirmDelete = $this->l('When you delete a language, all related translations in the database will be deleted. Are you sure you want to proceed?');
 
 		parent::__construct();
@@ -137,22 +139,22 @@ class AdminLanguagesControllerCore extends AdminController
 				),
 				array(
 					'type' => 'text',
-					'label' => $this->l('Name:'),
+					'label' => $this->l('Name'),
 					'name' => 'name',
 					'maxlength' => 32,
 					'required' => true
 				),
 				array(
 					'type' => 'text',
-					'label' => $this->l('ISO code:'),
+					'label' => $this->l('ISO code'),
 					'name' => 'iso_code',
 					'required' => true,
 					'maxlength' => 2,
-					'hint' => $this->l('Two-letter ISO code (e.g. FR, EN, DE)')
+					'hint' => $this->l('Two-letter ISO code (e.g. FR, EN, DE).')
 				),
 				array(
 					'type' => 'text',
-					'label' => $this->l('Language code:'),
+					'label' => $this->l('Language code'),
 					'name' => 'language_code',
 					'required' => true,
 					'maxlength' => 5,
@@ -162,38 +164,38 @@ class AdminLanguagesControllerCore extends AdminController
 				),
 				array(
 					'type' => 'text',
-					'label' => $this->l('Date format:'),
+					'label' => $this->l('Date format'),
 					'name' => 'date_format_lite',
 					'required' => true,
-					'hint' => sprintf($this->l('Short date format (e.g., %s)'), 'Y-m-d')
+					'hint' => sprintf($this->l('Short date format (e.g., %s).'), 'Y-m-d')
 					/* TO DO - ajouter les liens dans le hint ? */
 					/*'desc' => sprintf($this->l('Short date format (e.g., %s)'), '<a href="http://php.net/date" target="_blank">Y-m-d</a>')*/
 				),
 				array(
 					'type' => 'text',
-					'label' => $this->l('Date format (full):'),
+					'label' => $this->l('Date format (full)'),
 					'name' => 'date_format_full',
 					'required' => true,
-					'hint' => sprintf($this->l('Full date format (e.g., %s)'), 'Y-m-d H:i:s')
+					'hint' => sprintf($this->l('Full date format (e.g., %s).'), 'Y-m-d H:i:s')
 					/* TO DO - ajouter les liens dans le hint ? */
 					/*'desc' => sprintf($this->l('Full date format (e.g., %s)'), '<a href="http://php.net/date" target="_blank">Y-m-d H:i:s</a>')*/
 				),
 				array(
 					'type' => 'file',
-					'label' => $this->l('Flag:'),
+					'label' => $this->l('Flag'),
 					'name' => 'flag',
 					'required' => true,
-					'hint' => $this->l('Upload the country flag from your computer')
+					'hint' => $this->l('Upload the country flag from your computer.')
 				),
 				array(
 					'type' => 'file',
-					'label' => $this->l('"No-picture" image:'),
+					'label' => $this->l('"No-picture" image'),
 					'name' => 'no_picture',
-					'hint' => $this->l('Image is displayed when "no picture is found"')
+					'hint' => $this->l('Image is displayed when "no picture is found".')
 				),
 				array(
 					'type' => 'switch',
-					'label' => $this->l('Is RTL language:'),
+					'label' => $this->l('Is RTL language'),
 					'name' => 'is_rtl',
 					'required' => false,
 					'is_bool' => true,
@@ -210,13 +212,13 @@ class AdminLanguagesControllerCore extends AdminController
 						)
 					),
 					'hint' => array(
-						$this->l('Enable if this language is read from right to left').' '.
-						$this->l('(Experimental: your theme must be compliant with RTL languages)')
+						$this->l('Enable if this language is read from right to left.').' '.
+						$this->l('(Experimental: your theme must be compliant with RTL languages).')
 					)
 				),
 				array(
 					'type' => 'switch',
-					'label' => $this->l('Status:'),
+					'label' => $this->l('Status'),
 					'name' => 'active',
 					'required' => false,
 					'is_bool' => true,
@@ -232,7 +234,7 @@ class AdminLanguagesControllerCore extends AdminController
 							'label' => $this->l('Disabled')
 						)
 					),
-					'hint' => $this->l('Activate this language')
+					'hint' => $this->l('Activate this language.')
 				),
 				array(
 					'type' => 'special',
@@ -247,7 +249,7 @@ class AdminLanguagesControllerCore extends AdminController
 		{
 			$this->fields_form['input'][] = array(
 				'type' => 'shop',
-				'label' => $this->l('Shop association:'),
+				'label' => $this->l('Shop association'),
 				'name' => 'checkBoxShopAsso',
 			);
 		}
@@ -268,15 +270,15 @@ class AdminLanguagesControllerCore extends AdminController
 				),
 				'list_files' => array(
 					array(
-						'label' => $this->l('Translation files:'),
+						'label' => $this->l('Translation files'),
 						'files' => Language::getFilesList($obj->iso_code, _THEME_NAME_, false, false, 'tr', true)
 					),
 					array(
-						'label' => $this->l('Theme files:'),
+						'label' => $this->l('Theme files'),
 						'files' => Language::getFilesList($obj->iso_code, _THEME_NAME_, false, false, 'theme', true)
 					),
 					array(
-						'label' => $this->l('Mail files:'),
+						'label' => $this->l('Mail files'),
 						'files' => Language::getFilesList($obj->iso_code, _THEME_NAME_, false, false, 'mail', true)
 					)
 				)
@@ -516,7 +518,7 @@ class AdminLanguagesControllerCore extends AdminController
 		else
 		{
 			$this->status = 'error';
-			$this->errors[] = $this->l('Technical Error: translation server unreachable');
+			$this->errors[] = $this->l('Technical Error: translation server unreachable.');
 		}
 	}
 

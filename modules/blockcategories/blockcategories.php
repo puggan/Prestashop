@@ -33,7 +33,7 @@ class BlockCategories extends Module
 	{
 		$this->name = 'blockcategories';
 		$this->tab = 'front_office_features';
-		$this->version = '2.2';
+		$this->version = '2.4';
 		$this->author = 'PrestaShop';
 
 		$this->bootstrap = true;
@@ -67,7 +67,8 @@ class BlockCategories extends Module
 			!$this->registerHook('actionAdminLanguagesControllerStatusBefore') ||
 			!$this->registerHook('displayBackOfficeCategory') ||
 			!Configuration::updateValue('BLOCK_CATEG_MAX_DEPTH', 4) ||
-			!Configuration::updateValue('BLOCK_CATEG_DHTML', 1))
+			!Configuration::updateValue('BLOCK_CATEG_DHTML', 1) ||
+			!Configuration::updateValue('BLOCK_CATEG_ROOT_CATEGORY', 1))
 			return false;
 
 		// Hook the module either on the left or right column
@@ -95,7 +96,8 @@ class BlockCategories extends Module
 
 		if (!parent::uninstall() ||
 			!Configuration::deleteByName('BLOCK_CATEG_MAX_DEPTH') ||
-			!Configuration::deleteByName('BLOCK_CATEG_DHTML'))
+			!Configuration::deleteByName('BLOCK_CATEG_DHTML') ||
+			!Configuration::deleteByName('BLOCK_CATEG_ROOT_CATEGORY'))
 			return false;
 		return true;
 	}
@@ -119,9 +121,11 @@ class BlockCategories extends Module
 				Configuration::updateValue('BLOCK_CATEG_NBR_COLUMN_FOOTER', (int)$nbrColumns);
 				Configuration::updateValue('BLOCK_CATEG_SORT_WAY', Tools::getValue('BLOCK_CATEG_SORT_WAY'));
 				Configuration::updateValue('BLOCK_CATEG_SORT', Tools::getValue('BLOCK_CATEG_SORT'));
+				Configuration::updateValue('BLOCK_CATEG_ROOT_CATEGORY', Tools::getValue('BLOCK_CATEG_ROOT_CATEGORY'));
 
 				$this->_clearBlockcategoriesCache();
-				$output .= $this->displayConfirmation($this->l('Settings updated'));
+
+				Tools::redirectAdmin(AdminController::$currentIndex.'&configure='.$this->name.'&token='.Tools::getAdminTokenLite('AdminModules').'&conf=6');
 			}
 		}
 		return $output.$this->renderForm();
@@ -179,10 +183,16 @@ class BlockCategories extends Module
 
 	public function hookLeftColumn($params)
 	{
-		$category = false;
 		$this->setLastVisitedCategory();
-		if (isset($this->context->cookie->last_visited_category ) && $this->context->cookie->last_visited_category)
-			$category = new Category($this->context->cookie->last_visited_category, $this->context->language->id);
+		$phpself = $this->context->controller->php_self;
+		$current_allowed_controllers = array('category', 'product');
+
+		$from_category = Configuration::get('PS_HOME_CATEGORY');
+		if ($phpself != null && in_array($phpself, $current_allowed_controllers) && Configuration::get('BLOCK_CATEG_ROOT_CATEGORY') && isset($this->context->cookie->last_visited_category) && $this->context->cookie->last_visited_category)
+			$from_category = $this->context->cookie->last_visited_category;
+
+		$category = new Category($from_category, $this->context->language->id);
+
 		$cacheId = $this->getCacheId($category ? $category->id : null);
 
 		if (!$this->isCached('blockcategories.tpl', $cacheId))
@@ -365,6 +375,23 @@ class BlockCategories extends Module
 				),
 				'input' => array(
 					array(
+						'type' => 'radio',
+						'label' => $this->l('Category root'),
+						'name' => 'BLOCK_CATEG_ROOT_CATEGORY',
+						'values' => array(
+							array(
+								'id' => 'home',
+								'value' => 0,
+								'label' => $this->l('Home')
+							),
+							array(
+								'id' => 'current',
+								'value' => 1,
+								'label' => $this->l('Current')
+							),
+						)
+					),
+					array(
 						'type' => 'text',
 						'label' => $this->l('Maximum depth'),
 						'name' => 'BLOCK_CATEG_MAX_DEPTH',
@@ -461,6 +488,7 @@ class BlockCategories extends Module
 			'BLOCK_CATEG_NBR_COLUMN_FOOTER' => Tools::getValue('BLOCK_CATEG_NBR_COLUMN_FOOTER', Configuration::get('BLOCK_CATEG_NBR_COLUMN_FOOTER')),
 			'BLOCK_CATEG_SORT_WAY' => Tools::getValue('BLOCK_CATEG_SORT_WAY', Configuration::get('BLOCK_CATEG_SORT_WAY')),
 			'BLOCK_CATEG_SORT' => Tools::getValue('BLOCK_CATEG_SORT', Configuration::get('BLOCK_CATEG_SORT')),
+			'BLOCK_CATEG_ROOT_CATEGORY' => Tools::getValue('BLOCK_CATEG_ROOT_CATEGORY', Configuration::get('BLOCK_CATEG_ROOT_CATEGORY'))
 		);
 	}
 }

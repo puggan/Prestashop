@@ -59,15 +59,15 @@
 							</label>
 						</p>
 							{if $stock_management_active == 0 && !$product->cache_is_pack}
-								<p class="text-info"><i class="icon-info-sign"></i>&nbsp;{l s='This requires you to enable advanced stock management.'}</p>
+								<p class="help-block"><i class="icon-warning-sign"></i>&nbsp;{l s='This requires you to enable advanced stock management.'}</p>
 							{else if $product->cache_is_pack}
-								<p class="text-info">{l s='This parameter depends on the product(s) in the pack.'}</p>
+								<p class="help-block">{l s='This parameter depends on the product(s) in the pack.'}</p>
 							{/if}
 					</div>
 				</div>
 
-				<div {if $product->is_virtual || $product->cache_is_pack}style="display:none;"{/if} class="row stockForVirtualProduct">
-					<label class="control-label col-lg-3" for="depends_on_stock_1">{l s='Available quantities:'}</label>
+				<div {if $product->is_virtual || $product->cache_is_pack}style="display:none;"{/if} class="form-group stockForVirtualProduct">
+					<label class="control-label col-lg-3" for="depends_on_stock_1">{l s='Available quantities'}</label>
 					<div class="col-lg-9">
 						<p class="radio">
 							<label for="depends_on_stock_1">
@@ -79,7 +79,7 @@
 										disabled="disabled" 
 									{/if} 
 								/>
-								{l s='Available quantities for current product and its combinations are based on warehouse stock. '} 
+								{l s='The available quantities for the current product and its combinations are based on the stock in your warehouse (using the advanced stock management system). '} 
 								{if ($stock_management_active == 0 || $product->advanced_stock_management == 0) && !$product->cache_is_pack} &nbsp;-&nbsp;{l s='This requires you to enable advanced stock management globally or for this product.'}
 								{else if $product->cache_is_pack} &nbsp;-&nbsp;{l s='This parameter depends on the product(s) in the pack.'}
 								{/if}
@@ -126,7 +126,7 @@
 					</div>
 				</div>
 				<div id="when_out_of_stock" class="form-group">
-					<label class="control-label col-lg-3">{l s='When out of stock:'}</label>
+					<label class="control-label col-lg-3">{l s='When out of stock'}</label>
 					<div class="col-lg-9">
 						<p class="radio">
 							<label id="label_out_of_stock_1" for="out_of_stock_1">
@@ -149,8 +149,8 @@
 								{else}
 								{l s='Deny orders'}
 								{/if} 
-								<a class="confirm_leave" href="index.php?tab=AdminPPreferences&token={$token_preferences}">
-									{l s='as set in Preferences'}
+								<a class="confirm_leave" href="index.php?tab=AdminPPreferences&amp;token={$token_preferences}">
+									{l s='as set in the Products Preferences page'}
 								</a>
 							</label>
 						</p>
@@ -179,7 +179,10 @@
 
 		{if !$has_attribute}
 			<div class="form-group">
-				<label class="control-label col-lg-3" for="minimal_quantity">{l s='Minimum quantity:'}</label>
+				<label class="control-label col-lg-3" for="minimal_quantity">
+					{include file="controllers/products/multishop/checkbox.tpl" field="minimal_quantity" type="default"}
+					{l s='Minimum quantity'}
+				</label>
 				<div class="col-lg-9">
 					<input class="form-control fixed-width-sm" maxlength="6" name="minimal_quantity" id="minimal_quantity" type="text" value="{$product->minimal_quantity|default:1}" />
 					<p class="help-block">{l s='The minimum quantity to buy this product (set to 1 to disable this feature)'}</p>
@@ -193,7 +196,7 @@
 					{include file="controllers/products/multishop/checkbox.tpl" field="available_now" type="default" multilang="true"}
 					<span class="label-tooltip" data-toggle="tooltip"
 						title="{l s='Forbidden characters:'} &#60;&#62;;&#61;#&#123;&#125;">
-						{l s='Displayed text when in-stock:'}
+						{l s='Displayed text when in-stock'}
 					</span>
 				</label>
 				<div class="col-lg-9">
@@ -208,7 +211,7 @@
 					{include file="controllers/products/multishop/checkbox.tpl" field="available_later" type="default" multilang="true"}
 					<span class="label-tooltip" data-toggle="tooltip"
 						title="{l s='Forbidden characters:'} &#60;&#62;;&#61;#&#123;&#125;">
-						{l s='Displayed text when back-ordereding is allowed:'}
+						{l s='Displayed text when backordering is allowed'}
 					</span>
 					
 				</label>
@@ -222,7 +225,10 @@
 			
 			{if !$countAttributes}
 			<div class="form-group">
-				<label class="control-label col-lg-3" for="available_date">{l s='Available date:'}</label>
+				<label class="control-label col-lg-3" for="available_date">
+					{include file="controllers/products/multishop/checkbox.tpl" field="available_date" type="default"}
+					{l s='Available date:'}
+				</label>
 				<div class="col-lg-9">
 					<div class="input-group fixed-width-md">
 						<input id="available_date" name="available_date" value="{$product->available_date}" class="datepicker" type="text" />
@@ -247,7 +253,6 @@
 		</script>
 	</div>
 {/if}
-{*$default_language*}
 <script type="text/javascript">
-	hideOtherLanguage({$default_language});
+	hideOtherLanguage({$default_form_language});
 </script>

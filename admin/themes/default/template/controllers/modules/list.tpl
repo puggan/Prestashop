@@ -33,14 +33,16 @@
 				<div class="pull-left">
 					{include file='controllers/modules/filters.tpl'}
 				</div>
-				<div class="btn-group pull-right">
-					<a class="btn btn-default {if !isset($smarty.get.select)} active{/if}" href="index.php?controller={$smarty.get.controller|htmlentities}&token={$smarty.get.token|htmlentities}" title="{l s='Normal view'}">
+				<!-- 
+				<div class="pull-right">
+					<a class="btn btn-default {if !isset($smarty.get.select)} active{/if}" href="index.php?controller={$smarty.get.controller|htmlentities}&amp;token={$smarty.get.token|htmlentities}" title="{l s='Normal view'}">
 						<i class="icon-list"></i> 
-					</a>
-					<a class="btn btn-default {if isset($smarty.get.select) && $smarty.get.select == 'favorites'} active{/if}" href="index.php?controller={$smarty.get.controller|htmlentities}&token={$smarty.get.token|htmlentities}&select=favorites" title="{l s='Favorites view'}">
+					</a>					
+					<a class="btn btn-default {if isset($smarty.get.select) && $smarty.get.select == 'favorites'} active{/if}" href="index.php?controller={$smarty.get.controller|htmlentities}&amp;token={$smarty.get.token|htmlentities}&select=favorites" title="{l s='Favorites view'}">
 						<i class="icon-star"></i>
 					</a>
 				</div>
+				-->
 			</th>
 		</tr>
 	</thead>
@@ -76,9 +78,9 @@ module_inactive
 								{$module->displayName}
 								<small class="text-muted">v{$module->version} - by {$module->author}</small>
 								{if isset($module->type) && $module->type == 'addonsMustHave'}
-									- <a href="#" class="module-badge-popular help-tooltip text-primary" data-title="{l s="This module is available on PrestaShop Addons"}"><i class="icon-group"></i> <small>{l s="Popular"}</small></a>
+									- <span class="module-badge-popular help-tooltip text-primary" data-title="{l s="This module is available on PrestaShop Addons"}"><i class="icon-group"></i> <small>{l s="Popular"}</small></span>
 								{elseif isset($module->type) && $module->type == 'addonsPartner'}
-									- <a href="#" class="module-badge-partner help-tooltip text-warning" data-title="{l s="This module is available for free thanks to our partner."}"><i class="icon-pushpin"></i> <small>{l s="Partner"}</small></a>
+									- <span class="module-badge-partner help-tooltip text-warning" data-title="{l s="This module is available for free thanks to our partner."}"><i class="icon-pushpin"></i> <small>{l s="Partner"}</small></span>
 								{elseif isset($module->id) && $module->id gt 0}
 									{if isset($module->version_addons) && $module->version_addons}
 										<span class="label label-warning">{l s='Need update'}</span>
@@ -88,6 +90,9 @@ module_inactive
 							<p class="module_description">
 								{if isset($module->description) && $module->description ne ''}
 									{$module->description}
+								{/if}
+								{if isset($module->show_quick_view) &&  $module->show_quick_view}
+									<br><a href="{$currentIndex}&token={$token}&ajax=1&action=GetModuleQuickView&module={$module->name}" class="fancybox-quick-view"><i class="icon-search"></i> {l s='Read more'}</a>
 								{/if}
 							</p>
 							{if isset($module->message) && (empty($module->name) !== false) && (!isset($module->type) || ($module->type != 'addonsMustHave' || $module->type !== 'addonsNative'))}<div class="alert alert-success">{$module->message}</div>{/if}
@@ -196,3 +201,19 @@ module_inactive
 		</tbody>
 	{/if}
 </table>
+<script type="text/javascript">
+	$(document).ready(function(){
+		$('.fancybox-quick-view').fancybox({
+			type: 'ajax',
+			autoDimensions: false,
+			autoSize: false,
+			width: 600,
+			height: 'auto',
+			helpers: {
+				overlay: {
+					locked: false
+				}
+			}
+		});
+	});
+</script>

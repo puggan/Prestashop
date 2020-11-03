@@ -31,7 +31,9 @@
         {if $product.reference}<small class="cart_ref">{l s='SKU'} : {$product.reference|escape:'html':'UTF-8'}</small>{/if}
 		{if isset($product.attributes) && $product.attributes}<small><a href="{$link->getProductLink($product.id_product, $product.link_rewrite, $product.category, null, null, $product.id_shop, $product.id_product_attribute)|escape:'html':'UTF-8'}">{$product.attributes|escape:'html':'UTF-8'}</a></small>{/if}
 	</td>
-	<td class="cart_avail" >{if $product.quantity_available > 0}<span class="label label-success">{l s='In Stock'}</span>{else}<span class="label label-warning">{l s='Out of Stock'}</span>{/if}</td>
+	{if $PS_STOCK_MANAGEMENT}
+		<td class="cart_avail" >{if $product.quantity_available > 0}<span class="label label-success">{l s='In Stock'}</span>{else}<span class="label label-warning">{l s='Out of Stock'}</span>{/if}</td>
+	{/if}
 	<td class="cart_unit" data-title="{l s='Unit price'}">
 		<span class="price" id="product_price_{$product.id_product}_{$product.id_product_attribute}{if $quantityDisplayed > 0}_nocustom{/if}_{$product.id_address_delivery|intval}{if !empty($product.gift)}_gift{/if}">
 			{if !empty($product.gift)}
@@ -53,11 +55,11 @@
 		</span>
 	</td>
 
-    {if !isset($cannotModify)}
-	<td class="cart_quantity {if isset($customizedDatas.$productId.$productAttributeId) AND $quantityDisplayed == 0} text-center{/if}">
+	<td class="cart_quantity text-center">
 		{if isset($cannotModify) AND $cannotModify == 1}
 			<span>
-				{if $quantityDisplayed == 0 AND isset($customizedDatas.$productId.$productAttributeId)}{$customizedDatas.$productId.$productAttributeId|@count}
+				{if $quantityDisplayed == 0 AND isset($customizedDatas.$productId.$productAttributeId)}
+					{$product.customizationQuantityTotal}
 				{else}
 					{$product.cart_quantity-$quantityDisplayed}
 				{/if}
@@ -85,10 +87,6 @@
 			{/if}
 		{/if}
 	</td>
-	{elseif !isset($cannotModify)}
-			<td class="cart_gift_quantity text-center">{if !empty($product.gift)}<input size="2" type="text" autocomplete="off" disabled="disabled" class="cart_quantity_input form-control grey" value="1" />{/if}</td>
-
-    {/if}
 	<td class="cart_total" data-title="{l s='Total'}">
 		<span class="price" id="total_product_price_{$product.id_product}_{$product.id_product_attribute}{if $quantityDisplayed > 0}_nocustom{/if}_{$product.id_address_delivery|intval}{if !empty($product.gift)}_gift{/if}">
 			{if !empty($product.gift)}

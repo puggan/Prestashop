@@ -32,6 +32,7 @@
 			id="{$input_name}_{$language.id_lang}"
 			name="{$input_name}_{$language.id_lang}"
 			class="{if isset($class)}{$class}{else}textarea-autosize{/if}">{if isset($input_value[$language.id_lang])}{$input_value[$language.id_lang]|htmlentitiesUTF8}{/if}</textarea>
+    <span class="counter" max="{if isset($max)}{$max}{else}none{/if}"></span>
 {if $languages|count > 1}
 	</div>
 	<div class="col-lg-2">
@@ -47,13 +48,8 @@
 	</div>
 </div>
 {/if}
-<span class="counter" max="{if isset($max)}{$max}{else}none{/if}"></span>
 {/foreach}
 
 <script type="text/javascript">
-	var iso = '{$iso_tiny_mce|addslashes}';
-	var pathCSS = '{$smarty.const._THEME_CSS_DIR_|addslashes}';
-	var ad = '{$ad|addslashes}';
-
 	$(".textarea-autosize").autosize();
 </script>

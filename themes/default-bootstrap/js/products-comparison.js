@@ -23,6 +23,12 @@
 *  International Registered Trademark & Property of PrestaShop SA
 */
 $(document).ready(function(){
+	$(document).on('click', '.add_to_compare', function(e){
+		e.preventDefault();
+		if (typeof addToCompare != 'undefined')
+			addToCompare(parseInt($(this).data('id-product')));
+	});
+
 	reloadProductComparison();
 	compareButtonsStatusRefresh();
 	totalCompareButtons();
@@ -56,8 +62,21 @@ function addToCompare(productId)
 				$('.bt_compare').next('.compare_product_count').val(totalVal),
 				totalValue(totalVal);
 			}
-			else {
-				alert(max_item);
+			else
+			{
+	            if (!!$.prototype.fancybox)
+	                $.fancybox.open([
+	                    {
+	                        type: 'inline',
+	                        autoScale: true,
+	                        minHeight: 30,
+	                        content: '<p class="fancybox-error">' + max_item + '</p>'
+	                    }
+	                ], {
+	                    padding: 0
+	                });
+	            else
+	                alert(max_item);
 			}
 			totalCompareButtons();
 		},
@@ -67,16 +86,15 @@ function addToCompare(productId)
 
 function reloadProductComparison()
 {
-	$('a.cmp_remove').click(function() {
+	$(document).on('click', 'a.cmp_remove', function(e){
+		e.preventDefault();
 		var idProduct = parseInt($(this).data('id-product'));
 		$.ajax({
 			url: 'index.php?controller=products-comparison&ajax=1&action=remove&id_product=' + idProduct,
 			async: false,
-			cache: false,
-			success: function(){
-				return true;
-			}
+			cache: false
 		});
+		$('td.product-'+idProduct).fadeOut(600);
 	});
 };
 

@@ -25,10 +25,11 @@
 {if isset($fields.title)}<h3>{$fields.title}</h3>{/if}
 
 {block name="defaultForm"}
-<form id="{if isset($fields.form.form.id_form)}{$fields.form.form.id_form|escape:'html':'UTF-8'}{else}{if $table == null}configuration_form{else}{$table}_form{/if}{/if}" class="defaultForm {$name_controller} form-horizontal" action="{$current}&{if !empty($submit_action)}{$submit_action}=1{/if}&token={$token}" method="post" enctype="multipart/form-data" {if isset($style)}style="{$style}"{/if}>
+<form id="{if isset($fields.form.form.id_form)}{$fields.form.form.id_form|escape:'html':'UTF-8'}{else}{if $table == null}configuration_form{else}{$table}_form{/if}{/if}" class="defaultForm {$name_controller} form-horizontal" action="{$current}&amp;{if !empty($submit_action)}{$submit_action}=1{/if}&amp;token={$token}" method="post" enctype="multipart/form-data" {if isset($style)}style="{$style}"{/if} novalidate>
 	{if $form_id}
 		<input type="hidden" name="{$identifier}" id="{$identifier}" value="{$form_id}" />
 	{/if}
+	
 	{foreach $fields as $f => $fieldset}
 		{block name="fieldset"}
 		<div class="panel" id="fieldset_{$f}">
@@ -126,7 +127,8 @@
 													{if isset($input.maxlength)} maxlength="{$input.maxlength}"{/if}
 													{if isset($input.readonly) && $input.readonly} readonly="readonly"{/if}
 													{if isset($input.disabled) && $input.disabled} disabled="disabled"{/if}
-													{if isset($input.autocomplete) && !$input.autocomplete} autocomplete="off"{/if} />
+													{if isset($input.autocomplete) && !$input.autocomplete} autocomplete="off"{/if}
+													{if isset($input.required) && $input.required } required="required" {/if} />
 													{if isset($input.suffix)}
 													<span class="input-group-addon">
 													  {$input.suffix}
@@ -140,7 +142,7 @@
 											<div class="col-lg-2">
 												<button type="button" class="btn btn-default dropdown-toggle" tabindex="-1" data-toggle="dropdown">
 													{$language.iso_code}
-													<span class="caret"></span>
+													<i class="icon-caret-down"></i>
 												</button>
 												<ul class="dropdown-menu">
 													{foreach from=$languages item=language}
@@ -209,7 +211,9 @@
 											{if isset($input.class)} class="{$input.class}"{/if}
 											{if isset($input.readonly) && $input.readonly} readonly="readonly"{/if}
 											{if isset($input.disabled) && $input.disabled} disabled="disabled"{/if}
-											{if isset($input.autocomplete) && !$input.autocomplete} autocomplete="off"{/if} />
+											{if isset($input.autocomplete) && !$input.autocomplete} autocomplete="off"{/if}
+											{if isset($input.required) && $input.required } required="required" {/if}
+											/>
 										{if isset($input.suffix)}
 										<span class="input-group-addon">
 										  {$input.suffix}
@@ -295,7 +299,8 @@
 										{$input.required = false}
 										{$input.desc = null}
 									{else}
-										<select name="{$input.name|escape:'html':'utf-8'}" class="{if isset($input.class)}{$input.class|escape:'html':'utf-8'}{/if}"
+										<select name="{$input.name|escape:'html':'utf-8'}"
+												class="{if isset($input.class)}{$input.class|escape:'html':'utf-8'}{/if} fixed-width-xl"
 												id="{if isset($input.id)}{$input.id|escape:'html':'utf-8'}{else}{$input.name|escape:'html':'utf-8'}{/if}"
 												{if isset($input.multiple)}multiple="multiple" {/if}
 												{if isset($input.size)}size="{$input.size|escape:'html':'utf-8'}"{/if}
@@ -370,42 +375,38 @@
 										{if isset($value.p) && $value.p}<p class="help-block">{$value.p}</p>{/if}
 									{/foreach}
 								{elseif $input.type == 'switch'}
-									<div class="row">
-										<div class="input-group col-lg-2">
-											<span class="switch prestashop-switch">
-												{foreach $input.values as $value}
-												<input
-													type="radio"
-													name="{$input.name}"
-													{if $value.value == 1}
-														id="{$input.name}_on"
-													{else}
-														id="{$input.name}_off"
-													{/if}
-													value="{$value.value}"
-													{if $fields_value[$input.name] == $value.value}checked="checked"{/if}
-													{if isset($input.disabled) && $input.disabled}disabled="disabled"{/if}
-												/>
-												<label
-													{if $value.value == 1}
-														for="{$input.name}_on"
-													{else}
-														for="{$input.name}_off"
-													{/if}
-												>
-													{if $value.value == 1}
-														{l s='Yes'}
-													{else}
-														{l s='No'}
-													{/if}
-												</label>
-												{/foreach}
-												<a class="slide-button btn"></a>
-											</span>
-										</div>
+									<div "col-lg-9">
+										<span class="switch prestashop-switch fixed-width-lg">
+											{foreach $input.values as $value}
+											<input
+												type="radio"
+												name="{$input.name}"
+												{if $value.value == 1}
+													id="{$input.name}_on"
+												{else}
+													id="{$input.name}_off"
+												{/if}
+												value="{$value.value}"
+												{if $fields_value[$input.name] == $value.value}checked="checked"{/if}
+												{if isset($input.disabled) && $input.disabled}disabled="disabled"{/if}
+											/>
+											<label
+												{if $value.value == 1}
+													for="{$input.name}_on"
+												{else}
+													for="{$input.name}_off"
+												{/if}
+											>
+												{if $value.value == 1}
+													{l s='Yes'}
+												{else}
+													{l s='No'}
+												{/if}
+											</label>
+											{/foreach}
+											<a class="slide-button btn"></a>
+										</span>
 									</div>
-
-
 								{elseif $input.type == 'textarea'}
 									{assign var=use_textarea_autosize value=true}
 									{if isset($input.lang) AND $input.lang}
@@ -415,7 +416,7 @@
 
 										<div class="col-lg-9">
 									{/if}
-											<textarea name="{$input.name}_{$language.id_lang}" class="{if isset($input.autoload_rte) && $input.autoload_rte}rte autoload_rte {if isset($input.class)}{$input.class}{/if}{else}textarea-autosize{/if}" >{$fields_value[$input.name][$language.id_lang]|escape:'html':'UTF-8'}</textarea>
+											<textarea name="{$input.name}_{$language.id_lang}" class="{if isset($input.autoload_rte) && $input.autoload_rte}rte autoload_rte {if isset($input.class)}{$input.class}{/if}{else}{if isset($input.class)}{$input.class}{else}textarea-autosize{/if}{/if}" >{$fields_value[$input.name][$language.id_lang]|escape:'html':'UTF-8'}</textarea>
 									{if $languages|count > 1}	
 										</div>
 										<div class="col-lg-2">
@@ -449,7 +450,7 @@
                                             {/if}
                                         </a>
                                         <a class="btn btn-default hide_checkbox{if $input.expand.default == 'show'} hidden {/if}" href="#">
-                                            <i class="icon-{$input.expand.show.icon}"></i>
+                                            <i class="icon-{$input.expand.hide.icon}"></i>
                                             {$input.expand.hide.text}
                                             {if isset($input.expand.print_total) && $input.expand.print_total > 0}
                                                 <span class="badge">{$input.expand.print_total}</span>
@@ -470,18 +471,199 @@
 											</label>
 										</div>
 									{/foreach}
+								{elseif $input.type == 'change-password'}
+									<div class="row">
+										<div class="col-lg-12">
+											<button type="button" id="{$input.name}-btn-change" class="btn btn-default">
+												<i class="icon-lock"></i>
+												{l s='Change password...'}
+											</button>
+											<div id="{$input.name}-change-container" class="form-password-change well hide">
+												<div class="form-group ">
+													<label for="old_passwd" class="control-label col-lg-2 required">
+														Current password
+													</label>
+													<div class="col-lg-10">
+														<div class="input-group fixed-width-lg">
+															<span class="input-group-addon">
+																<i class="icon-unlock"></i>
+															</span>
+															<input type="password" id="old_passwd" name="old_passwd" class="form-control" value="" required="required">
+														</div>
+													</div>
+												</div>
+												<hr>
+												<div class="form-group">
+													<label for="{$input.name}" class="required control-label col-lg-2">
+														<span class="label-tooltip" data-toggle="tooltip" data-html="true" title="" data-original-title="Minimum of 8 characters.">						
+															{l s='New password'}
+														</span>
+													</label>
+													<div class="col-lg-9">
+														<div class="input-group fixed-width-lg">
+															<span class="input-group-addon">
+																<i class="icon-key"></i>
+															</span>
+															<input type="password"
+																id="{$input.name}"
+																name="{$input.name}"
+																class="{if isset($input.class)}{$input.class}{/if}"
+																value=""
+																required="required"/>
+														</div>
+														<span id="{$input.name}-output"></span>
+													</div>
+												</div>
+												<div class="form-group">
+													<label for="{$input.name}2" class="required control-label col-lg-2">
+														{l s='Confirm password'}
+													</label>
+													<div class="col-lg-4">
+														<div class="input-group fixed-width-lg">
+															<span class="input-group-addon">
+																<i class="icon-key"></i>
+															</span>
+															<input type="password"
+																id="{$input.name}2"
+																name="{$input.name}2"
+																class="{if isset($input.class)}{$input.class}{/if}"
+																value=""/>
+														</div>
+													</div>
+												</div>
+												<div class="form-group">
+													<div class="col-lg-10 col-lg-offset-2">
+														<input type="text" class="form-control fixed-width-md pull-left" id="{$input.name}-generate-field" disabled="disabled">
+														<button type="button" id="{$input.name}-generate-btn" class="btn btn-default">
+															<i class="icon-random"></i>
+															{l s='Generate password'}
+														</button>
+													</div>
+												</div>
+												<div class="form-group">
+													<div class="col-lg-10 col-lg-offset-2">
+														<p class="checkbox">
+															<label for="{$input.name}-checkbox-mail">
+																<input id="{$input.name}-checkbox-mail" type="checkbox" checked="checked">
+																{l s='Send me this new password by Email'}
+															</label>
+														</p>
+													</div>
+												</div>
+												<div class="row">
+													<div class="col-lg-12">
+														<button type="button" id="{$input.name}-cancel-btn" class="btn btn-default">
+															<i class="icon-remove"></i>
+															{l s='Cancel'}
+														</button>
+													</div>
+												</div>
+											</div>
+										</div>
+									</div>
+									<script>
+										$(function(){
+											var $oldPwd = $('#old_passwd');
+											var $passwordField = $('#{$input.name}');
+											var $output = $('#{$input.name}-output');
+											var $generateBtn = $('#{$input.name}-generate-btn');
+											var $generateField = $('#{$input.name}-generate-field');
+											var $cancelBtn = $('#{$input.name}-cancel-btn');
+											
+											var feedback = [
+												{ badge: 'text-danger', text: '{l s="Invalid" js=1}' },
+												{ badge: 'text-warning', text: '{l s="Okay" js=1}' },
+												{ badge: 'text-success', text: '{l s="Good" js=1}' },
+												{ badge: 'text-success', text: '{l s="Fabulous" js=1}' }
+											];
+											$.passy.requirements.length.min = 8;
+											$.passy.requirements.characters = 'DIGIT';
+											$passwordField.passy(function(strength, valid) {
+												$output.text(feedback[strength].text);
+												$output.removeClass('text-danger').removeClass('text-warning').removeClass('text-success');
+												$output.addClass(feedback[strength].badge);
+												if (valid){
+													$output.show();
+												}
+    											else {
+    												$output.hide();
+    											}
+											});
+											var $container = $('#{$input.name}-change-container');
+											var $changeBtn = $('#{$input.name}-btn-change');
+											var $confirmPwd = $('#{$input.name}2');
+
+											$changeBtn.on('click',function(){
+												$container.removeClass('hide');
+												$changeBtn.addClass('hide');
+											});
+											$generateBtn.click(function() {
+												$generateField.passy( 'generate', 8 );
+												var generatedPassword = $generateField.val();
+												$passwordField.val(generatedPassword);
+												$confirmPwd.val(generatedPassword);
+											});
+											$cancelBtn.on('click',function() {
+												$container.find("input").val("");
+												$container.addClass('hide');
+												$changeBtn.removeClass('hide');
+											});
+
+											$.validator.addMethod('password_same', function(value, element) {
+												return $passwordField.val() == $confirmPwd.val();
+											}, '{l s="Invalid password confirmation" js=1}');
+
+											$('#employee_form').validate({
+												rules: {
+													"email": {
+														email: true
+													},
+													"{$input.name}" : {
+														minlength: 8
+													},
+													"{$input.name}2": {
+														password_same: true
+													},
+													"old_passwd" : {},
+												},
+												// override jquery validate plugin defaults for bootstrap 3
+												highlight: function(element) {
+													$(element).closest('.form-group').addClass('has-error');
+												},
+												unhighlight: function(element) {
+													$(element).closest('.form-group').removeClass('has-error');
+												},
+												errorElement: 'span',
+												errorClass: 'help-block',
+												errorPlacement: function(error, element) {
+													if(element.parent('.input-group').length) {
+														error.insertAfter(element.parent());
+													} else {
+														error.insertAfter(element);
+													}
+												}
+											});
+										});
+									</script>
 								{elseif $input.type == 'password'}
-									<input type="password"
+									<div class="input-group fixed-width-lg">
+										<span class="input-group-addon">
+											<i class="icon-key"></i>
+										</span>
+										<input type="password"
 											id="{if isset($input.id)}{$input.id}{else}{$input.name}{/if}"
 											name="{$input.name}"
 											class="{if isset($input.class)}{$input.class}{/if}"
 											value=""
-											{if isset($input.autocomplete) && !$input.autocomplete}autocomplete="off"{/if} />
+											{if isset($input.autocomplete) && !$input.autocomplete}autocomplete="off"{/if}
+											{if isset($input.required) && $input.required } required="required" {/if} />
+									</div>
+
 								{elseif $input.type == 'birthday'}
 								<div class="form-group">
 									{foreach $input.options as $key => $select}
 									<div class="col-lg-2">
-										<select name="{$key}" class="{if isset($input.class)}{$input.class}{/if}">
+										<select name="{$key}" class="{if isset($input.class)}{$input.class}{/if}" class="fixed-width-lg">
 											<option value="">-</option>
 											{if $key == 'months'}
 												{*
@@ -573,6 +755,8 @@
 									</div>
 								{elseif $input.type == 'free'}
 									{$fields_value[$input.name]}
+								{elseif $input.type == 'html'}
+									{$input.name}
 								{/if}
 								{/block}{* end block input *}
 								{block name="description"}
@@ -607,7 +791,7 @@
 						{hook h=$hookName fieldset=$f}
 					{/if}
 				{elseif $key == 'desc'}
-					<p class="clear">
+					<div class="alert alert-info col-lg-offset-3">
 						{if is_array($field)}
 							{foreach $field as $k => $p}
 								{if is_array($p)}
@@ -620,7 +804,7 @@
 						{else}
 							{$field}
 						{/if}
-					</p>
+					</div>
 				{/if}
 				{block name="other_input"}{/block}
 			{/foreach}

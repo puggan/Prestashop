@@ -57,7 +57,7 @@ class ParentOrderControllerCore extends FrontController
 
 		$this->nbProducts = $this->context->cart->nbProducts();
 		
-		if (!$this->context->customer->isLogged(true) && $this->context->getMobileDevice() && Tools::getValue('step'))
+		if (!$this->context->customer->isLogged(true) && $this->useMobileTheme() && Tools::getValue('step'))
 			Tools::redirect($this->context->link->getPageLink('authentication', true, (int)$this->context->language->id));
 		
 		// Redirect to the good order process
@@ -142,7 +142,7 @@ class ParentOrderControllerCore extends FrontController
 	{
 		parent::setMedia();
 
-		if ($this->context->getMobileDevice() === false)
+		if (!$this->useMobileTheme())
 			// Adding CSS style sheet
 			$this->addCSS(_THEME_CSS_DIR_.'addresses.css');
 
@@ -417,20 +417,18 @@ class ParentOrderControllerCore extends FrontController
 			if (key($customerAddresses) != 0)
 				$customerAddresses = array_values($customerAddresses);
 
-			if (!count($customerAddresses))
-			{
-				$bad_delivery = false;
-				if (($bad_delivery = (bool)!Address::isCountryActiveById((int)$this->context->cart->id_address_delivery)) || (!Address::isCountryActiveById((int)$this->context->cart->id_address_invoice)))
+			if (!count($customerAddresses) && !Tools::isSubmit('ajax'))
+				if (!Address::isCountryActiveById((int)$this->context->cart->id_address_delivery) || !Address::isCountryActiveById((int)$this->context->cart->id_address_invoice))
 				{
 					$back_url = $this->context->link->getPageLink('order', true, (int)$this->context->language->id, array('step' => Tools::getValue('step'), 'multi-shipping' => (int)Tools::getValue('multi-shipping')));
 					$params = array('multi-shipping' => (int)Tools::getValue('multi-shipping'), 'id_address' => ($bad_delivery ? (int)$this->context->cart->id_address_delivery : (int)$this->context->cart->id_address_invoice), 'back' => $back_url);
 					Tools::redirect($this->context->link->getPageLink('address', true, (int)$this->context->language->id, $params));
 				}
-			}
 
 			$this->context->smarty->assign(array(
 				'addresses' => $customerAddresses,
-				'formatedAddressFieldsValuesList' => $formatedAddressFieldsValuesList));
+				'formatedAddressFieldsValuesList' => $formatedAddressFieldsValuesList)
+			);
 
 			/* Setting default addresses for cart */
 			if (count($customerAddresses))

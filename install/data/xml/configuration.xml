@@ -673,7 +673,7 @@ Country</value>
     <configuration id="UPGRADER_BACKUPFILES_FILENAME" name="UPGRADER_BACKUPFILES_FILENAME">
       <value/>
     </configuration>
-    <configuration id="blockreinsurance_nbblocks" name="blockreinsurance_nbblocks">
+    <configuration id="BLOCKREINSURANCE_NBBLOCKS" name="BLOCKREINSURANCE_NBBLOCKS">
       <value>5</value>
     </configuration>
     <configuration id="HOMESLIDER_WIDTH" name="HOMESLIDER_WIDTH">
@@ -701,7 +701,7 @@ Country</value>
       <value>localhost</value>
     </configuration>
     <configuration id="PS_INSTALL_VERSION" name="PS_INSTALL_VERSION">
-      <value>1.6.0.3</value>
+      <value>1.6.0.4</value>
     </configuration>
     <configuration id="PS_SHOP_NAME" name="PS_SHOP_NAME">
       <value>PrestaShop</value>

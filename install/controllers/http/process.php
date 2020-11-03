@@ -90,7 +90,7 @@ class InstallControllerHttpProcess extends InstallControllerHttp
 			$this->processConfigureShop();
 		elseif (Tools::getValue('installFixtures') && !empty($this->session->process_validated['configureShop']))
 			$this->processInstallFixtures();
-		elseif (Tools::getValue('installModules') && !empty($this->session->process_validated['installFixtures']))
+		elseif (Tools::getValue('installModules') && (!empty($this->session->process_validated['installFixtures']) || $this->session->install_type != 'full'))
 			$this->processInstallModules();
 		elseif (Tools::getValue('installModulesAddons') && !empty($this->session->process_validated['installModules']))
 			$this->processInstallAddonsModules();
@@ -198,6 +198,7 @@ class InstallControllerHttpProcess extends InstallControllerHttp
 			'admin_lastname' =>			$this->session->admin_lastname,
 			'admin_password' =>			$this->session->admin_password,
 			'admin_email' =>			$this->session->admin_email,
+			'send_informations' =>		$this->session->send_informations,
 			'configuration_agrement' =>	$this->session->configuration_agrement,
 			'rewrite_engine' =>			$this->session->rewrite_engine,
 		));

@@ -29,7 +29,7 @@
 <div id="module_install" class="row" style="{if !isset($smarty.post.downloadflag)}display: none;{/if}">
 
 	<div class="panel col-lg-12">
-		<form action="{$currentIndex}&token={$token}" method="post" enctype="multipart/form-data" class="form-horizontal">
+		<form action="{$currentIndex}&amp;token={$token}" method="post" enctype="multipart/form-data" class="form-horizontal">
 			<h3>{l s='Add a new module'}</h3>
 			<p class="alert alert-info">{l s='The module must either be a zip file or a tarball.'}</p>
 			<div class="form-group">
@@ -38,7 +38,7 @@
 						{l s='Module file'}
 					</span>
 				</label>
-				<div class="col-lg-9">
+				<div class="col-sm-9">
 					<div class="row">
 						<div class="col-lg-7">
 							<input id="file" type="file" name="file" class="hide" />
@@ -73,7 +73,7 @@
 	{l s='An upgrade is available for some of your modules!'}
 	<ul>
 	{foreach from=$upgrade_available item='module'}
-		<li><a href="{$currentIndex|escape:'html':'UTF-8'}&token={$token|escape:'html':'UTF-8'}&anchor={$module.anchor|escape:'html':'UTF-8'}"><b>{$module.displayName|escape:'html':'UTF-8'}</b></a></li>
+		<li><a href="{$currentIndex|escape:'html':'UTF-8'}&amp;token={$token|escape:'html':'UTF-8'}&amp;anchor={$module.anchor|escape:'html':'UTF-8'}"><b>{$module.displayName|escape:'html':'UTF-8'}</b></a></li>
 	{/foreach}
 	</ul>
 </div>
@@ -85,7 +85,7 @@
 		</div>
 		<!--start sidebar module-->
 		<div class="row">
-			<div class="categoriesTitle col-lg-3">
+			<div class="categoriesTitle col-md-3">
 				<div class="list-group">
 					<form id="filternameForm" method="post" class="list-group-item form-horizontal">
 						<div class="input-group">
@@ -95,21 +95,21 @@
 							</div>
 						</div>
 					</form>
-					<a class="categoryModuleFilterLink list-group-item {if isset($categoryFiltered.favorites)}active{/if}" href="{$currentIndex}&token={$token}&filterCategory=favorites">
+					<a class="categoryModuleFilterLink list-group-item {if isset($categoryFiltered.favorites)}active{/if}" href="{$currentIndex}&amp;token={$token}&amp;filterCategory=favorites" id="filter_favorite">
 						{l s='Favorites'} <span id="favorite-count" class="badge pull-right">{$nb_modules_favorites}</span>
 					</a>
-					<a class="categoryModuleFilterLink list-group-item {if count($categoryFiltered) lte 0}active{/if}" href="{$currentIndex}&token={$token}&unfilterCategory=yes">
+					<a class="categoryModuleFilterLink list-group-item {if count($categoryFiltered) lte 0}active{/if}" href="{$currentIndex}&amp;token={$token}&amp;unfilterCategory=yes" id="filter_all">
 						{l s='All'} <span class="badge pull-right">{$nb_modules}</span>
 					</a>
 					{foreach from=$list_modules_categories item=module_category key=module_category_key}
-						<a class="categoryModuleFilterLink list-group-item {if isset($categoryFiltered[$module_category_key])}active{/if}" href="{$currentIndex}&token={$token}&{if isset($categoryFiltered[$module_category_key])}un{/if}filterCategory={$module_category_key}">
+						<a class="categoryModuleFilterLink list-group-item {if isset($categoryFiltered[$module_category_key])}active{/if}" href="{$currentIndex}&amp;token={$token}&amp;{if isset($categoryFiltered[$module_category_key])}un{/if}filterCategory={$module_category_key}" id="filter_{$module_category_key}">
 							{$module_category.name} <span class="badge pull-right">{$module_category.nb}</span>
 						</a>
 					{/foreach}
 				</div>
 				{include file='controllers/modules/login_addons.tpl'}
 			</div>
-			<div id="moduleContainer" class="col-lg-9">
+			<div id="moduleContainer" class="col-md-9">
 				{include file='controllers/modules/list.tpl'}
 			</div>
 		</div>

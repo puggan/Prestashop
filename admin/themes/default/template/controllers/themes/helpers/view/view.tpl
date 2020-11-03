@@ -33,9 +33,25 @@
         {/foreach}
     </ul>
 {/if}
+{if $modules_errors|count > 0}
+    <div class="alert alert-warning">
+        {l s='The following module(s) were not installed properly:'}
+        <ul>
+            {foreach $modules_errors as $module_errors}
+                <li>
+                   <b>{$module_errors['module_name']}</b> : {foreach $module_errors['errors'] as $error}<br>  {$error|escape:'html':'UTF-8'}{/foreach}
+                </li>
+            {/foreach}
+        </ul>
+    </div>
+{/if}
 <div class="alert alert-warning">
     {l s='Warning: You may have to regenerate images to fit with this new theme.'}
+    <a href="{$image_link}">
+        <button class="btn btn-default">{l s='Go to the thumbnails regeneration page'}</button>
+    </a>
 </div>
+
 {if isset($img_error['error'])}
     <div class="alert alert-warning">
         {l s='Warning: Copy/paste your errors if you want to manually set the image type (in the "Images" page under the "Preferences" menu):'}
@@ -66,3 +82,4 @@
 <a href="{$back_link}">
     <button class="btn btn-default">{l s='Finish'}</button>
 </a>
+

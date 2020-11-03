@@ -43,22 +43,22 @@
 			{/foreach}
 			{assign var='modules' value=$modules|substr:0:-1}
 			<li>
-				<a id="desc-module-update-all" class="toolbar_btn" href="{$currentIndex}&token={$token}&update={$modules}" title="{l s='Update all'}">
+				<a id="desc-module-update-all" class="toolbar_btn" href="{$currentIndex}&amp;token={$token}&amp;update={$modules}" title="{l s='Update all'}">
 					<i class="process-icon-refresh" ></i>
 					<div>{l s='Update all'}</div>
 				</a>
 			</li>
 			{else}
 			<li>
-				<a id="desc-module-check-and-update-all" class="toolbar_btn" href="{$currentIndex}&token={$token}&checkAndUpdate=1" title="{l s='Check and update'}">
+				<a id="desc-module-check-and-update-all" class="toolbar_btn" href="{$currentIndex}&amp;token={$token}&amp;check=1" title="{l s='Check for update'}">
 					<i class="process-icon-refresh" ></i>
-					<div>{l s='Check and update'}</div>
+					<div>{l s='Check for update'}</div>
 				</a>
 			</li>
 			{/if}
 			{if $add_permission eq '1'}
 			<li>
-				<a id="desc-module-new" class="toolbar_btn" href="#top_container" onclick="$('#module_install').slideToggle();" title="{l s='Add a new module'}">
+				<a id="desc-module-new" class="toolbar_btn" href="#module_install" onclick="$('#module_install').slideToggle();" title="{l s='Add a new module'}">
 					<i class="process-icon-new" ></i>
 					<div>{l s='Add a new module'}</div>
 				</a>

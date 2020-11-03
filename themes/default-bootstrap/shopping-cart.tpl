@@ -83,7 +83,9 @@
 				<tr>
 					<th class="cart_product first_item">{l s='Product'}</th>
 					<th class="cart_description item">{l s='Description'}</th>
-					<th class="cart_avail item">{l s='Avail.'}</th>
+					{if $PS_STOCK_MANAGEMENT}
+						<th class="cart_avail item">{l s='Avail.'}</th>
+					{/if}
 					<th class="cart_unit item">{l s='Unit price'}</th>
 					<th class="cart_quantity item">{l s='Qty'}</th>
 					<th class="cart_total item">{l s='Total'}</th>
@@ -94,7 +96,7 @@
 				{if $use_taxes}
 					{if $priceDisplay}
 						<tr class="cart_total_price">
-							<td rowspan="{5+$total_discounts_num+$use_show_taxes+$total_wrapping_taxes_num}" colspan="2" id="cart_voucher" class="cart_voucher">
+							<td rowspan="{3+$total_discounts_num+$use_show_taxes+$total_wrapping_taxes_num}" colspan="2" id="cart_voucher" class="cart_voucher">
 								{if $voucherAllowed}
 									{if isset($errors_discount) && $errors_discount}
 										<ul class="alert alert-danger">
@@ -115,9 +117,7 @@
 										<p id="title" class="title-offers">{l s='Take advantage of our exclusive offers:'}</p>
 										<div id="display_cart_vouchers">
 											{foreach $displayVouchers as $voucher}
-												{if $voucher.code != ''}<span onclick="$('#discount_name').val('{$voucher.code}');return false;" class="voucher_name">{$voucher.code}</span> - {/if}
-												{$voucher.name}
-												<br />
+												{if $voucher.code != ''}<span class="voucher_name" data-code="{$voucher.code|escape:'html':'UTF-8'}">{$voucher.code|escape:'html':'UTF-8'}</span> - {/if}{$voucher.name}<br />
 											{/foreach}
 										</div>
 									{/if}
@@ -128,7 +128,7 @@
 						</tr>
 					{else}
 						<tr class="cart_total_price">
-							<td rowspan="{5+$total_discounts_num+$use_show_taxes+$total_wrapping_taxes_num}" colspan="2" id="cart_voucher" class="cart_voucher">
+							<td rowspan="{3+$total_discounts_num+$use_show_taxes+$total_wrapping_taxes_num}" colspan="2" id="cart_voucher" class="cart_voucher">
 								{if $voucherAllowed}
 									{if isset($errors_discount) && $errors_discount}
 										<ul class="alert alert-danger">
@@ -149,11 +149,7 @@
 										<p id="title" class="title-offers">{l s='Take advantage of our exclusive offers:'}</p>
 										<div id="display_cart_vouchers">
 											{foreach $displayVouchers as $voucher}
-												{if $voucher.code != ''}
-													<span onclick="$('#discount_name').val('{$voucher.code}');return false;" class="voucher_name">{$voucher.code}</span> -
-												{/if}
-												{$voucher.name}
-												<br />
+												{if $voucher.code != ''}<span class="voucher_name" data-code="{$voucher.code|escape:'html':'UTF-8'}">{$voucher.code|escape:'html':'UTF-8'}</span> - {/if}{$voucher.name}<br />
 											{/foreach}
 										</div>
 									{/if}
@@ -165,7 +161,7 @@
 					{/if}
 				{else}
 					<tr class="cart_total_price">
-						<td rowspan="{5+$total_discounts_num+$use_show_taxes+$total_wrapping_taxes_num}" colspan="2" id="cart_voucher" class="cart_voucher">
+						<td rowspan="{3+$total_discounts_num+$use_show_taxes+$total_wrapping_taxes_num}" colspan="2" id="cart_voucher" class="cart_voucher">
 							{if $voucherAllowed}
 								{if isset($errors_discount) && $errors_discount}
 									<ul class="alert alert-danger">
@@ -188,10 +184,7 @@
 									<p id="title" class="title-offers">{l s='Take advantage of our exclusive offers:'}</p>
 									<div id="display_cart_vouchers">
 										{foreach $displayVouchers as $voucher}
-											{if $voucher.code != ''}
-												<span onclick="$('#discount_name').val('{$voucher.code}');return false;" class="voucher_name">{$voucher.code}</span> -
-											{/if}
-											{$voucher.name}<br />
+											{if $voucher.code != ''}<span class="voucher_name" data-code="{$voucher.code|escape:'html':'UTF-8'}">{$voucher.code|escape:'html':'UTF-8'}</span> - {/if}{$voucher.name}<br />
 										{/foreach}
 									</div>
 								{/if}
@@ -332,7 +325,7 @@
 														{else}
 															{l s='Text #'}{$textField@index+1}
 														{/if}
-														{l s=':'} {$textField.value}
+														: {$textField.value}
 													</li>
 												{/foreach}
 											</ul>

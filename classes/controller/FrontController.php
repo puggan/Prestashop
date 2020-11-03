@@ -335,6 +335,8 @@ class FrontControllerCore extends Controller
 			'languages' => $languages,
 			'meta_language' => implode(',', $meta_language),
 			'priceDisplay' => Product::getTaxCalculationMethod((int)$this->context->cookie->id_customer),
+			'is_logged' => (bool)$this->context->customer->isLogged(),
+			'is_guest' => (bool)$this->context->customer->isGuest(),
 			'add_prod_display' => (int)Configuration::get('PS_ATTRIBUTE_CATEGORY_DISPLAY'),
 			'shop_name' => Configuration::get('PS_SHOP_NAME'),
 			'roundMode' => (int)Configuration::get('PS_PRICE_ROUND_MODE'),
@@ -347,7 +349,7 @@ class FrontControllerCore extends Controller
 			'b2b_enable' => (bool)Configuration::get('PS_B2B_ENABLE'),
 			'request' => $link->getPaginationLink(false, false, false, true),
 			'PS_STOCK_MANAGEMENT' => Configuration::get('PS_STOCK_MANAGEMENT'),
-			'quick_view' => Configuration::get('PS_QUICK_VIEW'),
+			'quick_view' => (bool)Configuration::get('PS_QUICK_VIEW'),
 			'shop_phone' => Configuration::get('PS_SHOP_PHONE'),
 			'compared_products' => is_array($compared_products) ? $compared_products : array(),
 			'comparator_max_item' => (int)Configuration::get('PS_COMPARATOR_MAX_ITEM')
@@ -515,16 +517,6 @@ class FrontControllerCore extends Controller
 	public function display()
 	{
 		Tools::safePostVars();
-		// Automatically add js files from js/autoload directory in the template
-		if (@filemtime($this->getThemeDir().'js/autoload/'))
-			foreach (scandir($this->getThemeDir().'js/autoload/', 0) as $file)
-				if (preg_match('/^[^.].*\.js$/', $file))
-					$this->addJS($this->getThemeDir().'js/autoload/'.$file);
-		// Automatically add css files from css/autoload directory in the template
-		if (@filemtime($this->getThemeDir().'css/autoload/'))
-			foreach (scandir($this->getThemeDir().'css/autoload', 0) as $file)
-				if (preg_match('/^[^.].*\.css$/', $file))
-					$this->addCSS($this->getThemeDir().'css/autoload/'.$file);
 
 		// assign css_files and js_files at the very last time
 		if ((Configuration::get('PS_CSS_THEME_CACHE') || Configuration::get('PS_JS_THEME_CACHE')) && is_writable(_PS_THEME_DIR_.'cache'))
@@ -607,7 +599,11 @@ class FrontControllerCore extends Controller
 	protected function displayRestrictedCountryPage()
 	{
 		header('HTTP/1.1 503 temporarily overloaded');
-		$this->context->smarty->assign('favicon_url', _PS_IMG_.Configuration::get('PS_FAVICON'));
+		$this->context->smarty->assign(array(
+			'shop_name' => Context::getContext()->shop->name,
+			'favicon_url' => _PS_IMG_.Configuration::get('PS_FAVICON'),
+			'logo_url' =>  self::$link->getMediaLink(_PS_IMG_.Configuration::get('PS_LOGO'))
+		));
 		$this->smartyOutputContent($this->getTemplatePath($this->getThemeDir().'restricted-country.tpl'));
 		exit;
 	}
@@ -757,6 +753,17 @@ class FrontControllerCore extends Controller
 		$this->addJS(_PS_JS_DIR_.'tools.js');
 		$this->addJS(_THEME_JS_DIR_.'global.js');
 
+		// Automatically add js files from js/autoload directory in the template
+		if (@filemtime($this->getThemeDir().'js/autoload/'))
+			foreach (scandir($this->getThemeDir().'js/autoload/', 0) as $file)
+				if (preg_match('/^[^.].*\.js$/', $file))
+					$this->addJS($this->getThemeDir().'js/autoload/'.$file);
+		// Automatically add css files from css/autoload directory in the template
+		if (@filemtime($this->getThemeDir().'css/autoload/'))
+			foreach (scandir($this->getThemeDir().'css/autoload', 0) as $file)
+				if (preg_match('/^[^.].*\.css$/', $file))
+					$this->addCSS($this->getThemeDir().'css/autoload/'.$file);
+
 		if (Tools::isSubmit('live_edit') && Tools::getValue('ad') && Tools::getAdminToken('AdminModulesPositions'.(int)Tab::getIdFromClassName('AdminModulesPositions').(int)Tools::getValue('id_employee')))
 		{
 			$this->addJqueryUI('ui.sortable');
@@ -767,10 +774,7 @@ class FrontControllerCore extends Controller
 			$this->addCSS(_THEME_CSS_DIR_.'rtl.css');
 		
 		if (Configuration::get('PS_QUICK_VIEW'))
-		{
 			$this->addjqueryPlugin('fancybox');
-			$this->addJS(_THEME_JS_DIR_.'quick-view.js');
-		}
 
 		if (Configuration::get('PS_COMPARATOR_MAX_ITEM') > 0)
 			$this->addJS(_THEME_JS_DIR_.'products-comparison.js');
@@ -806,7 +810,6 @@ class FrontControllerCore extends Controller
 			'PS_SHOP_NAME' => Configuration::get('PS_SHOP_NAME'),
 			'PS_ALLOW_MOBILE_DEVICE' => isset($_SERVER['HTTP_USER_AGENT']) && (bool)Configuration::get('PS_ALLOW_MOBILE_DEVICE') && @filemtime(_PS_THEME_MOBILE_DIR_)
 		));
-
 	}
 	
 	public function checkLiveEditAccess()
@@ -971,7 +974,6 @@ class FrontControllerCore extends Controller
 
 	public function addMedia($media_uri, $css_media_type = null, $offset = null, $remove = false)
 	{
-
 		if (!is_array($media_uri))
 		{
 			if ($css_media_type)
@@ -986,6 +988,7 @@ class FrontControllerCore extends Controller
 			if (!preg_match('/^http(s?):\/\//i', $media))
 			{
 				$different = 0;
+                $different_css = 0;
 				$type = 'css';
 				if (!$css_media_type)
 				{
@@ -993,8 +996,14 @@ class FrontControllerCore extends Controller
 					$file = $media;
 				}
 				$override_path = str_replace(__PS_BASE_URI__.'modules/', _PS_ROOT_DIR_.'/themes/'._THEME_NAME_.'/'.$type.'/modules/', $file, $different);
+
+                $override_path_css = str_replace(basename ($file), $type.'/'.basename ($file), str_replace(__PS_BASE_URI__, _PS_ROOT_DIR_.'/', $file), $different_css );
+
 				if ($different && file_exists($override_path))
 					$file = str_replace(__PS_BASE_URI__.'modules/', __PS_BASE_URI__.'themes/'._THEME_NAME_.'/'.$type.'/modules/', $file, $different);
+                elseif ($different_css && file_exists($override_path_css))
+                    $file = $override_path_css;
+
 				if ($css_media_type)
 					$list_uri[$file] = $media;
 				else
@@ -1232,7 +1241,7 @@ class FrontControllerCore extends Controller
 		if ($mobile_device && Configuration::get('PS_LOGO_MOBILE'))
 			$logo = self::$link->getMediaLink(_PS_IMG_.Configuration::get('PS_LOGO_MOBILE').'?'.Configuration::get('PS_IMG_UPDATE_TIME'));
 		else
-			$logo = self::$link->getMediaLink(_PS_IMG_.Configuration::get('PS_LOGO').'?'.Configuration::get('PS_IMG_UPDATE_TIME'));
+			$logo = self::$link->getMediaLink(_PS_IMG_.Configuration::get('PS_LOGO'));
 		
 		return array(
  				'favicon_url' => _PS_IMG_.Configuration::get('PS_FAVICON'),

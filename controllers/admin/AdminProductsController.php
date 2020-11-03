@@ -181,7 +181,7 @@ class AdminProductsControllerCore extends AdminController
 				LEFT JOIN `'._DB_PREFIX_.'image_shop` image_shop ON (image_shop.`id_image` = i.`id_image` AND image_shop.`cover` = 1 AND image_shop.id_shop = '.$id_shop.')';
 		
 		$this->_select .= 'shop.name as shopname, a.id_shop_default, ';
-		$this->_select .= 'MAX('.$alias_image.'.id_image) id_image, cl.name `name_category`, '.$alias.'.`price`, 0 AS price_final, sav.`quantity` as sav_quantity, '.$alias.'.`active`';
+		$this->_select .= 'MAX('.$alias_image.'.id_image) id_image, cl.name `name_category`, '.$alias.'.`price`, 0 AS price_final, sav.`quantity` as sav_quantity, '.$alias.'.`active`, IF(sav.`quantity`<=0, 1, 0 ) badge_danger';
 		
 		if ($join_category)
 		{
@@ -217,7 +217,7 @@ class AdminProductsControllerCore extends AdminController
 
 		if (Shop::isFeatureActive() && Shop::getContext() != Shop::CONTEXT_SHOP)
 			$this->fields_list['shopname'] = array(
-				'title' => $this->l('Default shop:'),
+				'title' => $this->l('Default shop'),
 				'filter_key' => 'shop!name',
 			);
 		else
@@ -246,6 +246,7 @@ class AdminProductsControllerCore extends AdminController
 				'align' => 'text-right',
 				'filter_key' => 'sav!quantity',
 				'orderby' => true,
+				'badge_danger' => true,
 				//'hint' => $this->l('This is the quantity available in the current shop/group.'),
 			);
 
@@ -903,7 +904,9 @@ class AdminProductsControllerCore extends AdminController
 								Tools::getValue('attribute_default'),
 								Tools::getValue('attribute_location'),
 								Tools::getValue('attribute_upc'),
-								Tools::getValue('attribute_minimal_quantity')
+								Tools::getValue('attribute_minimal_quantity'),
+								Array(),
+								Tools::getValue('available_date_attribute')
 							);
 							StockAvailable::setProductDependsOnStock((int)$product->id, $product->depends_on_stock, null, (int)$id_product_attribute);
 							StockAvailable::setProductOutOfStock((int)$product->id, $product->out_of_stock, null, (int)$id_product_attribute);
@@ -1680,7 +1683,7 @@ class AdminProductsControllerCore extends AdminController
 				foreach ($imagesTypes as $k => $image_type)
 				{
 					if (!ImageManager::resize($tmpName, $new_path.'-'.stripslashes($image_type['name']).'.'.$image->image_format, $image_type['width'], $image_type['height'], $image->image_format))
-						$this->errors[] = Tools::displayError('An error occurred while copying image:').' '.stripslashes($image_type['name']);
+						$this->errors[] = Tools::displayError('An error occurred while copying this image:').' '.stripslashes($image_type['name']);
 				}
 			}
 
@@ -1712,10 +1715,17 @@ class AdminProductsControllerCore extends AdminController
 		if ($this->object->add())
 		{
 			PrestaShopLogger::addLog(sprintf($this->l('%s addition', 'AdminTab', false, false), $this->className), 1, null, $this->className, (int)$this->object->id, true, (int)$this->context->employee->id);
-			$this->addCarriers();
+			$this->addCarriers($this->object);
 			$this->updateAccessories($this->object);
 			$this->updatePackItems($this->object);
 			$this->updateDownloadProduct($this->object);
+
+			if (Configuration::get('PS_FORCE_ASM_NEW_PRODUCT') && Configuration::get('PS_ADVANCED_STOCK_MANAGEMENT'))
+			{
+				$this->object->advanced_stock_management = 1;
+				StockAvailable::setProductDependsOnStock($this->object->id, true, (int)$this->context->shop->id, 0);
+				$this->object->save();
+			}
 
 			if (empty($this->errors))
 			{
@@ -2438,7 +2448,7 @@ class AdminProductsControllerCore extends AdminController
 				);
 		if ($this->display == 'edit')
 		{
-			if (($product = $this->loadObject(true)))
+			if (($product = $this->loadObject(true)) && $product->isAssociatedToShop())
 			{
 				// adding button for preview this product
 				if ($url_preview = $this->getPreviewUrl($product))
@@ -2454,10 +2464,10 @@ class AdminProductsControllerCore extends AdminController
 				if ($this->tabAccess['add'])
 					$this->page_header_toolbar_btn['duplicate'] = array(
 						'short' => $this->l('Duplicate', null, null, false),
-						'href' => '#',
+						'href' => $this->context->link->getAdminLink('AdminProducts', true).'&id_product='.(int)$product->id.'&duplicateproduct',
 						'desc' => $this->l('Duplicate', null, null, false),
 						'confirm' => 1,
-						'js' => 'if (confirm(\''.$this->l('Also copy images', null, true, false).' ?\')) document.location = \''.$this->context->link->getAdminLink('AdminProducts', null, true, false).'&id_product='.(int)$product->id.'&duplicateproduct\'; else document.location = \''.$this->context->link->getAdminLink('AdminProducts', null, true, false).'&id_product='.(int)$product->id.'&duplicateproduct&noimage=1\';'
+						'js' => 'if (confirm(\''.$this->l('Also copy images', null, true, false).' ?\')){document.location.href = \''.$this->context->link->getAdminLink('AdminProducts', true).'&id_product='.(int)$product->id.'&duplicateproduct\'; return false;} else{document.location.href = \''.$this->context->link->getAdminLink('AdminProducts', true).'&id_product='.(int)$product->id.'&duplicateproduct&noimage=1\'; return false;}'
 					);
 
 				// adding button for preview this product statistics
@@ -2520,7 +2530,7 @@ class AdminProductsControllerCore extends AdminController
 	/**
 	 * renderForm contains all necessary initialization needed for all tabs
 	 *
-	 * @return void
+	 * @return string|void
 	 */
 	public function renderForm()
 	{
@@ -2575,7 +2585,8 @@ class AdminProductsControllerCore extends AdminController
 		$this->tpl_form_vars['tinymce'] = true;
 		$iso = $this->context->language->iso_code;
 		$this->tpl_form_vars['iso'] = file_exists(_PS_CORE_DIR_.'/js/tiny_mce/langs/'.$iso.'.js') ? $iso : 'en';
-		$this->tpl_form_vars['ad'] = dirname($_SERVER['PHP_SELF']);
+		$this->tpl_form_vars['path_css'] = _THEME_CSS_DIR_;
+		$this->tpl_form_vars['ad'] = __PS_BASE_URI__.basename(_PS_ADMIN_DIR_);
 
 		if (Validate::isLoadedObject(($this->object)))
 			$id_product = (int)$this->object->id;
@@ -3051,6 +3062,9 @@ class AdminProductsControllerCore extends AdminController
 
 	public function initFormSeo($product)
 	{
+		if (!$this->default_form_language)
+			$this->getLanguages();
+
 		$data = $this->createTemplate($this->tpl_form);
 
 		$data->assign(array(
@@ -3058,7 +3072,8 @@ class AdminProductsControllerCore extends AdminController
 			'languages' => $this->_languages,
 			'id_lang' => $this->context->language->id,
 			'ps_ssl_enabled' => Configuration::get('PS_SSL_ENABLED'),
-			'curent_shop_url' => $this->context->shop->getBaseURL()
+			'curent_shop_url' => $this->context->shop->getBaseURL(),
+			'default_form_language' => $this->default_form_language
 		));
 
 		$this->tpl_form_vars['custom_form'] = $data->fetch();
@@ -3181,7 +3196,8 @@ class AdminProductsControllerCore extends AdminController
 		$virtual_product_file_uploader = new HelperUploader('virtual_product_file_uploader');
 		$virtual_product_file_uploader->setMultiple(false)->setUrl(
 			Context::getContext()->link->getAdminLink('AdminProducts').'&ajax=1&id_product='.(int)$product->id
-			.'&action=AddVirtualProductFile')->setPostMaxSize(Tools::getOctets(ini_get('upload_max_filesize')));
+			.'&action=AddVirtualProductFile')->setPostMaxSize(Tools::getOctets(ini_get('upload_max_filesize')))
+			->setTemplate('virtual_product.tpl');
 
 		$data->assign(array(
 			'download_product_file_missing' => $msg,
@@ -3366,7 +3382,7 @@ class AdminProductsControllerCore extends AdminController
 
 		$content .= '
 		<div class="form-group">
-			<label class="control-label col-lg-3" for="specificPricePriority1">'.$this->l('Priorities:').'</label>
+			<label class="control-label col-lg-3" for="specificPricePriority1">'.$this->l('Priorities').'</label>
 			<div class="input-group col-lg-9">
 				<select id="specificPricePriority1" name="specificPricePriority[]">
 					<option value="id_shop"'.($specific_price_priorities[0] == 'id_shop' ? ' selected="selected"' : '').'>'.$this->l('Shop').'</option>
@@ -3509,7 +3525,11 @@ class AdminProductsControllerCore extends AdminController
 
 	public function initFormAttachments($obj)
 	{
+		if (!$this->default_form_language)
+			$this->getLanguages();
+
 		$data = $this->createTemplate($this->tpl_form);
+		$data->assign('default_form_language', $this->default_form_language);
 
 		if ((bool)$obj->id)
 		{
@@ -3559,10 +3579,14 @@ class AdminProductsControllerCore extends AdminController
 
 	public function initFormInformations($product)
 	{
+		if (!$this->default_form_language)
+			$this->getLanguages();
+
 		$data = $this->createTemplate($this->tpl_form);
 
 		$currency = $this->context->currency;
 		$data->assign('languages', $this->_languages);
+		$data->assign('default_form_language', $this->default_form_language);
 		$data->assign('currency', $currency);
 		$this->object = $product;
 		//$this->display = 'edit';
@@ -3674,9 +3698,12 @@ class AdminProductsControllerCore extends AdminController
 		return $carrier_list;
 	}
 
-	protected function addCarriers()
+	protected function addCarriers($product = null)
 	{
-		if (Validate::isLoadedObject($product = new Product((int)Tools::getValue('id_product'))))
+		if (!isset($product))
+			$product = new Product((int)Tools::getValue('id_product'));
+
+		if (Validate::isLoadedObject($product))
 		{
 			$carriers = array();
 			
@@ -3975,11 +4002,11 @@ class AdminProductsControllerCore extends AdminController
 		$default_class = 'highlighted';
 
 		$this->fields_list = array(
-			'attributes' => array('title' => $this->l('Attributes'), 'align' => 'left'),
-			'price' => array('title' => $this->l('Impact'), 'type' => 'price', 'align' => 'left'),
-			'weight' => array('title' => $this->l('Weight'), 'align' => 'left'),
+			'attributes' => array('title' => $this->l('Attribute - value pair'), 'align' => 'left'),
+			'price' => array('title' => $this->l('Impact on price'), 'type' => 'price', 'align' => 'left'),
+			'weight' => array('title' => $this->l('Impact on weight'), 'align' => 'left'),
 			'reference' => array('title' => $this->l('Reference'), 'align' => 'left'),
-			'ean13' => array('title' => $this->l('EAN13'), 'align' => 'left'),
+			'ean13' => array('title' => $this->l('EAN-13'), 'align' => 'left'),
 			'upc' => array('title' => $this->l('UPC'), 'align' => 'left')
 		);
 
@@ -4064,7 +4091,11 @@ class AdminProductsControllerCore extends AdminController
 
 	public function initFormQuantities($obj)
 	{
+		if (!$this->default_form_language)
+			$this->getLanguages();
+
 		$data = $this->createTemplate($this->tpl_form);
+		$data->assign('default_form_language', $this->default_form_language);
 
 		if ($obj->id)
 		{
@@ -4338,7 +4369,12 @@ class AdminProductsControllerCore extends AdminController
 
 	public function initFormFeatures($obj)
 	{
+		if (!$this->default_form_language)
+			$this->getLanguages();
+
 		$data = $this->createTemplate($this->tpl_form);
+		$data->assign('default_form_language', $this->default_form_language);
+
 		if (!Feature::isFeatureActive())
 			$this->displayWarning($this->l('This feature has been disabled. ').' <a href="index.php?tab=AdminPerformance&token='.Tools::getAdminTokenLite('AdminPerformance').'#featuresDetachables">'.$this->l('Performances').'</a>');
 		else
@@ -4536,8 +4572,8 @@ class AdminProductsControllerCore extends AdminController
 	public function getL($key)
 	{
 		$trad = array(
-			'Default category:' => $this->l('Default category:'),
-			'Catalog:' => $this->l('Catalog:'),
+			'Default category:' => $this->l('Default category'),
+			'Catalog:' => $this->l('Catalog'),
 			'Consider changing the default category.' => $this->l('Consider changing the default category.'),
 			'ID' => $this->l('ID'),
 			'Name' => $this->l('Name'),

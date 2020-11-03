@@ -41,7 +41,13 @@ class AdminCmsControllerCore extends AdminController
 		$this->lang = true;
 		$this->addRowAction('edit');
 		$this->addRowAction('delete');
-		$this->bulk_actions = array('delete' => array('text' => $this->l('Delete selected'), 'confirm' => $this->l('Delete selected items?'), 'icon' => 'icon-trash'));
+				$this->bulk_actions = array(
+			'delete' => array(
+				'text' => $this->l('Delete selected'),
+				'confirm' => $this->l('Delete selected items?'),
+				'icon' => 'icon-trash'
+			)
+		);
 		$this->fields_list = array(
 			'id_cms' => array('title' => $this->l('ID'), 'align' => 'center', 'class' => 'fixed-width-xs'),
 			'link_rewrite' => array('title' => $this->l('URL')),
@@ -77,7 +83,7 @@ class AdminCmsControllerCore extends AdminController
 			'desc' => $this->l('Save and preview', null, null, false)
 		);
 		$this->page_header_toolbar_btn['save-and-stay'] = array(
-			'short' => $this->l('SaveAndStay', null, null, false),
+			'short' => $this->l('Save and stay', null, null, false),
 			'href' => '#',
 			'desc' => $this->l('Save and stay', null, null, false),
 		);
@@ -259,7 +265,7 @@ class AdminCmsControllerCore extends AdminController
 	}
 	
 	public function postProcess()
-	{	
+	{
 		if (Tools::isSubmit('viewcms') && ($id_cms = (int)Tools::getValue('id_cms')))
 		{
 			parent::postProcess();

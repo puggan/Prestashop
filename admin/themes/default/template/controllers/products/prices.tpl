@@ -72,11 +72,11 @@ $(document).ready(function () {
 		"success": function(result)
 		{
 			if(result.found) {
-				var html = '<ul class="clearfix">';
+				var html = '<ul class="list-unstyled">';
 				jQuery.each(result.customers, function() {
-					html += '<li><a class="fancybox" href="{$link->getAdminLink('AdminCustomers')}&id_customer='+this.id_customer+'&viewcustomer&liteDisplaying=1">'+this.firstname+' '+this.lastname+'</a>'+(this.birthday ? ' - '+this.birthday:'')+'<br/>';
-					html += '<a href="mailto:'+this.email+'">'+this.email+'</a><br />';
-					html += '<a onclick="Customer.select('+this.id_customer+', \''+this.firstname+' '+this.lastname+'\'); return false;" href="#" class="button">{l s='Choose'}</a></li>';
+					html += '<li><a class="fancybox" href="{$link->getAdminLink('AdminCustomers')}&id_customer='+this.id_customer+'&viewcustomer&liteDisplaying=1">'+this.firstname+' '+this.lastname+'</a>'+(this.birthday ? ' - '+this.birthday:'');
+					html += ' - '+this.email;
+					html += '<a onclick="Customer.select('+this.id_customer+', \''+this.firstname+' '+this.lastname+'\'); return false;" href="#" class="btn btn-default">{l s='Choose'}</a></li>';
 				});
 				html += '</ul>';
 			}
@@ -116,8 +116,8 @@ $(document).ready(function () {
 		<label class="control-label col-lg-3" for="wholesale_price">
 			{include file="controllers/products/multishop/checkbox.tpl" field="wholesale_price" type="default"}
 			<span class="label-tooltip" data-toggle="tooltip"
-				title="{l s='Wholesale price'}">
-				{l s='Pre-tax wholesale price:'}
+				title="{l s='The wholesale price is the price you paid for the product. Do not include the tax.'}">
+				{l s='Pre-tax wholesale price'}
 			</span>
 
 		</label>
@@ -131,8 +131,8 @@ $(document).ready(function () {
 		<label class="control-label col-lg-3" for="priceTE">
 			{include file="controllers/products/multishop/checkbox.tpl" field="price" type="price"}
 			<span class="label-tooltip" data-toggle="tooltip"
-				title="{l s='The pre-tax retail price to sell this product'}">
-				{l s='Pre-tax retail price:'}
+				title="{l s='The pre-tax retail price is the price for which you intend sell this product to your customers. It should be higher than the pre-tax wholesale price: the difference between the two will be your margin.'}">
+				{l s='Pre-tax retail price'}
 			</span>
 		</label>
 		<div class="input-group col-lg-2">
@@ -185,8 +185,8 @@ $(document).ready(function () {
 	<div class="form-group">
 		<div class="col-lg-9 col-lg-offset-3">
 			<div class="alert">
-				{l s='Taxes are currently disabled'} :
-				<a href="{$link->getAdminLink('AdminTaxes')|escape:'html':'UTF-8'}">{l s='Tax options'}</a>
+				{l s='Taxes are currently disabled:'}
+				<a href="{$link->getAdminLink('AdminTaxes')|escape:'html':'UTF-8'}">{l s='Click here to open the Taxes configuration page.'}</a>
 				<input type="hidden" value="{$product->getIdTaxRulesGroup()}" name="id_tax_rules_group" />
 			</div>
 		</div>
@@ -197,8 +197,8 @@ $(document).ready(function () {
 		<label class="control-label col-lg-3" for="ecotax">
 			{include file="controllers/products/multishop/checkbox.tpl" field="ecotax" type="default"}
 			<span class="label-tooltip" data-toggle="tooltip"
-				title="{l s='already included in price'}">
-				{l s='Eco-tax (tax incl.):'}
+				title="{l s='The ecotax is a local set of taxes intended to "promote ecologically sustainable activities via economic incentives". It is already included in retail price: the higher this ecotax is, the lower your margin will be.'}">
+				{l s='Ecotax (tax incl.)'}
 			</span>
 		</label>
 		<div class="input-group col-lg-2">
@@ -208,7 +208,7 @@ $(document).ready(function () {
 	</div>
 
 	<div class="form-group" {if !$country_display_tax_label || $tax_exclude_taxe_option}style="display:none;"{/if} >
-		<label class="control-label col-lg-3" for="priceTI">{l s='Retail price with tax:'}</label>
+		<label class="control-label col-lg-3" for="priceTI">{l s='Retail price with tax'}</label>
 		<div class="input-group col-lg-2">
 			<span class="input-group-addon">{$currency->prefix}{$currency->suffix}</span>
 			<input id="priceType" name="priceType" type="hidden" value="TE" />
@@ -220,8 +220,8 @@ $(document).ready(function () {
 		<label class="control-label col-lg-3" for="unit_price">
 			{include file="controllers/products/multishop/checkbox.tpl" field="unit_price" type="unit_price"}
 			<span class="label-tooltip" data-toggle="tooltip"
-				title="{l s='e.g. per lb.'}">
-				{l s='Unit price:'}
+				title="{l s='When selling a pack of items, you can indicate the unit price for each item of the pack. For instance, "per bottle" or "per pound".'}">
+				{l s='Unit price'}
 			</span>
 		</label>
 		<div class="input-group col-lg-4">
@@ -238,7 +238,7 @@ $(document).ready(function () {
 			<div class="alert alert-warning">
 				<span>{l s='or'}
 					{$currency->prefix}<span id="unit_price_with_tax">0.00</span>{$currency->suffix}
-					{l s='per'} <span id="unity_second">{$product->unity}</span> {l s='with tax'}
+					{l s='per'} <span id="unity_second">{$product->unity}</span> {l s='with tax.'}
 				</span>
 			</div>
 		</div>
@@ -293,7 +293,7 @@ $(document).ready(function () {
 	<h3>{l s='Specific prices'}</h3>
 
 	<div class="alert alert-info">
-		{l s='You can set specific prices for clients belonging to different groups, different countries, etc...'}
+		{l s='You can set specific prices for clients belonging to different groups, different countries, etc.'}
 	</div>
 
 	<div class="form-group">
@@ -366,12 +366,14 @@ $(document).ready(function () {
 					<input type="hidden" name="sp_id_customer" id="id_customer" value="0" />
 					<div class="input-group">
 						<input type="text" name="customer" value="{l s='All customers'}" id="customer" autocomplete="off" />
-						<span class="input-group-addon"><i class="icon-search"></i></span>
+						<span class="input-group-addon"><i id="customerLoader" class="icon-refresh icon-spin" style="display: none;"></i> <i class="icon-search"></i></span>
 					</div>
-					
 				</div>
-				<img src="../img/admin/field-loader.gif" id="customerLoader" alt="{l s='Loading...'}" style="display: none;" />
-				<div id="customers"></div>
+			</div>
+			<div class="form-group">
+				<div class="col-lg-10 col-lg-offset-2">
+					<div id="customers"></div>
+				</div>
 			</div>
 
 			{if $combinations|@count != 0}
@@ -421,7 +423,7 @@ $(document).ready(function () {
 			<div class="form-group">
 				<label class="control-label col-lg-2" for="sp_price">{l s='Product price'}
 					{if $country_display_tax_label}
-						{l s='(tax excl.):'}
+						{l s='(tax excl.)'}
 					{/if}
 				</label>
 				<div class="col-lg-9">
@@ -441,7 +443,7 @@ $(document).ready(function () {
 			</div>
 
 			<div class="form-group">
-				<label class="control-label col-lg-2" for="sp_reduction">{l s='Apply a discount of:'}</label>
+				<label class="control-label col-lg-2" for="sp_reduction">{l s='Apply a discount of'}</label>
 				<div class="col-lg-4">
 					<div class="row">
 						<div class="col-lg-6">

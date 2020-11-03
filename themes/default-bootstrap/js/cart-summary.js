@@ -23,14 +23,76 @@
 *  International Registered Trademark & Property of PrestaShop SA
 */
 
-$(document).ready(function()
-{
-	$('.cart_quantity_up').unbind('click').live('click', function(){upQuantity($(this).attr('id').replace('cart_quantity_up_', '')); return false;});
-	$('.cart_quantity_down').unbind('click').live('click', function(){downQuantity($(this).attr('id').replace('cart_quantity_down_', '')); return false;});
-	$('.cart_quantity_delete' ).unbind('click').live('click', function(){deleteProductFromSummary($(this).attr('id')); return false;});
-	$('.cart_quantity_input').typeWatch({highlight: true, wait: 600, captureLength: 0, callback: function(val) { updateQty(val, true, this.el);}});
-	$('.cart_address_delivery').live('change', function(){changeAddressDelivery($(this));});
+$(document).ready(function(){
+	$('.cart_quantity_up').off('click').on('click', function(e){
+		e.preventDefault();
+		upQuantity($(this).attr('id').replace('cart_quantity_up_', ''));
+	});
+	$('.cart_quantity_down').off('click').on('click', function(e){
+		e.preventDefault();
+		downQuantity($(this).attr('id').replace('cart_quantity_down_', '')); 
+	});
+	$('.cart_quantity_delete' ).off('click').on('click', function(e){
+		e.preventDefault();	
+		deleteProductFromSummary($(this).attr('id')); 
+	});
+	$('.cart_address_delivery').on('change', function(e){
+		changeAddressDelivery($(this));
+	});
+
+	$(document).on('click', '.voucher_name', function(e){
+		$('#discount_name').val($(this).data('code'));
+	});
+
+	$('.cart_quantity_input').typeWatch({
+		highlight: true, wait: 600, captureLength: 0, callback: function(val){
+			updateQty(val, true, this.el);
+		}
+	});
+
 	cleanSelectAddressDelivery();
+
+	refreshDeliveryOptions();
+	
+	$('.delivery_option_radio').on('change', function(){
+		refreshDeliveryOptions();
+	});
+	
+	$('#allow_seperated_package').on('click', function(){
+		$.ajax({
+			type: 'POST',
+			headers: { "cache-control": "no-cache" },
+			url: baseUri + '?rand=' + new Date().getTime(),
+			async: true,
+			cache: false,
+			data: 'controller=cart&ajax=true&allowSeperatedPackage=true&value='
+				+ ($(this).prop('checked') ? '1' : '0')
+				+ '&token='+static_token
+				+ '&allow_refresh=1',
+			success: function(jsonData)
+			{
+				if (typeof(getCarrierListAndUpdate) !== 'undefined')
+					getCarrierListAndUpdate();
+			}
+		});
+	});
+	
+	$('#gift').checkboxChange(function(){
+		$('#gift_div').show('slow');
+	}, function(){
+		$('#gift_div').hide('slow');
+	});
+	
+	$('#enable-multishipping').checkboxChange(
+		function(){
+			$('.standard-checkout').hide(0);
+			$('.multishipping-checkout').show(0);
+		},
+		function(){
+			$('.standard-checkout').show(0);
+			$('.multishipping-checkout').hide(0);
+		}
+	);
 });
 
 function cleanSelectAddressDelivery()
@@ -96,7 +158,20 @@ function changeAddressDelivery(obj)
 			{
 				if (typeof(jsonData.hasErrors) != 'undefined' && jsonData.hasErrors)
 				{
-					alert(jsonData.error);
+					if (!!$.prototype.fancybox)
+					    $.fancybox.open([
+				        {
+				            type: 'inline',
+				            autoScale: true,
+				            minHeight: 30,
+				            content: '<p class="fancybox-error">' + jsonData.error + '</p>'
+				        }],
+						{
+					        padding: 0
+					    });
+					else
+					    alert(jsonData.error);
+
 					// Reset the old address
 					$('#select_address_delivery_' + id_product + '_' + id_product_attribute + '_' + old_id_address_delivery).val(old_id_address_delivery);
 				}
@@ -136,7 +211,19 @@ function changeAddressDelivery(obj)
 		// This test is will not usefull in the future
 		if (old_id_address_delivery == 0)
 		{
-			alert(txtSelectAnAddressFirst);
+			if (!!$.prototype.fancybox)
+			    $.fancybox.open([
+		        {
+		            type: 'inline',
+		            autoScale: true,
+		            minHeight: 30,
+		            content: '<p class="fancybox-error">' + txtSelectAnAddressFirst + '</p>'
+		        }],
+				{
+			        padding: 0
+			    });
+			else
+			    alert(txtSelectAnAddressFirst);
 			return false;
 		}
 		
@@ -170,12 +257,20 @@ function changeAddressDelivery(obj)
 				+ '&allow_refresh=1',
 			success: function(jsonData)
 			{
-				if (jsonData.error)
-				{
-					alert(jsonData.reason);
-					return;
-				}
-				
+				if (jsonData.error && !!$.prototype.fancybox)
+				    $.fancybox.open([
+			        {
+			            type: 'inline',
+			            autoScale: true,
+			            minHeight: 30,
+			            content: '<p class="fancybox-error">' + jsonData.error + '</p>'
+			        }],
+					{
+				        padding: 0
+				    });
+				else
+				    alert(jsonData.error);
+			
 				var line = $('#product_' + id_product + '_' + id_product_attribute + '_0_' + old_id_address_delivery);
 				var new_line = line.clone();
 				updateAddressId(id_product, id_product_attribute, old_id_address_delivery, id_address_delivery, new_line);
@@ -382,7 +477,22 @@ function deleteProductFromSummary(id)
 		},
 		error: function(XMLHttpRequest, textStatus, errorThrown) {
 			if (textStatus !== 'abort')
-				alert("TECHNICAL ERROR: unable to save update quantity \n\nDetails:\nError thrown: " + XMLHttpRequest + "\n" + 'Text status: ' + textStatus);
+			{
+				var error = "TECHNICAL ERROR: unable to save update quantity \n\nDetails:\nError thrown: " + XMLHttpRequest + "\n" + 'Text status: ' + textStatus;
+				if (!!$.prototype.fancybox)
+				    $.fancybox.open([
+			        {
+			            type: 'inline',
+			            autoScale: true,
+			            minHeight: 30,
+			            content: '<p class="fancybox-error">' + error + '</p>'
+			        }],
+					{
+				        padding: 0
+				    });
+				else
+				    alert(error);
+			}
 		}
 	});
 }
@@ -456,7 +566,19 @@ function upQuantity(id, qty)
 					//IE6 bug fix
 					if(error !== 'indexOf')
 						errors += $('<div />').html(jsonData.errors[error]).text() + "\n";
-				alert(errors);
+				if (!!$.prototype.fancybox)
+				    $.fancybox.open([
+			        {
+			            type: 'inline',
+			            autoScale: true,
+			            minHeight: 30,
+			            content: '<p class="fancybox-error">' + errors + '</p>'
+			        }],
+					{
+				        padding: 0
+				    });
+				else
+				    alert(errors);
 				$('input[name=quantity_'+ id +']').val($('input[name=quantity_'+ id +'_hidden]').val());
 			}
 			else
@@ -478,7 +600,22 @@ function upQuantity(id, qty)
 		},
 		error: function(XMLHttpRequest, textStatus, errorThrown) {
 			if (textStatus !== 'abort')
-				alert("TECHNICAL ERROR: unable to save update quantity \n\nDetails:\nError thrown: " + XMLHttpRequest + "\n" + 'Text status: ' + textStatus);
+			{
+				error = "TECHNICAL ERROR: unable to save update quantity \n\nDetails:\nError thrown: " + XMLHttpRequest + "\n" + 'Text status: ' + textStatus;
+				if (!!$.prototype.fancybox)
+				    $.fancybox.open([
+			        {
+			            type: 'inline',
+			            autoScale: true,
+			            minHeight: 30,
+			            content: '<p class="fancybox-error">' + error + '</p>'
+			        }],
+					{
+				        padding: 0
+				    });
+				else
+				    alert(error);
+			}
 		}
 	});
 }
@@ -798,53 +935,13 @@ function refreshDeliveryOptions()
 			carrier_id_list.pop();
 			var it = this;
 			$(carrier_id_list).each(function() {
-				$(it).parent().find('input[value="' + this.toString() + '"]').change();
+				$(it).closest('.delivery_options').find('input[value="' + this.toString() + '"]').change();
 			});
 		}
 		else
 			$(this).parent().find('.delivery_option_carrier').hide();
 	});
 }
-$(document).ready(function() {
-	
-	refreshDeliveryOptions();
-	
-	$('.delivery_option_radio').live('change', function() {
-		refreshDeliveryOptions();
-	});
-	
-	$('#allow_seperated_package').live('click', function() {
-		$.ajax({
-			type: 'POST',
-			headers: { "cache-control": "no-cache" },
-			url: baseUri + '?rand=' + new Date().getTime(),
-			async: true,
-			cache: false,
-			data: 'controller=cart&ajax=true&allowSeperatedPackage=true&value='
-				+ ($(this).prop('checked') ? '1' : '0')
-				+ '&token='+static_token
-				+ '&allow_refresh=1',
-			success: function(jsonData)
-			{
-				if (typeof(getCarrierListAndUpdate) !== 'undefined')
-					getCarrierListAndUpdate();
-			}
-		});
-	});
-	
-	$('#gift').checkboxChange(function() { $('#gift_div').show('slow'); }, function() { $('#gift_div').hide('slow'); });
-	
-	$('#enable-multishipping').checkboxChange(
-		function() {
-			$('.standard-checkout').hide(0);
-			$('.multishipping-checkout').show(0);
-		},
-		function() {
-			$('.standard-checkout').show(0);
-			$('.multishipping-checkout').hide(0);
-		}
-	);
-});
 
 function updateExtraCarrier(id_delivery_option, id_address)
 {

@@ -31,7 +31,7 @@
 		<p>
 			{l s='The customization tool allows you to make color and font changes in your theme.' mod='themeconfigurator'}<br /><br />
 			<span>
-				{l s='Only you, as a merchant can see this tool (as you are currently logged in your Back-office), your visitors will not see this tool.' mod='themeconfigurator'}
+				{l s='Only you can see this tool (as you are currently logged as a merchant in your Back-office); your visitors will not see this tool.' mod='themeconfigurator'}
 			</span>
 		</p>
 		<div class="list-tools">
@@ -57,7 +57,7 @@
 			</p>
 		</div>
 		<div id="font-box">
-			<p>{l s='Titles' mod='themeconfigurator'}</p>
+			<p>{l s='Title fonts' mod='themeconfigurator'}</p>
 			<select name="font" id="font" class="font-list">
 				<option value="">{l s='Choose a font' mod='themeconfigurator'}</option>
 				{foreach $fonts as $key => $font}
@@ -70,7 +70,7 @@
 			<button type="submit" class="btn btn-2" name="submitLiveConfigurator">{l s='Save' mod='themeconfigurator'}</button>
 		</div>
 		<div id="block-advertisement">
-			<a href="http://addons.prestashop.com/?utm_source=configurator">
+			<a href="http://addons.prestashop.com/en/205-premium-templates?utm_source=backoffice_configurator" onclick="return !window.open(this.href)">
 				<img src="{$advertisement_image|escape:'htmlall':'UTF-8'}" alt="{$advertisement_text|escape:'htmlall':'UTF-8'}" />
 			</a>
 		</div>

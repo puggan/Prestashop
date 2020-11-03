@@ -101,7 +101,9 @@
 				<label class="control-label col-lg-3" for="theme">{l s='Select your theme'}</label>
 				<div class="col-lg-4">
 					<select name="theme" id="theme">
+						{if !$host_mode}
 						<option value="">{l s='Core (no theme selected)'}</option>
+						{/if}
 						{foreach $themes as $theme}
 							<option value="{$theme->directory}" {if $id_theme_current == $theme->id}selected=selected{/if}>{$theme->name}</option>
 						{/foreach}
@@ -145,7 +147,7 @@
 					<div class="col-lg-9">
 						<div class="row">
 							<div class="col-lg-6">
-								<select id="params_import_language" name="params_import_language">
+								<select id="params_import_language" name="params_import_language" class="chosen">
 								<optgroup label="{l s='Update a language'}">
 									{foreach $packs_to_update as $lang_pack}
 										<option value="{$lang_pack['iso_code']}|{$lang_pack['version']}">{$lang_pack['name']}</option>

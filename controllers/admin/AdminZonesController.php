@@ -54,10 +54,12 @@ class AdminZonesControllerCore extends AdminController
 			)
 		);
 		$this->bulk_actions = array(
-			'delete' => array('text' => $this->l('Delete selected'), 'confirm' => $this->l('Delete selected items?')),
-			'enableSelection' => array('text' => $this->l('Enable selection')),
-			'disableSelection' => array('text' => $this->l('Disable selection'))
-			);
+			'delete' => array(
+				'text' => $this->l('Delete selected'),
+				'confirm' => $this->l('Delete selected items?'),
+				'icon' => 'icon-trash'
+			)
+		);
 			
 		parent::__construct();
 	}
@@ -92,14 +94,14 @@ class AdminZonesControllerCore extends AdminController
 			'input' => array(
 				array(
 					'type' => 'text',
-					'label' => $this->l('Name:'),
+					'label' => $this->l('Name'),
 					'name' => 'name',
 					'required' => true,
-					'hint' => $this->l('Zone name (e.g. Africa, West Coast, Neighboring Countries)'),
+					'hint' => $this->l('Zone name (e.g. Africa, West Coast, Neighboring Countries).'),
 				),
 				array(
 					'type' => 'switch',
-					'label' => $this->l('Active:'),
+					'label' => $this->l('Active'),
 					'name' => 'active',
 					'required' => false,
 					'is_bool' => true,
@@ -115,7 +117,7 @@ class AdminZonesControllerCore extends AdminController
 							'label' => $this->l('Disabled')
 						)
 					),
-					'hint' => $this->l('Allow or disallow shipping to this zone')
+					'hint' => $this->l('Allow or disallow shipping to this zone.')
 				)
 			)
 		);
@@ -124,7 +126,7 @@ class AdminZonesControllerCore extends AdminController
 		{
 			$this->fields_form['input'][] = array(
 				'type' => 'shop',
-				'label' => $this->l('Group shop association:'),
+				'label' => $this->l('Shop association'),
 				'name' => 'checkBoxShopAsso',
 			);
 		}

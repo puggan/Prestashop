@@ -75,15 +75,21 @@ Date.prototype.format = function(format) {
 
 	for (var i=0; i<=formatParts.length; i++) {
 		switch(formatParts[i]) {
-			case 'dd':
 			case 'd':
 			case 'j':
 			result += this.getDate() + formatSeparator;
 			break;
 
-			case 'mm':
+			case 'dd':
+			result += (this.getDate() < 10 ? '0' : '')+this.getDate() + formatSeparator;
+			break;
+
 			case 'm':
 			result += (this.getMonth() + 1) + formatSeparator;
+			break;
+
+			case 'mm':
+			result += (this.getMonth() < 9 ? '0' : '')+(this.getMonth() + 1) + formatSeparator;
 			break;
 
 			case 'yy':
@@ -106,12 +112,11 @@ $(document).ready(function() {
 		var date_subtitle = '(from %s to %s)';
 
 	if (typeof date_format === "undefined")
-		var date_format = 'Y-m-d';
+		var date_format = 'Y-mm-dd';
 
 	$('#date-start').change(function() {
 		start = Date.parseDate($('#date-start').val(), 'Y-m-d');
 		end = Date.parseDate($('#date-end').val(), 'Y-m-d');
-
 		$('#customers-newsletters-subtitle').html(sprintf(date_subtitle, start.format(date_format), end.format(date_format)));
 		$('#traffic-subtitle').html(sprintf(date_subtitle, start.format(date_format), end.format(date_format)));
 	});

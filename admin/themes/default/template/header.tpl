@@ -32,11 +32,12 @@
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<meta name="robots" content="NOFOLLOW, NOINDEX">
-	<title>{$shop_name} {if $meta_title != ''}{if isset($navigationPipe)}{$navigationPipe|escape:'html':'UTF-8'}{else}&gt;{/if} {$meta_title}{/if}</title>
+	<title>{if $meta_title != ''}{$meta_title} • {/if}{$shop_name}</title>
 	{if $display_header}
 	<script type="text/javascript">
 		var help_class_name = '{$controller_name|@addcslashes:'\''}';
 		var iso_user = '{$iso_user|@addcslashes:'\''}';
+		var full_language_code = '{$full_language_code|@addcslashes:'\''}';
 		var country_iso_code = '{$country_iso_code|@addcslashes:'\''}';
 		var _PS_VERSION_ = '{$smarty.const._PS_VERSION_|@addcslashes:'\''}';
 		var roundMode = {$round_mode|intval};
@@ -71,6 +72,7 @@
 		var default_language = '{$default_language|intval}';
 		var admin_modules_link = '{$link->getAdminLink("AdminModules")|addslashes}';
 		var tab_modules_list = '{if isset($tab_modules_list) && $tab_modules_list}{$tab_modules_list|addslashes}{/if}';
+		var update_success_msg = '{l s='Update successful' js=1}';
 	</script>
 {/if}
 {if isset($css_files)}
@@ -91,7 +93,7 @@
 	{/if}
 	{if isset($brightness)}
 	<!--
-		/// todo multishop
+		// @todo: multishop color
 		<style type="text/css">
 			div#header_infos, div#header_infos a#header_shopname, div#header_infos a#header_logout, div#header_infos a#header_foaccess {ldelim}color:{$brightness}{rdelim}
 		</style>
@@ -110,7 +112,7 @@
 			</button>
 
 			<a id="header_shopname" href="{$default_tab_link|escape:'html':'UTF-8'}">
-				<img src="{$img_dir}prestashop-avatar.png" height="15" width="15" alt="{$shop_name|escape:'html':'UTF-8'}" />
+				<img src="{$img_dir}prestashop-avatar.png" alt="{$shop_name|escape:'html':'UTF-8'}" />
 				{$shop_name}
 			</a>
 
@@ -119,7 +121,7 @@
 				<li id="orders_notif" class="dropdown" data-type="order">
 					<a href="javascript:void(0);" class="dropdown-toggle notifs" data-toggle="dropdown">
 						<i class="icon-shopping-cart"></i>
-						<span id="orders_notif_number_wrapper" class="notifs_badge">
+						<span id="orders_notif_number_wrapper" class="notifs_badge hide">
 							<span id="orders_notif_value">0</span>
 						</span>
 					</a>
@@ -144,7 +146,7 @@
 				<li id="customers_notif" class="dropdown" data-type="customer">
 					<a href="javascript:void(0);" class="dropdown-toggle notifs" data-toggle="dropdown">
 						<i class="icon-user"></i>
-						<span id="customers_notif_number_wrapper" class="notifs_badge">
+						<span id="customers_notif_number_wrapper" class="notifs_badge hide">
 							<span id="customers_notif_value">0</span>
 						</span>
 					</a>
@@ -169,7 +171,7 @@
 				<li id="customer_messages_notif" class="dropdown" data-type="customer_message">
 					<a href="javascript:void(0);" class="dropdown-toggle notifs" data-toggle="dropdown">
 						<i class="icon-envelope"></i>
-						<span id="customer_messages_notif_number_wrapper" class="notifs_badge">
+						<span id="customer_messages_notif_number_wrapper" class="notifs_badge hide">
 							<span id="customer_messages_notif_value" >0</span>
 						</span>
 					</a>
@@ -192,92 +194,12 @@
 {/if}
 			</ul>
 		</div>
-		<div class="collapse navbar-collapse navbar-collapse-primary">
-			<form id="header_search" method="post" action="index.php?controller=AdminSearch&amp;token={getAdminToken tab='AdminSearch'}" role="search">
-				<div class="form-group">
-					<input type="hidden" name="bo_search_type" id="bo_search_type" />
-					<div class="input-group">
-						<div class="input-group-btn">
-							<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
-								<i id="search_type_icon" class="icon-reorder"></i>
-								<i class="icon-caret-down"></i>
-							</button>
-							<ul id="header_search_options" class="dropdown-menu">
-								<li class="search-all search-option active">
-									<a href="#" data-value="0" data-placeholder="{l s='What are you looking for?'}" data-icon="icon-reorder">
-										<i class="icon-search"></i> {l s='Everywhere'}</a>
-								</li>
-								<li class="divider"></li>
-								<li class="search-book search-option">
-									<a href="#" data-value="1" data-placeholder="{l s='Product name, SKU, reference...'}" data-icon="icon-book">
-										<i class="icon-book"></i> {l s='Catalog'}
-									</a>
-								</li>
-								<li class="search-customers-name search-option">
-									<a href="#" data-value="2" data-placeholder="{l s='Email, name...'}" data-icon="icon-group">
-										<i class="icon-group"></i> {l s='Customers'} {l s='by name'}
-									</a>
-								</li>
-								<li class="search-customers-addresses search-option">
-									<a href="#" data-value="6" data-placeholder="{l s='123.45.67.89'}" data-icon="icon-desktop">
-										<i class="icon-desktop"></i> {l s='Customers'} {l s='by ip address'}</a>
-								</li>
-								<li class="search-orders search-option">
-									<a href="#" data-value="3" data-placeholder="{l s='Order ID'}" data-icon="icon-credit-card">
-										<i class="icon-credit-card"></i> {l s='Orders'}
-									</a>
-								</li>
-								<li class="search-invoices search-option">
-									<a href="#" data-value="4" data-placeholder="{l s='Invoice Number'}" data-icon="icon-book">
-										<i class="icon-book"></i> {l s='Invoices'}
-									</a>
-								</li>
-								<li class="search-carts search-option">
-									<a href="#" data-value="5" data-placeholder="{l s='Cart ID'}" data-icon="icon-shopping-cart">
-										<i class="icon-shopping-cart"></i> {l s='Carts'}
-									</a>
-								</li>
-								<li class="search-modules search-option">
-									<a href="#" data-value="7" data-placeholder="{l s='Module name'}" data-icon="icon-puzzle-piece">
-										<i class="icon-puzzle-piece"></i> {l s='Modules'}
-									</a>
-								</li>
-							</ul>
-						</div>
-						<input id="bo_query" name="bo_query" type="text" class="form-control" value="{$bo_query}" placeholder="{l s='Search'}" />
-						<a href="javascript:void(0);" class="clear_search hide"><i class="icon-remove"></i></a>
-						<span class="input-group-btn">
-							<button type="submit" id="bo_search_submit" class="btn btn-primary">
-								<i class="icon-search"></i>
-							</button>
-						</span>
-					</div>
-				</div>
 
-				<script>
-					$('#bo_query').on('blur', function(){ $('#header_search .form-group').removeClass('focus-search'); });
-					$('#header_search *').on('focus', function(){ $('#header_search .form-group').addClass('focus-search'); });
-					$('#header_search_options').on('click','li a', function(e){
-						e.preventDefault();
-						$('#header_search_options .search-option').removeClass('active');
-						$(this).closest('li').addClass('active');
-						$('#bo_search_type').val($(this).data('value'));
-						$('#search_type_icon').removeAttr("class").addClass($(this).data('icon'));
-						$('#bo_query').attr("placeholder",$(this).data('placeholder'));
-						$('#bo_query').focus();
-					});
-					{if isset($search_type) && $search_type}
-						$(document).ready(function() {
-							$('.search-option a[data-value='+{$search_type|intval}+']').click();
-						});
-					{/if}
-				</script>
-			</form>
 
 {if count($quick_access) > 0}
 			<ul id="header_quick">
 				<li class="dropdown">
-					<a href="#" id="quick_select" class="dropdown-toggle" data-toggle="dropdown">{l s='Quick Access'} <b class="caret"></b></a>
+					<a href="#" id="quick_select" class="dropdown-toggle" data-toggle="dropdown">{l s='Quick Access'} <i class="icon-caret-down"></i></a>
 					<ul class="dropdown-menu">
 					{foreach $quick_access as $quick}
 						<li><a href="{$quick.link|escape:'html':'UTF-8'}" {if $quick.new_window} onclick="return !window.open(this.href);"{/if}><i class="icon-chevron-right"></i> {$quick.name}</a></li>
@@ -291,19 +213,25 @@
 {if {$base_url}}
 				<li>
 					<a href="{$base_url}" id="header_foaccess" target="_blank" title="{l s='View my shop'}">
-						<i class="icon-star"></i> {l s='View my shop'}
+						<i class="icon-star"></i> {l s='My shop'}
 					</a>
 				</li>
 {/if}
 				<li id="employee_infos" class="dropdown">
 					<a href="{$link->getAdminLink('AdminEmployees')|escape:'html':'UTF-8'}&id_employee={$employee->id}&amp;updateemployee" class="employee_name dropdown-toggle" data-toggle="dropdown">
-						<span class="employee_avatar_small">{$employee_avatar}</span>
-						{l s="Me"}
+						<span class="employee_avatar_small">
+							<img class="imgm img-thumbnail" alt="" src="{$employee->getImage()}" width="32" height="32" />
+						</span>
+						&nbsp;{$employee->firstname}&nbsp;{$employee->lastname}
 						<i class="caret"></i>
 					</a>
 					<ul id="employee_links" class="dropdown-menu">
-						<li><span class="employee_avatar">{$employee_avatar}</span></li>
-						<li class="text-center">{$first_name}&nbsp;{$last_name}</li>
+						<li>
+							<span class="employee_avatar">
+								<img class="imgm img-thumbnail" alt="" src="{$employee->getImage()}" width="96" height="96" />
+							</span>
+						</li>
+						<li class="text-center">{$employee->firstname} {$employee->lastname}</li>
 						<li class="divider"></li>
 						<li><a href="{$link->getAdminLink('AdminEmployees')|escape:'html':'UTF-8'}&id_employee={$employee->id}&amp;updateemployee"><i class="icon-wrench"></i> {l s='My preferences'}</a></li>
 						<li class="divider"></li>
@@ -312,10 +240,10 @@
 				</li>
 			</ul>
 
-			<span id="ajax_running" class="navbar-text">
-				<i class="icon-refresh icon-spin"></i> {l s='Loading...'}
+			<span id="ajax_running">
+				<i class="icon-refresh icon-spin icon-fw"></i>
 			</span>
-		</div>
+
 {if isset($displayBackOfficeTop)}{$displayBackOfficeTop}{/if}
 		</nav>{* end header_infos*}
 	</header>
@@ -334,18 +262,11 @@
 			</div>
 {/if}
 
-{if $is_multishop && $shop_list && ($multishop_context & Shop::CONTEXT_GROUP || $multishop_context & Shop::CONTEXT_SHOP)}
-			<div class="panel multishop_toolbar clearfix">
-				<div class="col-lg-12 form-horizontal">
-					<label class="control-label col-lg-3"><i class="icon-sitemap"></i> {l s='Multistore configuration for'}</label>
-					<div class="col-lg-4">{$shop_list}</div>
-				</div>
-			</div>
-{/if}
+
 {* end display_header*}
 
 {else}
-	<body{if isset($lite_display) && $lite_display} class="display-modal"{/if}>
+	<body{if isset($lite_display) && $lite_display} class="display-modal"{/if}>		
 		<div id="main">
 			<div id="content" class="{if !$bootstrap}nobootstrap{else}bootstrap{/if}">
 {/if}

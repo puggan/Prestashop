@@ -33,8 +33,11 @@ class AdminReturnControllerCore extends AdminController
 	 	$this->table = 'order_return';
 	 	$this->className = 'OrderReturn';
 		$this->colorOnBackground = true;
-		$this->_select = 'orsl.`name`';
+		$this->_select = 'orsl.`name`, o.`id_shop`';
 		$this->_join = 'LEFT JOIN '._DB_PREFIX_.'order_return_state_lang orsl ON (orsl.`id_order_return_state` = a.`state` AND orsl.`id_lang` = '.(int)$this->context->language->id.')';
+		$this->_join .= ' LEFT JOIN '._DB_PREFIX_.'orders o ON (o.`id_order` = a.`id_order`)';
+		$this->_group = ' GROUP BY o.`id_order`';
+
 
  		$this->fields_list = array(
 			'id_order_return' => array('title' => $this->l('ID'), 'align' => 'center', 'width' => 25),
@@ -55,6 +58,8 @@ class AdminReturnControllerCore extends AdminController
 		);
 
 		parent::__construct();
+
+		$this->_where = Shop::addSqlRestriction(false, 'o');
 	}
 
 	public function renderForm()
@@ -114,6 +119,14 @@ class AdminReturnControllerCore extends AdminController
 					'required' => false,
 					'desc' => $this->l('List of products in return package.')
 				),
+				array(
+					'type' => 'pdf_order_return',
+					'label' => $this->l('Return slip'),
+					'name' => '',
+					'size' => '',
+					'required' => false,
+					'desc' => $this->l('The link is only available after validation and before the parcel gets delivered.')
+				),
 			),
 			'submit' => array(
 				'title' => $this->l('Save'),
@@ -139,13 +152,14 @@ class AdminReturnControllerCore extends AdminController
 			'text_order' => sprintf($this->l('Order #%1$d from %2$s'), $order->id, Tools::displayDate($order->date_upd)),
 			'url_order' => 'index.php?tab=AdminOrders&id_order='.(int)$order->id.'&vieworder&token='.Tools::getAdminToken('AdminOrders'.(int)Tab::getIdFromClassName('AdminOrders').(int)$this->context->employee->id),
 			'picture_folder' => _THEME_PROD_PIC_DIR_,
-			'type_file' => Product::CUSTOMIZE_FILE,
-			'type_textfield' => Product::CUSTOMIZE_TEXTFIELD,
 			'returnedCustomizations' => $returnedCustomizations,
+			'customizedDatas' => Product::getAllCustomizedDatas((int)($order->id_cart)),
 			'products' => $products,
 			'quantityDisplayed' => $quantityDisplayed,
 			'id_order_return' => $this->object->id,
+			'state_order_return' => $this->object->state,
 		);
+
 		return parent::renderForm();
 	}
 
