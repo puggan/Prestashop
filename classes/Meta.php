@@ -43,6 +43,7 @@ class MetaCore extends ObjectModel
 		'multilang_shop' => true,
 		'fields' => array(
 			'page' => 			array('type' => self::TYPE_STRING, 'validate' => 'isFileName', 'required' => true, 'size' => 64),
+			'configurable' => 			array('type' => self::TYPE_INT, 'validate' => 'isUnsignedInt'),
 
 			/* Lang fields */
 			'title' => 			array('type' => self::TYPE_STRING, 'lang' => true, 'validate' => 'isGenericName', 'size' => 128),
@@ -277,24 +278,31 @@ class MetaCore extends ObjectModel
 				FROM `'._DB_PREFIX_.'category_lang` cl
 				WHERE cl.`id_lang` = '.(int)$id_lang.'
 					AND cl.`id_category` = '.(int)$id_category.Shop::addSqlRestrictionOnLang('cl');
-		if ($row = Db::getInstance(_PS_USE_SQL_SLAVE_)->getRow($sql))
+
+		$cache_id = 'Meta::getCategoryMetas'.(int)$id_category.'-'.(int)$id_lang;
+		if (!Cache::isStored($cache_id))
 		{
-			if (empty($row['meta_description']))
-				$row['meta_description'] = strip_tags($row['description']);
-
-			// Paginate title
-			if (!empty($row['meta_title']))
-				$row['meta_title'] = $title.$row['meta_title'].(!empty($page_number) ? ' ('.$page_number.')' : '').' - '.Configuration::get('PS_SHOP_NAME');
+			if ($row = Db::getInstance(_PS_USE_SQL_SLAVE_)->getRow($sql))
+			{
+				if (empty($row['meta_description']))
+					$row['meta_description'] = strip_tags($row['description']);
+	
+				// Paginate title
+				if (!empty($row['meta_title']))
+					$row['meta_title'] = $title.$row['meta_title'].(!empty($page_number) ? ' ('.$page_number.')' : '').' - '.Configuration::get('PS_SHOP_NAME');
+				else
+					$row['meta_title'] = $row['name'].(!empty($page_number) ? ' ('.$page_number.')' : '').' - '.Configuration::get('PS_SHOP_NAME');
+	
+				if (!empty($title))
+					$row['meta_title'] = $title.(!empty($page_number) ? ' ('.$page_number.')' : '').' - '.Configuration::get('PS_SHOP_NAME');
+	
+				$result = Meta::completeMetaTags($row, $row['name']);
+			}
 			else
-				$row['meta_title'] = $row['name'].(!empty($page_number) ? ' ('.$page_number.')' : '').' - '.Configuration::get('PS_SHOP_NAME');
-
-			if (!empty($title))
-				$row['meta_title'] = $title.(!empty($page_number) ? ' ('.$page_number.')' : '').' - '.Configuration::get('PS_SHOP_NAME');
-
-			return Meta::completeMetaTags($row, $row['name']);
+				$result = Meta::getHomeMetas($id_lang, $page_name);
+			Cache::store($cache_id, $result);
 		}
-
-		return Meta::getHomeMetas($id_lang, $page_name);
+		return Cache::retrieve($cache_id);
 	}
 
 	/**

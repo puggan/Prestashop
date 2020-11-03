@@ -55,14 +55,14 @@
 					{if (isset($module->id) && $module->id > 0) || !isset($module->type) || $module->type != 'addonsMustHave'}
 					<input type="checkbox" name="modules" value="{$module->name}"
 						{if !isset($module->confirmUninstall) OR empty($module->confirmUninstall)}rel="false"{else}rel="{$module->confirmUninstall|addslashes}"{/if}
-						class="noborder">
+						class="noborder" title="{l s='Module %1s '|sprintf:$module->name}" />
 					{/if}
 				</td>
 				<td>
-					<img width="32" alt="" src="{if isset($module->image)}{$module->image}{else}../modules/{$module->name}/{$module->logo}{/if}" />
+					<img width="32" alt="{$module->displayName}" title="{$module->displayName}" src="{if isset($module->image)}{$module->image}{else}../modules/{$module->name}/{$module->logo}{/if}" />
 				</td>
 				<td>
-					<div id="anchor{$module->name|ucfirst}">
+					<div id="anchor{$module->name|ucfirst}" title="{$module->displayName}">
 						<div class="text-muted">
 							{$module->categoryName}
 						</div>
@@ -71,7 +71,7 @@
 							{$module->displayName}
 							<small>v{$module->version}</small>
 							{if isset($module->type) && $module->type == 'addonsMustHave'}
-								<span class="label label-info">{l s='Must Have'}</span>
+								<span class="label label-primary">{l s='Must Have'}</span>
 							{elseif isset($module->id) && $module->id gt 0}
 								{if isset($module->version_addons) && $module->version_addons}
 									<span class="label label-warning">{l s='Need update'}</span>
@@ -94,7 +94,7 @@
 				</td>
 				<td>
 					<div class="btn-group-action">
-						<div class="btn-group">
+						<div class="btn-group pull-right">
 							{if isset($module->type) && $module->type == 'addonsMustHave'}
 								<a class="btn btn-default" href="{$module->addons_buy_url}" target="_blank">
 									<i class="icon-shopping-cart"></i> &nbsp;{if isset($module->id_currency) && isset($module->price)}{displayPrice price=$module->price currency=$module->id_currency}{/if}

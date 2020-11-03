@@ -30,35 +30,6 @@
 	{assign var="back_order_page" value="order.php"}
 {/if}
 
-{* Will be deleted for 1.5 version and more *}
-{if !isset($formatedAddressFieldsValuesList)}
-	{$ignoreList.0 = "id_address"}
-	{$ignoreList.1 = "id_country"}
-	{$ignoreList.2 = "id_state"}
-	{$ignoreList.3 = "id_customer"}
-	{$ignoreList.4 = "id_manufacturer"}
-	{$ignoreList.5 = "id_supplier"}
-	{$ignoreList.6 = "date_add"}
-	{$ignoreList.7 = "date_upd"}
-	{$ignoreList.8 = "active"}
-	{$ignoreList.9 = "deleted"}	
-	
-	{* PrestaShop 1.4.0.17 compatibility *}
-	{if isset($addresses)}
-		{foreach from=$addresses key=k item=address}
-			{counter start=0 skip=1 assign=address_key_number}
-			{$id_address = $address.id_address}
-			{foreach from=$address key=address_key item=address_content}
-				{if !in_array($address_key, $ignoreList)}
-					{$formatedAddressFieldsValuesList.$id_address.ordered_fields.$address_key_number = $address_key}
-					{$formatedAddressFieldsValuesList.$id_address.formated_fields_values.$address_key = $address_content}
-					{counter}
-				{/if}
-			{/foreach}
-		{/foreach}
-	{/if}
-{/if}
-
 <script type="text/javascript">
 // <![CDATA[
 	{if !$opc}
@@ -161,7 +132,7 @@
 
 {include file="$tpl_dir./order-address-multishipping-products.tpl"}
 
-<form action="{$link->getPageLink('order', true, NULL, 'multi-shipping=1')|escape:'html'}" method="post">
+<form action="{$link->getPageLink('order', true, NULL, 'multi-shipping=1')|escape:'html':'UTF-8'}" method="post">
 {else}
 <div id="opc_account" class="opc-main-block">
 	<div id="opc_account-overlay" class="opc-overlay" style="display: none;"></div>
@@ -175,12 +146,12 @@
 			<label for="id_address_invoice" class="strong">{l s='Choose a billing address:'}</label>
 			<select name="id_address_invoice" id="id_address_invoice" class="address_select form-control" onchange="updateAddressesDisplay();{if $opc}updateAddressSelection();{/if}">
 			{section loop=$addresses step=-1 name=address}
-				<option value="{$addresses[address].id_address|intval}" {if $addresses[address].id_address == $cart->id_address_invoice && $cart->id_address_delivery != $cart->id_address_invoice}selected="selected"{/if}>{$addresses[address].alias|escape:'htmlall':'UTF-8'}</option>
+				<option value="{$addresses[address].id_address|intval}" {if $addresses[address].id_address == $cart->id_address_invoice && $cart->id_address_delivery != $cart->id_address_invoice}selected="selected"{/if}>{$addresses[address].alias|escape:'html':'UTF-8'}</option>
 			{/section}
 			</select>
         </div>
 		{else}
-			<a href="{$link->getPageLink('address', true, NULL, "back={$back_order_page}?step=1{'&multi-shipping=1'|urlencode}{if $back}&mod={$back}{/if}")|escape:'html'}" title="{l s='Add'}" class="button button-small btn btn-default"><span>{l s='Add a new address'}<i class="icon-chevron-right right"></i></span></a>
+			<a href="{$link->getPageLink('address', true, NULL, "back={$back_order_page}?step=1{'&multi-shipping=1'|urlencode}{if $back}&mod={$back}{/if}")|escape:'html':'UTF-8'}" title="{l s='Add'}" class="button button-small btn btn-default"><span>{l s='Add a new address'}<i class="icon-chevron-right right"></i></span></a>
 		{/if}
 		</p>
 		<div class="row">
@@ -190,7 +161,7 @@
             </div>
 		</div>
 		<p class="address_add submit">
-			<a href="{$link->getPageLink('address', true, NULL, "back={$back_order_page}?step=1{'&multi-shipping=1'|urlencode}{if $back}&mod={$back|urlencode}{/if}")|escape:'html'}" title="{l s='Add'}" class="button button-small btn btn-default"><span>{l s='Add a new address'}<i class="icon-chevron-right right"></i></span></a>
+			<a href="{$link->getPageLink('address', true, NULL, "back={$back_order_page}?step=1{'&multi-shipping=1'|urlencode}{if $back}&mod={$back|urlencode}{/if}")|escape:'html':'UTF-8'}" title="{l s='Add'}" class="button button-small btn btn-default"><span>{l s='Add a new address'}<i class="icon-chevron-right right"></i></span></a>
 		</p>
 		{if !$opc}
 		<div id="ordermsg" class="form-group">
@@ -204,9 +175,9 @@
 		<input type="hidden" class="hidden" name="step" value="2" />
 		<input type="hidden" name="back" value="{$back}" />
 		{if $back}
-			<a href="{$link->getPageLink('order', true, NULL, "step=0&amp;back={$back}")|escape:'html'}" title="{l s='Previous'}" class="button-exclusive btn btn-default"><i class="icon-chevron-left"></i>{l s='Continue Shopping'}</a>
+			<a href="{$link->getPageLink('order', true, NULL, "step=0&amp;back={$back}")|escape:'html':'UTF-8'}" title="{l s='Previous'}" class="button-exclusive btn btn-default"><i class="icon-chevron-left"></i>{l s='Continue Shopping'}</a>
 		{else}
-			<a href="{$link->getPageLink('order', true, NULL, "step=0")|escape:'html'}" title="{l s='Previous'}" class="button-exclusive btn btn-default"><i class="icon-chevron-left"></i>{l s='Continue Shopping'}</a>
+			<a href="{$link->getPageLink('order', true, NULL, "step=0")|escape:'html':'UTF-8'}" title="{l s='Previous'}" class="button-exclusive btn btn-default"><i class="icon-chevron-left"></i>{l s='Continue Shopping'}</a>
 		{/if}
         <button type="submit" name="processAddress" class="button btn btn-default button-medium"><span>{l s='Proceed to checkout'}<i class="icon-chevron-right right"></i></span></button>
 	</p>

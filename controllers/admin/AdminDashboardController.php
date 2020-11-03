@@ -69,16 +69,16 @@ class AdminDashboardControllerCore extends AdminController
 		$modules = Module::getModulesOnDisk(true);
 		
 		$forms = array(
-			'payment' => array('title' => $this->l('Average bank fees per payment method')),
-			'carriers' => array('title' => $this->l('Average shipping fees per shipping method')),
-			'other' => array('title' => $this->l('Other settings')),
-			'expenses' => array('title' => $this->l('Other expenses'))
+			'payment' => array('title' => $this->l('Average bank fees per payment method'), 'id' => 'payment'),
+			'carriers' => array('title' => $this->l('Average shipping fees per shipping method'), 'id' => 'carriers'),
+			'other' => array('title' => $this->l('Other settings'), 'id' => 'other'),
+			'expenses' => array('title' => $this->l('Other expenses'), 'id' => 'expenses')
 		);
 		foreach ($forms as &$form)
 		{
 			$form['icon'] = 'tab-preferences';
 			$form['fields'] = array();
-			$form['submit'] = array('title' => $this->l('Save'), 'class' => 'button');
+			$form['submit'] = array('title' => $this->l('Save'), 'class' => 'btn btn-default');
 		}
 
 		foreach ($modules as $module)
@@ -236,6 +236,7 @@ class AdminDashboardControllerCore extends AdminController
 			'new_version_url' => Tools::getCurrentUrlProtocolPrefix().'api.prestashop.com/version/check_version.php?v='._PS_VERSION_.'&lang='.$this->context->language->iso_code,
 			'dashboard_use_push' => Configuration::get('PS_DASHBOARD_USE_PUSH'),
 			'calendar' => $calendar_helper->generate(),
+			'PS_DASHBOARD_SIMULATION' => Configuration::get('PS_DASHBOARD_SIMULATION'),
 			'datepickerFrom' => Tools::getValue('datepickerFrom', $this->context->employee->stats_date_from),
 			'datepickerTo' => Tools::getValue('datepickerTo', $this->context->employee->stats_date_to)
 		);
@@ -326,7 +327,7 @@ class AdminDashboardControllerCore extends AdminController
 		if (!$return['has_errors'])
 		{
 			$rss = simpleXML_load_file(_PS_ROOT_DIR_.'/config/xml/blog-'.$this->context->language->iso_code.'.xml');
-			$articles_limit = 3;
+			$articles_limit = 2;
 			foreach ($rss->channel->item as $item)
 			{
 				if ($articles_limit > 0 && Validate::isCleanHtml((string)$item->title) && Validate::isCleanHtml((string)$item->description))

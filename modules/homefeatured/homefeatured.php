@@ -97,7 +97,6 @@ class HomeFeatured extends Module
 	public function hookHeader($params)
 	{
 		$this->context->controller->addCSS(($this->_path).'homefeatured.css', 'all');
-		$this->context->controller->addJS(($this->_path).'js/homefeatured.js');
 	}
 
 	public function hookDisplayHomeTab($params)
@@ -105,13 +104,13 @@ class HomeFeatured extends Module
 		return $this->display(__FILE__, 'tab.tpl', $this->getCacheId('homefeatured-tab'));
 	}
 
-	public function hookDisplayHomeTabContent($params)
+	public function hookDisplayHome($params)
 	{
 		if (!$this->isCached('homefeatured.tpl', $this->getCacheId()))
 		{
 			$category = new Category(Context::getContext()->shop->getCategory(), (int)Context::getContext()->language->id);
 			$nb = (int)Configuration::get('HOME_FEATURED_NBR');
-			$products = $category->getProducts((int)Context::getContext()->language->id, 1, ($nb ? $nb : 8));
+			$products = $category->getProducts((int)Context::getContext()->language->id, 1, ($nb ? $nb : 8), "position");
 
 			$this->smarty->assign(array(
 				'products' => $products,
@@ -122,10 +121,9 @@ class HomeFeatured extends Module
 		return $this->display(__FILE__, 'homefeatured.tpl', $this->getCacheId());
 	}
 	
-	/* Retro Compatibility < 1.6.0.1 */
-	public function hookDisplayHome($params)
+	public function hookDisplayHomeTabContent($params)
 	{
-		return $this->hookDisplayHomeTabContent();
+		return $this->hookDisplayHome($params);
 	}
 
 	public function hookAddProduct($params)

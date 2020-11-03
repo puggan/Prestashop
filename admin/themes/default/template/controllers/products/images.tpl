@@ -24,7 +24,7 @@
 *}
 
 {if isset($id_product) && isset($product)}
-<div class="panel">
+<div id="product-images" class="panel product-tab">
 <input type="hidden" name="submitted_tabs[]" value="Images" />
 	
 <h3 class="tab" >
@@ -62,7 +62,7 @@
 					id="legend_{$language.id_lang}"
 					{if isset($input_class)}class="{$input_class}"{/if}
 					name="legend_{$language.id_lang}"
-					value="{$product->name[$language.id_lang]|escape:'htmlall':'UTF-8'}"
+					value="{$product->name[$language.id_lang]|escape:'html':'UTF-8'}"
 					{if !$product->id}disabled="disabled"{/if} />
 			{if $languages|count > 1}
 				</div>
@@ -86,6 +86,7 @@
 	</div>
 </div>
 
+
 <table class="table tableDnD" id="imageTable">
 	<thead>
 		<tr class="nodrag nodrop"> 
@@ -104,6 +105,7 @@
 	<tbody id="imageList">
 	</tbody>
 </table>
+
 
 <table id="lineType" style="display:none;">
 	<tr id="image_id">
@@ -284,7 +286,7 @@
 				"ajax" : 1 
 			});
 		});
-
+		
 		function updateImagePosition(json)
 		{
 			doAdminAjax(

@@ -177,11 +177,7 @@ class AdminPerformanceControllerCore extends AdminController
 					),
 					'hint' => $this->l('Enable or disable all classes and controllers overrides')
 				),
-			),
-			'submit' => array(
-				'title' => $this->l('   Save   '),
-				'class' => 'button'
-			),
+			)
 		);
 
 		$this->fields_value['native_module'] = Configuration::get('PS_DISABLE_NON_NATIVE_MODULE');
@@ -239,12 +235,33 @@ class AdminPerformanceControllerCore extends AdminController
 						)
 					),
 					'hint' => $this->l('These features will be disabled')
+				),
+				array(
+					'type' => 'switch',
+					'label' => $this->l('Customer Groups'),
+					'name' => 'customer_group',
+					'is_bool' => true,
+					'disabled' => Group::isCurrentlyUsed(),
+					'values' => array(
+						array(
+							'id' => 'group_1',
+							'value' => 1,
+							'label' => $this->l('Yes'),
+						),
+						array(
+							'id' => 'group_0',
+							'value' => 0,
+							'label' => $this->l('No')
+						)
+					),
+					'hint' => $this->l('These features will be disabled')
 				)
 			)
 		);
 
 		$this->fields_value['combination'] = Combination::isFeatureActive();
 		$this->fields_value['feature'] = Feature::isFeatureActive();
+		$this->fields_value['customer_group'] = Group::isFeatureActive();
 	}
 
 	public function initFieldsetCCC()
@@ -434,7 +451,11 @@ class AdminPerformanceControllerCore extends AdminController
 						)
 					)
 				)
-			)
+			),
+			'submit' => array(
+				'title' => $this->l('   Save   '),
+				'class' => 'button'
+			),
 		);
 
 		$this->fields_value['PS_CIPHER_ALGORITHM'] = Configuration::get('PS_CIPHER_ALGORITHM');
@@ -558,6 +579,7 @@ class AdminPerformanceControllerCore extends AdminController
 
 	public function initContent()
 	{
+		$this->initTabModuleList();
 		$this->initToolbar();
 		$this->initPageHeaderToolbar();
 		$this->display = '';
@@ -646,8 +668,10 @@ class AdminPerformanceControllerCore extends AdminController
 		{
 			if ($this->tabAccess['edit'] === '1')
 			{
-				if (!Combination::isCurrentlyUsed())
+				if (Tools::getValue('combination') || !Combination::isCurrentlyUsed())
 					Configuration::updateValue('PS_COMBINATION_FEATURE_ACTIVE', Tools::getValue('combination'));
+				if (Tools::getValue('customer_group') && !Group::isCurrentlyUsed())
+					Configuration::updateValue('PS_GROUP_FEATURE_ACTIVE', Tools::getValue('customer_group'));
 				Configuration::updateValue('PS_FEATURE_FEATURE_ACTIVE', Tools::getValue('feature'));
 				$redirectAdmin = true;
 			}
@@ -770,7 +794,7 @@ class AdminPerformanceControllerCore extends AdminController
 			{
 				$new_settings = $prev_settings = file_get_contents(_PS_ROOT_DIR_.'/config/settings.inc.php');
 				$cache_active = (bool)Tools::getValue('cache_active');
-
+				
 				if ($caching_system = Tools::getValue('caching_system'))
 				{
 					$new_settings = preg_replace(
@@ -784,7 +808,6 @@ class AdminPerformanceControllerCore extends AdminController
 					$cache_active = false;
 					$this->errors[] = Tools::displayError('The caching system is missing.');
 				}
-				
 				if ($cache_active)
 				{
 					if ($caching_system == 'CacheMemcache' && !extension_loaded('memcache'))
@@ -889,5 +912,4 @@ class AdminPerformanceControllerCore extends AdminController
 		}
 		die;
     }
-
 }

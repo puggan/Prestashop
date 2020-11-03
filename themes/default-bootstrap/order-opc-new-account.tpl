@@ -1,7 +1,7 @@
 <div id="opc_new_account" class="opc-main-block">
 	<div id="opc_new_account-overlay" class="opc-overlay" style="display: none;"></div>
 	<h1 class="page-heading step-num"><span>1</span> {l s='Account'}</h1>
-	<form action="{$link->getPageLink('authentication', true, NULL, "back=order-opc")|escape:'html'}" method="post" id="login_form" class="box">
+	<form action="{$link->getPageLink('authentication', true, NULL, "back=order-opc")|escape:'html':'UTF-8'}" method="post" id="login_form" class="box">
 		<fieldset>
 			<h3 class="page-subheading">{l s='Already registered?'}</h3>
 			<p><a href="#" id="openLoginFormBlock">&raquo; {l s='Click here'}</a></p>
@@ -17,9 +17,9 @@
 					<label for="login_passwd">{l s='Password'}</label>
 					<input class="form-control" type="password" id="login_passwd" name="login_passwd" />
 				</p>
-                <a href="{$link->getPageLink('password', true)|escape:'html'}" class="lost_password">{l s='Forgot your password?'}</a>
+                <a href="{$link->getPageLink('password', true)|escape:'html':'UTF-8'}" class="lost_password">{l s='Forgot your password?'}</a>
 				<p class="submit">
-					{if isset($back)}<input type="hidden" class="hidden" name="back" value="{$back|escape:'htmlall':'UTF-8'}" />{/if}
+					{if isset($back)}<input type="hidden" class="hidden" name="back" value="{$back|escape:'html':'UTF-8'}" />{/if}
                     <button type="submit" id="SubmitLogin" name="SubmitLogin" class="button btn btn-default button-medium"><span><i class="icon-lock left"></i>{l s='Login'}</span></button>
 				</p>
 			</div>
@@ -59,7 +59,7 @@
 						{if isset($country.states) && $country.contains_states}
 							countries[{$country.id_country|intval}] = new Array();
 							{foreach from=$country.states item='state' name='states'}
-								countries[{$country.id_country|intval}].push({ldelim}'id' : '{$state.id_state}', 'name' : '{$state.name|escape:'htmlall':'UTF-8'}'{rdelim});
+								countries[{$country.id_country|intval}].push({ldelim}'id' : '{$state.id_state}', 'name' : '{$state.name|escape:'html':'UTF-8'}'{rdelim});
 							{/foreach}
 						{/if}
 						{if $country.need_identification_number}
@@ -74,14 +74,14 @@
 				{literal}
 				function vat_number()
 				{
-					if ($('#company').val() != '')
+					if (($('#company').length) && ($('#company').val() != ''))
 						$('#vat_number_block').show();
 					else
 						$('#vat_number_block').hide();
 				}
 				function vat_number_invoice()
 				{
-					if ($('#company_invoice').val() != '')
+					if (($('#company_invoice').length) && ($('#company_invoice').val() != ''))
 						$('#vat_number_block_invoice').show();
 					else
 						$('#vat_number_block_invoice').hide();
@@ -96,6 +96,10 @@
 					});
 					vat_number();
 					vat_number_invoice();
+					{/literal}
+					$('.id_state option[value={if isset($guestInformations.id_state)}{$guestInformations.id_state|intval}{/if}]').prop('selected', true);
+					$('.id_state_invoice option[value={if isset($guestInformations.id_state_invoice)}{$guestInformations.id_state_invoice|intval}{/if}]').prop('selected', true);
+					{literal}
 				});
 				{/literal}
 				</script>
@@ -140,7 +144,7 @@
                             	<select id="days" name="days" class="form-control">
                                 <option value="">-</option>
                                 {foreach from=$days item=day}
-                                    <option value="{$day|escape:'htmlall':'UTF-8'}" {if isset($guestInformations) && ($guestInformations.sl_day == $day)} selected="selected"{/if}>{$day|escape:'htmlall':'UTF-8'}&nbsp;&nbsp;</option>
+                                    <option value="{$day|escape:'html':'UTF-8'}" {if isset($guestInformations) && ($guestInformations.sl_day == $day)} selected="selected"{/if}>{$day|escape:'html':'UTF-8'}&nbsp;&nbsp;</option>
                                 {/foreach}
                             </select>
                             {*
@@ -162,7 +166,7 @@
                         	<select id="months" name="months" class="form-control">
                             <option value="">-</option>
                             {foreach from=$months key=k item=month}
-                                <option value="{$k|escape:'htmlall':'UTF-8'}" {if isset($guestInformations) && ($guestInformations.sl_month == $k)} selected="selected"{/if}>{l s=$month}&nbsp;</option>
+                                <option value="{$k|escape:'html':'UTF-8'}" {if isset($guestInformations) && ($guestInformations.sl_month == $k)} selected="selected"{/if}>{l s=$month}&nbsp;</option>
                             {/foreach}
                         </select>
                         </div>
@@ -170,7 +174,7 @@
                             <select id="years" name="years" class="form-control">
                                 <option value="">-</option>
                                 {foreach from=$years item=year}
-                                    <option value="{$year|escape:'htmlall':'UTF-8'}" {if isset($guestInformations) && ($guestInformations.sl_year == $year)} selected="selected"{/if}>{$year|escape:'htmlall':'UTF-8'}&nbsp;&nbsp;</option>
+                                    <option value="{$year|escape:'html':'UTF-8'}" {if isset($guestInformations) && ($guestInformations.sl_year == $year)} selected="selected"{/if}>{$year|escape:'html':'UTF-8'}&nbsp;&nbsp;</option>
                                 {/foreach}
                             </select>
                         </div>
@@ -191,12 +195,27 @@
 				<h3 class="page-subheading top-indent">{l s='Delivery address'}</h3>
 				{$stateExist = false}
 				{$postCodeExist = false}
+				{$dniExist = false}
 				{foreach from=$dlv_all_fields item=field_name}
 				{if $field_name eq "company" && $b2b_enable}
 					<div class="text form-group">
 						<label for="company">{l s='Company'}</label>
 						<input type="text" class="text form-control" id="company" name="company" value="{if isset($guestInformations) && $guestInformations.company}{$guestInformations.company}{/if}" />
 					</div>
+				{elseif $field_name eq "vat_number"}	
+				<div id="vat_number_block" style="display:none;">
+					<div class="form-group">
+						<label for="vat_number">{l s='VAT number'}</label>
+						<input type="text" class="text form-control" name="vat_number" id="vat_number" value="{if isset($guestInformations) && $guestInformations.vat_number}{$guestInformations.vat_number}{/if}" />
+					</div>
+				</div>
+				{elseif $field_name eq "dni"}
+				{assign var='dniExist' value=true}
+				<div class="required dni form-group">
+					<label for="dni">{l s='Identification number'} <sup>*</sup></label>
+					<input type="text" class="text form-control" name="dni" id="dni" value="{if isset($guestInformations) && $guestInformations.dni}{$guestInformations.dni}{/if}" />
+					<span class="form_info">{l s='DNI / NIF / NIE'}</span>
+				</div>
 				{elseif $field_name eq "firstname"}
 				<div class="required text form-group">
 					<label for="firstname">{l s='First name'} <sup>*</sup></label>
@@ -215,7 +234,7 @@
 				{elseif $field_name eq "address2"}
 				<div class="text is_customer_param form-group">
 					<label for="address2">{l s='Address (Line 2)'}</label>
-					<input type="text" class="text form-control" name="address2" id="address2" value="" />
+					<input type="text" class="text form-control" name="address2" id="address2" value="{if isset($guestInformations) && $guestInformations.address2}{$guestInformations.address2}{/if}" />
 				</div>
 				{elseif $field_name eq "postcode"}
 				{$postCodeExist = true}
@@ -233,16 +252,9 @@
 					<label for="id_country">{l s='Country'} <sup>*</sup></label>
 					<select name="id_country" id="id_country" class="form-control">
 						{foreach from=$countries item=v}
-						<option value="{$v.id_country}"{if (isset($guestInformations) AND $guestInformations.id_country == $v.id_country) OR (!isset($guestInformations) && $sl_country == $v.id_country)} selected="selected"{/if}>{$v.name|escape:'htmlall':'UTF-8'}</option>
+						<option value="{$v.id_country}"{if (isset($guestInformations) AND $guestInformations.id_country == $v.id_country) OR (!isset($guestInformations) && $sl_country == $v.id_country)} selected="selected"{/if}>{$v.name|escape:'html':'UTF-8'}</option>
 						{/foreach}
 					</select>
-				</div>
-				{elseif $field_name eq "vat_number"}	
-				<div id="vat_number_block" style="display:none;">
-					<div class="form-group">
-						<label for="vat_number">{l s='VAT number'}</label>
-						<input type="text" class="text form-control" name="vat_number" id="vat_number" value="{if isset($guestInformations) && $guestInformations.vat_number}{$guestInformations.vat_number}{/if}" />
-					</div>
 				</div>
 				{elseif $field_name eq "state" || $field_name eq 'State:name'}
 				{$stateExist = true}
@@ -254,11 +266,6 @@
 				</div>
 				{/if}
 				{/foreach}
-				<div class="required dni form-group">
-					<label for="dni">{l s='Identification number'}</label>
-					<input type="text" class="text form-control" name="dni" id="dni" value="{if isset($guestInformations) && $guestInformations.dni}{$guestInformations.dni}{/if}" />
-					<span class="form_info">{l s='DNI / NIF / NIE'}</span>
-				</div>
 				{if !$postCodeExist}
 				<div class="required postcode form-group unvisible">
 					<label for="postcode">{l s='Zip / Postal code'} <sup>*</sup></label>
@@ -272,7 +279,14 @@
 						<option value="">-</option>
 					</select>
 				</div>
-				{/if}				
+				{/if}
+				{if !$dniExist}
+				<div class="required dni form-group">
+					<label for="dni">{l s='Identification number'} <sup>*</sup></label>
+					<input type="text" class="text form-control" name="dni" id="dni" value="{if isset($guestInformations) && $guestInformations.dni}{$guestInformations.dni}{/if}" />
+					<span class="form_info">{l s='DNI / NIF / NIE'}</span>
+				</div>
+				{/if}
 				<div class="form-group is_customer_param">
 					<label for="other">{l s='Additional information'}</label>
 					<textarea class="form-control" name="other" id="other" cols="26" rows="7"></textarea>
@@ -292,17 +306,18 @@
 
 				<div class="checkbox">
                 	<label for="invoice_address">
-					<input type="checkbox" name="invoice_address" id="invoice_address" autocomplete="off"/>
+					<input type="checkbox" name="invoice_address" id="invoice_address"{if (isset($smarty.post.invoice_address) && $smarty.post.invoice_address) || (isset($guestInformations) && $guestInformations.invoice_address)} checked="checked"{/if} autocomplete="off"/>
 					{l s='Please use another address for invoice'}</label>
 				</div>
 
 				<div id="opc_invoice_address" class="is_customer_param">
 					{assign var=stateExist value=false}
 					{assign var=postCodeExist value=false}
+					{assign var='dniExist' value=false}
 					<h3 class="page-subheading top-indent">{l s='Invoice address'}</h3>
 					{foreach from=$inv_all_fields item=field_name}
-					{if $field_name eq "company" &&  $b2b_enable}
-					<div class="form-group is_customer_param">
+					{if $field_name eq "company" && $b2b_enable}
+					<div class="form-group">
 						<label for="company_invoice">{l s='Company'}</label>
 						<input type="text" class="text form-control" id="company_invoice" name="company_invoice" value="" />
 					</div>
@@ -313,8 +328,10 @@
 							<input type="text" class="form-control" id="vat_number_invoice" name="vat_number_invoice" value="" />
 						</div>
 					</div>
+					{elseif $field_name eq "dni"}
+					{assign var='dniExist' value=true}
 					<div class="required form-group dni_invoice">
-						<label for="dni">{l s='Identification number'}</label>
+						<label for="dni">{l s='Identification number'} <sup>*</sup></label>
 						<input type="text" class="text form-control" name="dni_invoice" id="dni_invoice" value="{if isset($guestInformations) && $guestInformations.dni_invoice}{$guestInformations.dni_invoice}{/if}" />
 						<span class="form_info">{l s='DNI / NIF / NIE'}</span>
 					</div>
@@ -326,7 +343,7 @@
 					{elseif $field_name eq "lastname"}
 					<div class="required form-group">
 						<label for="lastname_invoice">{l s='Last name'} <sup>*</sup></label>
-						<input type="text" class="form-control" id="lastname_invoice" name="lastname_invoice" value="{if isset($guestInformations) && $guestInformations.firstname_invoice}{$guestInformations.firstname_invoice}{/if}" />
+						<input type="text" class="form-control" id="lastname_invoice" name="lastname_invoice" value="{if isset($guestInformations) && $guestInformations.lastname_invoice}{$guestInformations.lastname_invoice}{/if}" />
 					</div>
 					{elseif $field_name eq "address1"}
 					<div class="required form-group">
@@ -342,7 +359,7 @@
 					{$postCodeExist = true}
 					<div class="required postcode_invoice form-group">
 						<label for="postcode_invoice">{l s='Zip / Postal Code'} <sup>*</sup></label>
-						<input type="text" class="form-control" name="postcode_invoice" id="postcode_invoice" value="{if isset($guestInformations) && $guestInformations.postcode_invoice}{$guestInformations.postcode_invoice}{/if}" onkeyup="$('#postcode').val($('#postcode').val().toUpperCase());" />
+						<input type="text" class="form-control" name="postcode_invoice" id="postcode_invoice" value="{if isset($guestInformations) && $guestInformations.postcode_invoice}{$guestInformations.postcode_invoice}{/if}" onkeyup="$('#postcode_invoice').val($('#postcode_invoice').val().toUpperCase());" />
 					</div>
 					{elseif $field_name eq "city"}
 					<div class="required form-group">
@@ -355,7 +372,7 @@
 						<select name="id_country_invoice" id="id_country_invoice" class="form-control">
 							<option value="">-</option>
 							{foreach from=$countries item=v}
-							<option value="{$v.id_country}"{if (isset($guestInformations) AND $guestInformations.id_country_invoice == $v.id_country) OR (!isset($guestInformations) && $sl_country == $v.id_country)} selected="selected"{/if}>{$v.name|escape:'htmlall':'UTF-8'}</option>
+							<option value="{$v.id_country}"{if (isset($guestInformations) AND $guestInformations.id_country_invoice == $v.id_country) OR (!isset($guestInformations) && $sl_country == $v.id_country)} selected="selected"{/if}>{$v.name|escape:'html':'UTF-8'}</option>
 							{/foreach}
 						</select>
 					</div>
@@ -383,18 +400,25 @@
 						</select>
 					</div>
 					{/if}
+					{if !$dniExist}
+					<div class="required form-group dni_invoice">
+						<label for="dni">{l s='Identification number'} <sup>*</sup></label>
+						<input type="text" class="text form-control" name="dni_invoice" id="dni_invoice" value="{if isset($guestInformations) && $guestInformations.dni_invoice}{$guestInformations.dni_invoice}{/if}" />
+						<span class="form_info">{l s='DNI / NIF / NIE'}</span>
+					</div>
+					{/if}
 					<div class="form-group is_customer_param">
 						<label for="other_invoice">{l s='Additional information'}</label>
 						<textarea class="form-control" name="other_invoice" id="other_invoice" cols="26" rows="3"></textarea>
 					</div>
 					{if isset($one_phone_at_least) && $one_phone_at_least}
-						<p class="inline-infos required">{l s='You must register at least one phone number.'}</p>
+						<p class="inline-infos required is_customer_param">{l s='You must register at least one phone number.'}</p>
 					{/if}					
-					<div class="form-group">
+					<div class="form-group is_customer_param">
 						<label for="phone_invoice">{l s='Home phone'}</label>
 						<input type="text" class="form-control" name="phone_invoice" id="phone_invoice" value="{if isset($guestInformations) && $guestInformations.phone_invoice}{$guestInformations.phone_invoice}{/if}" />
 					</div>
-					<div class="{if isset($one_phone_at_least) && $one_phone_at_least}required {/if}form-group is_customer_param">
+					<div class="{if isset($one_phone_at_least) && $one_phone_at_least}required {/if}form-group">
 						<label for="phone_mobile_invoice">{l s='Mobile phone'}{if isset($one_phone_at_least) && $one_phone_at_least} <sup>*</sup>{/if}</label>
 						<input type="text" class="form-control" name="phone_mobile_invoice" id="phone_mobile_invoice" value="{if isset($guestInformations) && $guestInformations.phone_mobile_invoice}{$guestInformations.phone_mobile_invoice}{/if}" />
 					</div>

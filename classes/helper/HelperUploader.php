@@ -34,11 +34,13 @@ class HelperUploaderCore extends Uploader
 	const TYPE_FILE                  = 'file';
 
 	private   $_context;
+	private   $_drop_zone;
 	private   $_id;
 	private   $_files;
 	private   $_name;
 	private   $_max_files;
 	private   $_multiple;
+	private   $_post_max_size;
 	protected $_template;
 	private   $_template_directory;
 	private   $_title;
@@ -57,6 +59,20 @@ class HelperUploaderCore extends Uploader
 			$this->_context = Context::getContext();
 
 		return $this->_context;
+	}
+
+	public function setDropZone($value)
+	{
+		$this->_drop_zone = $value;
+		return $this;
+	}
+
+	public function getDropZone()
+	{
+		if (!isset($this->_drop_zone))
+			$this->setDropZone("$('#".$this->getId()."-add-button')");
+
+		return $this->_drop_zone;
 	}
 
 	public function setId($value)
@@ -104,12 +120,6 @@ class HelperUploaderCore extends Uploader
 		return $this;
 	}
 
-	public function setTemplate($value)
-	{
-		$this->_template = $value;
-		return $this;
-	}
-
 	public function setName($value)
 	{
 		$this->_name = (string)$value;
@@ -119,6 +129,26 @@ class HelperUploaderCore extends Uploader
 	public function getName()
 	{
 		return $this->_name;
+	}
+
+	public function setPostMaxSize($value)
+	{
+		$this->_post_max_size = $value;
+		return $this;
+	}
+
+	public function getPostMaxSize()
+	{
+		if (!isset($this->_post_max_size))
+			$this->_post_max_size = parent::getPostMaxSize();
+
+		return $this->_post_max_size;
+	}
+
+	public function setTemplate($value)
+	{
+		$this->_template = $value;
+		return $this;
 	}
 
 	public function getTemplate()
@@ -225,37 +255,20 @@ class HelperUploaderCore extends Uploader
 			.'template'))
 			$bo_theme = 'default';
 
-		if ($this->getContext()->controller->ajax)
-		{
-			$html = '<script type="text/javascript" src="'.__PS_BASE_URI__.$admin_webpath
-				.'/themes/'.$bo_theme.'/js/vendor/jquery.ui.widget.js"></script>';
-			$html .= '<script type="text/javascript" src="'.__PS_BASE_URI__.$admin_webpath
-				.'/themes/'.$bo_theme.'/js/jquery.iframe-transport.js"></script>';
-			$html .= '<script type="text/javascript" src="'.__PS_BASE_URI__.$admin_webpath
-				.'/themes/'.$bo_theme.'/js/jquery.fileupload.js"></script>';
-				$html .= '<script type="text/javascript" src="'.__PS_BASE_URI__.$admin_webpath
-				.'/themes/'.$bo_theme.'/js/jquery.fileupload-process.js"></script>';
-			$html .= '<script type="text/javascript" src="'.__PS_BASE_URI__.$admin_webpath
-				.'/themes/'.$bo_theme.'/js/jquery.fileupload-validate.js"></script>';
-		}
-		else
-		{
-			$html = '';
-			$this->getContext()->controller->addJs(__PS_BASE_URI__.$admin_webpath
-				.'/themes/'.$bo_theme.'/js/vendor/jquery.ui.widget.js');
-			$this->getContext()->controller->addJs(__PS_BASE_URI__.$admin_webpath
-				.'/themes/'.$bo_theme.'/js/jquery.iframe-transport.js');
-			$this->getContext()->controller->addJs(__PS_BASE_URI__.$admin_webpath
-				.'/themes/'.$bo_theme.'/js/jquery.fileupload.js');
-			$this->getContext()->controller->addJs(__PS_BASE_URI__.$admin_webpath
-				.'/themes/'.$bo_theme.'/js/jquery.fileupload-process.js');
-			$this->getContext()->controller->addJs(__PS_BASE_URI__.$admin_webpath
-				.'/themes/'.$bo_theme.'/js/jquery.fileupload-validate.js');			
-			$this->getContext()->controller->addJs('js/vendor/spin.js');
-			$this->getContext()->controller->addJs('js/vendor/ladda.js');
-		}
+		$this->getContext()->controller->addJs(__PS_BASE_URI__.$admin_webpath
+			.'/themes/'.$bo_theme.'/js/vendor/jquery.ui.widget.js');
+		$this->getContext()->controller->addJs(__PS_BASE_URI__.$admin_webpath
+			.'/themes/'.$bo_theme.'/js/jquery.iframe-transport.js');
+		$this->getContext()->controller->addJs(__PS_BASE_URI__.$admin_webpath
+			.'/themes/'.$bo_theme.'/js/jquery.fileupload.js');
+		$this->getContext()->controller->addJs(__PS_BASE_URI__.$admin_webpath
+			.'/themes/'.$bo_theme.'/js/jquery.fileupload-process.js');
+		$this->getContext()->controller->addJs(__PS_BASE_URI__.$admin_webpath
+			.'/themes/'.$bo_theme.'/js/jquery.fileupload-validate.js');
+		$this->getContext()->controller->addJs(__PS_BASE_URI__.'js/vendor/spin.js');
+		$this->getContext()->controller->addJs(__PS_BASE_URI__.'js/vendor/ladda.js');
 
-		if ($this->useAjax())
+		if ($this->useAjax() && !isset($this->_template))
 			$this->setTemplate(self::DEFAULT_AJAX_TEMPLATE);
 
 		$template = $this->getContext()->smarty->createTemplate(
@@ -270,11 +283,11 @@ class HelperUploaderCore extends Uploader
 			'files'         => $this->getFiles(),
 			'title'         => $this->getTitle(),
 			'max_files'     => $this->getMaxFiles(),
-			'post_max_size' => $this->getPostMaxSizeBytes()
+			'post_max_size' => $this->getPostMaxSizeBytes(),
+			'drop_zone'     => $this->getDropZone()
 		));
 
-		$html .= $template->fetch();
-		return $html;
+		return $template->fetch();
 	}
 
 	public function useAjax()

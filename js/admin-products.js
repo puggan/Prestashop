@@ -145,7 +145,6 @@ product_tabs['Combinations'] = new function(){
 	this.bindDefault = function(){
 		$('table[id=combinations-list]').delegate('a.default', 'click', function(e){
 			e.preventDefault();
-			console.log('ok');
 			self.defaultProductAttribute(this.href, this);
 		});
 	};
@@ -412,10 +411,10 @@ function handleSaveButtons(e)
 
 	// common for all products
 	$("#disableSaveMessage").remove();
+
 	if ($("#name_" + id_lang_default).val() == "" && (!display_multishop_checkboxes || $('input[name=\'multishop_check[name][' + id_lang_default + ']\']').prop('checked')))
-	{
 		msg[i++] = empty_name_msg;
-	}
+
 	// check friendly_url_[defaultlangid] only if name is ok
 	else if ($("#link_rewrite_" + id_lang_default).val() == "" && (!display_multishop_checkboxes || $('input[name=\'link_rewrite[name][' + id_lang_default + ']\']').prop('checked')))
 		msg[i++] = empty_link_rewrite_msg;
@@ -1142,7 +1141,7 @@ product_tabs['Quantities'] = new function(){
 		data.ajax = 1;
 		data.controller = "AdminProducts";
 		data.action = "productQuantity";
-		showAjaxMsg(quantities_ajax_waiting);
+		//showNoticeMessage(quantities_ajax_waiting);
 		$.ajax({
 			type: "POST",
 			url: "ajax-tab.php",
@@ -1153,40 +1152,16 @@ product_tabs['Quantities'] = new function(){
 			{
 				if (msg.error)
 				{
-					showAjaxError(msg.error);
+					showErrorMessage(msg.error);
 					return;
 				}
-				showAjaxSuccess(quantities_ajax_success);
+				showSuccessMessage(quantities_ajax_success);
 			},
 			error: function(msg)
 			{
-				showAjaxError(msg.error);
+				showErrorMessage(msg.error);
 			}
 		});
-
-		function showAjaxError(msg)
-		{
-			$('#available_quantity_ajax_error_msg').html(msg);
-			$('#available_quantity_ajax_error_msg').show();
-			$('#available_quantity_ajax_msg').hide();
-			$('#available_quantity_ajax_success_msg').hide();
-		}
-
-		function showAjaxSuccess(msg)
-		{
-			$('#available_quantity_ajax_success_msg').html(msg);
-			$('#available_quantity_ajax_error_msg').hide();
-			$('#available_quantity_ajax_msg').hide();
-			$('#available_quantity_ajax_success_msg').show();
-		}
-
-		function showAjaxMsg(msg)
-		{
-			$('#available_quantity_ajax_msg').html(msg);
-			$('#available_quantity_ajax_error_msg').hide();
-			$('#available_quantity_ajax_msg').show();
-			$('#available_quantity_ajax_success_msg').hide();
-		}
 	};
 
 	this.refreshQtyAvailabilityForm = function()
@@ -1333,33 +1308,20 @@ product_tabs['VirtualProduct'] = new function(){
 		if ($('#is_virtual_good').prop('checked'))
 		{
 			$('#virtual_good').show();
-			$('#virtual_good_more').show();
 		}
 
 		$('.is_virtual_good').hide();
 
 		if ( $('input[name=is_virtual_file]:checked').val() == 1)
-		{
-			$('#virtual_good_more').show();
 			$('#is_virtual_file_product').show();
-		}
 		else
-		{
-			$('#virtual_good_more').hide();
 			$('#is_virtual_file_product').hide();
-		}
 
 		$('input[name=is_virtual_file]').live('change', function(e) {
-			if($(this).val() == '1')
-			{
-				$('#virtual_good_more').show();
+			if($(this).prop('checked'))
 				$('#is_virtual_file_product').show();
-			}
 			else
-			{
-				$('#virtual_good_more').hide();
 				$('#is_virtual_file_product').hide();
-			}
 		});
 
 		// Bind file deletion

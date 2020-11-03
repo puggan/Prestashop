@@ -77,14 +77,14 @@
 							</td>
 							<td>
 								{assign var="module_name" value=$module->name}
-								<select name="t_{$module->name}" multiple="multiple">
+								<select name="t_{$module->name}" multiple="multiple" class="chosen moduleTabPreferencesChoise">
 									{foreach $tabs AS $t}
 										{if $t.active}
 											<option {if isset($tab_modules_preferences.$module_name) && in_array($t.id_tab, $tab_modules_preferences.$module_name)} selected="selected" {/if} class="group" value="{$t.id_tab}">{if $t.name eq ''}{$t.class_name}{else}{$t.name}{/if}</option>
 											{foreach from=$t.sub_tabs item=t2}
 												{if $t2.active}
 													{assign var="id_tab" value=$t.id_tab}
-													<option {if isset($tab_modules_preferences.$module_name) && in_array($t2.id_tab, $tab_modules_preferences.$module_name)} selected="selected" {/if} value="{$t2.id_tab}">&nbsp;&nbsp;&nbsp;{if $t2.name eq ''}{$t2.class_name}{else}{$t2.name|escape:'htmlall':'UTF-8'}{/if}</option>
+													<option {if isset($tab_modules_preferences.$module_name) && in_array($t2.id_tab, $tab_modules_preferences.$module_name)} selected="selected" {/if} value="{$t2.id_tab}">&nbsp;&nbsp;&nbsp;{if $t2.name eq ''}{$t2.class_name}{else}{$t2.name|escape:'html':'UTF-8'}{/if}</option>
 												{/if}
 											{/foreach}
 										{/if}

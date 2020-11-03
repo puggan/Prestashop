@@ -28,7 +28,7 @@
 		<h2 class="page-subheading">{l s='RE#'}{$orderRet->id|string_format:"%06d"} {l s='on'} {dateFormat date=$order->date_add full=0}</h2>
 		<p class="bold">{l s='We have logged your return request.'}</p>
 		<p>{l s='Your package must be returned to us within'} {$nbdaysreturn} {l s='days of receiving your order.'}</p>
-		<p>{l s='The current status of your merchandise return is:'} <span class="bold">{$state_name|escape:'htmlall':'UTF-8'}</span></p>
+		<p>{l s='The current status of your merchandise return is:'} <span class="bold">{$state_name|escape:'html':'UTF-8'}</span></p>
 		<p>{l s='List of items to be returned:'}</p>
 	</div>
 	<div id="order-detail-content" class="table_block">
@@ -47,8 +47,8 @@
 				{foreach from=$returnedCustomizations item='customization' name=products}
 					{if $customization.product_id == $product.product_id}
 						<tr class="{if $smarty.foreach.products.first}first_item{/if} {if $smarty.foreach.products.index % 2}alternate_item{else}item{/if}">
-							<td>{if $customization.reference}{$customization.reference|escape:'htmlall':'UTF-8'}{else}--{/if}</td>
-							<td class="bold">{$customization.name|escape:'htmlall':'UTF-8'}</td>
+							<td>{if $customization.reference}{$customization.reference|escape:'html':'UTF-8'}{else}--{/if}</td>
+							<td class="bold">{$customization.name|escape:'html':'UTF-8'}</td>
 							<td><span class="order_qte_span editable">{$customization.product_quantity|intval}</span></td>
 						</tr>
 						{assign var='productId' value=$customization.product_id}
@@ -80,8 +80,8 @@
 
 				{if $product.product_quantity > $quantityDisplayed}
 					<tr class="{if $smarty.foreach.products.first}first_item{/if} {if $smarty.foreach.products.index % 2}alternate_item{else}item{/if}">
-						<td>{if $product.product_reference}{$product.product_reference|escape:'htmlall':'UTF-8'}{else}--{/if}</td>
-						<td class="bold">{$product.product_name|escape:'htmlall':'UTF-8'}</td>
+						<td>{if $product.product_reference}{$product.product_reference|escape:'html':'UTF-8'}{else}--{/if}</td>
+						<td class="bold">{$product.product_name|escape:'html':'UTF-8'}</td>
 						<td><span class="order_qte_span editable">{$product.product_quantity|intval}</span></td>
 					</tr>
 				{/if}
@@ -94,11 +94,11 @@
 	<div class="box">
     	<h3 class="page-subheading">{l s='Reminder:'}</h3>
 		- {l s='All merchandise must be returned in its original packaging and in its original state.'}
-		<br />- {l s='Please print out the'} <a href="{$link->getPageLink('pdf-order-return', true, NULL, "id_order_return={$orderRet->id|intval}")|escape:'html'}">{l s='PDF return slip'}</a> {l s='and include it with your package.'}
-		<br />- {l s='Please see the PDF return slip'} (<a href="{$link->getPageLink('pdf-order-return', true, NULL, "id_order_return={$orderRet->id|intval}")|escape:'html'}">{l s='for the correct address'}</a>)
+		<br />- {l s='Please print out the'} <a href="{$link->getPageLink('pdf-order-return', true, NULL, "id_order_return={$orderRet->id|intval}")|escape:'html':'UTF-8'}">{l s='PDF return slip'}</a> {l s='and include it with your package.'}
+		<br />- {l s='Please see the PDF return slip'} (<a href="{$link->getPageLink('pdf-order-return', true, NULL, "id_order_return={$orderRet->id|intval}")|escape:'html':'UTF-8'}">{l s='for the correct address'}</a>)
 		<br /><br />
 		{l s='When we receive your package, we will notify you by email. We will then begin processing order reimbursement.'}
-		<br /><br /><a href="{$link->getPageLink('contact', true)|escape:'html'}">{l s='Please let us know if you have any questions.'}</a>
+		<br /><br /><a href="{$link->getPageLink('contact', true)|escape:'html':'UTF-8'}">{l s='Please let us know if you have any questions.'}</a>
 		<br />
 		<p class="bold">{l s='If the conditions of return listed above are not respected, we reserve the right to refuse your package and/or reimbursement.'}</p>
 	</div>

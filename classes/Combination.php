@@ -112,9 +112,12 @@ class CombinationCore extends ObjectModel
 
 		if (!$this->hasMultishopEntries() && !$this->deleteAssociations())
 			return false;
+
+		Product::updateDefaultAttribute($this->id_product);
+		
 		return true;
 	}
-	
+
 	public function add($autodate = true, $null_values = false)
 	{
 		if (!parent::add($autodate, $null_values))
@@ -128,7 +131,17 @@ class CombinationCore extends ObjectModel
 
 		SpecificPriceRule::applyAllRules(array((int)$this->id_product));
 		
+		Product::updateDefaultAttribute($this->id_product);
+		
 		return true;
+	}
+
+	public function update($null_values = false)
+	{
+		$return = parent::update($null_values);
+		Product::updateDefaultAttribute($this->id_product);
+
+		return $return;
 	}
 
 	public function deleteAssociations()
@@ -193,15 +206,18 @@ class CombinationCore extends ObjectModel
 			WHERE `id_product_attribute` = '.(int)$this->id) === false)
 		return false;
 
-		$sql_values = array();
+		if (!empty($ids_image))
+		{
+			$sql_values = array();
 
-		foreach ($ids_image as $value)
-			$sql_values[] = '('.(int)$this->id.', '.(int)$value.')';
+			foreach ($ids_image as $value)
+				$sql_values[] = '('.(int)$this->id.', '.(int)$value.')';
 
-		Db::getInstance()->execute('
-			INSERT INTO `'._DB_PREFIX_.'product_attribute_image` (`id_product_attribute`, `id_image`)
-			VALUES '.implode(',', $sql_values)
-		);
+			Db::getInstance()->execute('
+				INSERT INTO `'._DB_PREFIX_.'product_attribute_image` (`id_product_attribute`, `id_image`)
+				VALUES '.implode(',', $sql_values)
+			);
+		}
 		return true;
 	}
 

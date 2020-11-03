@@ -136,7 +136,7 @@ function copy2friendlyURL()
 	if (typeof(id_product) == 'undefined')
 		id_product = false;
 	
-	if (!$('#link_rewrite_' + id_language).val().length || !id_product)//check if user didn't type anything in rewrite field, to prevent overwriting
+	if (ps_force_friendly_product || !$('#link_rewrite_' + id_language).val().length || !id_product)//check if user didn't type anything in rewrite field, to prevent overwriting
 	{
 		$('#link_rewrite_' + id_language).val(str2url($('#name_' + id_language).val().replace(/^[0-9]+\./, ''), 'UTF-8').replace('%', ''));
 		if ($('#friendly-url'))
@@ -363,39 +363,37 @@ if (typeof helpboxes != 'undefined' && helpboxes)
 		if ($('input'))
 		{
 			//Display by rollover
-			$('input').mouseover(function() {
-			$(this).parent().find('.hint:first').css('display', 'block');
-			});
-			$('input').mouseout(function() { $(this).parent().find('.hint:first').css('display', 'none'); });
+			$('input').focusin(function(){$(this).parent().find('.hint:first').css('display', 'block');});
+			$('input').focusout(function(){$(this).parent().find('.hint:first').css('display', 'none');});
 
 			//display when you press the tab key
-			$('input').keydown(function (e) {
-				if ( e.keyCode === 9 ){
-					$('input').focus(function() { $(this).parent().find('.hint:first').css('display', 'block'); });
-					$('input').blur(function() { $(this).parent().find('.hint:first').css('display', 'none'); });
+			$('input').keydown(function(e){
+				if (e.keyCode === 9)
+				{
+					$('input').focus(function() {$(this).parent().find('.hint:first').css('display', 'block');});
+					$('input').blur(function() {$(this).parent().find('.hint:first').css('display', 'none');});
 				}
 			});
 		}
 		if ($('select'))
 		{
 			//Display by rollover
-			$('select').mouseover(function() {
-			$(this).parent().find('.hint:first').css('display', 'block');
-			});
-			$('select').mouseout(function() { $(this).parent().find('.hint:first').css('display', 'none'); });
+			$('select').focusin(function(){$(this).parent().find('.hint:first').css('display', 'block');});
+			$('select').focusout(function(){$(this).parent().find('.hint:first').css('display', 'none');});
 
 			//display when you press the tab key
-			$('select').keydown(function (e) {
-				if ( e.keyCode === 9 ){
-					$('select').focus(function() { $(this).parent().find('.hint:first').css('display', 'block'); });
-					$('select').blur(function() { $(this).parent().find('.hint:first').css('display', 'none'); });
+			$('select').keydown(function (e){
+				if (e.keyCode === 9)
+				{
+					$('select').focus(function(){$(this).parent().find('.hint:first').css('display', 'block');});
+					$('select').blur(function(){$(this).parent().find('.hint:first').css('display', 'none');});
 				}
 			});
 		}
 		if ($('span.title_box'))
 		{
 			//Display by rollover
-			$('span.title_box').mouseover(function() {
+			$('span.title_box').focusin(function() {
 				//get reference to the hint box
 				var parent = $(this).parent();
 				var box = parent.find('.hint:first');
@@ -419,7 +417,7 @@ if (typeof helpboxes != 'undefined' && helpboxes)
 					box.css('display', 'block');
 				}
 			});
-			$('span.title_box').mouseout(function() { $(this).parent().find('.hint:first').css('display', 'none'); });
+			$('span.title_box').focusout(function(){$(this).parent().find('.hint:first').css('display', 'none');});
 		}
 	});
 }
@@ -799,26 +797,17 @@ function doAdminAjax(data, success_func, error_func)
 	});
 }
 
-/** display a success message in a #ajax_confirmation container
- * @param string msg string to display
- */
-function showSuccessMessage(msg, delay)
-{
-	if (!delay)
-		delay = 3000;
-	$("#ajax_confirmation")
-		.html("<div class=\"conf\">"+msg+"</div>").show().delay(delay).fadeOut("slow");
+//display a success/error/notice message
+function showSuccessMessage(msg) {
+	$.growl.notice({ title: "", message:msg});
 }
 
-/** display a warning message in a #ajax_confirmation container
- * @param string msg string to display
- */
-function showErrorMessage(msg, delay)
-{
-	if (!delay)
-		delay = 5000;
-	$("#ajax_confirmation")
-		.html("<div class=\"error\">"+msg+"</div>").show().delay(delay).fadeOut("slow");
+function showErrorMessage(msg) {
+	$.growl.error({ title: "", message:msg});
+}
+
+function showNoticeMessage(msg) {
+	$.growl.notice({ title: "", message:msg});
 }
 
 $(document).ready(function()

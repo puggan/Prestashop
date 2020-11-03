@@ -42,7 +42,7 @@ class HelperImageUploaderCore extends HelperUploader
 		return tempnam($this->getSavePath(), $this->getUniqueFileName());
 	}
 
-	protected function validate($file)
+	protected function validate(&$file)
 	{
 		$post_max_size = $this->getPostMaxSizeBytes();
 
@@ -52,17 +52,11 @@ class HelperImageUploaderCore extends HelperUploader
 			return false;
 		}
 
-		$types = $this->getAcceptTypes();
-
-		//TODO check mime type.
-		if (isset($types) && !in_array(pathinfo($file['name'], PATHINFO_EXTENSION), $types))
+		if ($error = ImageManager::validateUpload($file, Tools::getMaxUploadSize($this->getMaxSize()), $this->getAcceptTypes()))
 		{
-			$file['error'] = Tools::displayError('Filetype not allowed');
+			$file['error'] = $error;
 			return false;
 		}
-
-		if ($error = ImageManager::validateUpload($file, Tools::getMaxUploadSize($this->getMaxSize())))
-			$file['error'] = $error;
 
 		if ($file['size'] > $this->getMaxSize())
 		{

@@ -162,7 +162,13 @@ class AdminCategoriesControllerCore extends AdminController
 	{
 		parent::initPageHeaderToolbar();
 
-		if ($this->display != 'add')
+		if ($this->display != 'edit' && $this->display != 'add')
+			if (Configuration::get('PS_MULTISHOP_FEATURE_ACTIVE'))
+				$this->page_header_toolbar_btn['new-url'] = array(
+					'href' => self::$currentIndex.'&amp;add'.$this->table.'root&amp;token='.$this->token,
+					'desc' => $this->l('Add new root category')
+				);
+
 			$this->page_header_toolbar_btn['new_category'] = array(
 				'href' => self::$currentIndex.'&amp;addcategory&amp;token='.$this->token,
 				'desc' => $this->l('Add new category'),
@@ -251,11 +257,6 @@ class AdminCategoriesControllerCore extends AdminController
 	{
 		if (empty($this->display))
 		{
-			if (Configuration::get('PS_MULTISHOP_FEATURE_ACTIVE'))
-				$this->toolbar_btn['new-url'] = array(
-					'href' => self::$currentIndex.'&amp;add'.$this->table.'root&amp;token='.$this->token,
-					'desc' => $this->l('Add new root category')
-				);
 			$this->toolbar_btn['new'] = array(
 				'href' => self::$currentIndex.'&amp;add'.$this->table.'&amp;token='.$this->token,
 				'desc' => $this->l('Add New')
@@ -383,7 +384,7 @@ class AdminCategoriesControllerCore extends AdminController
 		$helper->id = 'box-products-per-category';
 		$helper->icon = 'icon-search';
 		$helper->color = 'color4';
-		$helper->title = $this->l('Average number of products per category');
+		$helper->title = $this->l('Average number of products per category', null, null, false);
 		if (ConfigurationKPI::get('PRODUCTS_PER_CATEGORY') !== false)
 			$helper->value = ConfigurationKPI::get('PRODUCTS_PER_CATEGORY');
 		if (ConfigurationKPI::get('PRODUCTS_PER_CATEGORY_EXPIRE') < $time)
@@ -477,9 +478,8 @@ class AdminCategoriesControllerCore extends AdminController
 					'display_image' => true,
 					'image' => $image_url ? $image_url : false,
 					'size' => $image_size,
-					'delete_url' => self::$currentIndex.'&'.$this->identifier.'='.$this->id.'&token='.$this->token.'&deleteImage=1',
+					'delete_url' => self::$currentIndex.'&'.$this->identifier.'='.$this->_category->id.'&token='.$this->token.'&deleteImage=1',
 					'hint' => $this->l('Upload a category logo from your computer.'),
-					'col' => 4
 				),
 				array(
 					'type' => 'text',
@@ -508,7 +508,7 @@ class AdminCategoriesControllerCore extends AdminController
 					'name' => 'link_rewrite',
 					'lang' => true,
 					'required' => true,
-					'hint' => $this->l('Only letters and the minus (-) character are allowed.')
+					'hint' => $this->l('Only letters, numbers, underscore (_) and the minus (-) character are allowed.')
 				),
 				array(
 					'type' => 'group',
@@ -602,7 +602,7 @@ class AdminCategoriesControllerCore extends AdminController
 	{
 		if (!in_array($this->display, array('edit', 'add')))
 			$this->multishop_context_group = false;
-		if (Tools::isSubmit('forcedeleteImage') || (isset($_FILES['image']) && $_FILES['image']['size'] > 0))
+		if (Tools::isSubmit('forcedeleteImage') || (isset($_FILES['image']) && $_FILES['image']['size'] > 0) || Tools::getValue('deleteImage'))
 		{
 			$this->processForceDeleteImage();
 			if (Tools::isSubmit('forcedeleteImage'))

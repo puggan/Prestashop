@@ -53,6 +53,7 @@ class AdminMetaControllerCore extends AdminController
 			'title' => array('title' => $this->l('Title')),
 			'url_rewrite' => array('title' => $this->l('Friendly URL'))
 		);
+		$this->_where = ' AND a.configurable = 1';
 		$this->_group = 'GROUP BY a.id_meta';
 
 		// Options to generate friendly urls
@@ -228,9 +229,10 @@ class AdminMetaControllerCore extends AdminController
 		$files = Meta::getPages(true, ($this->object->page ? $this->object->page : false));
 		
 		$is_index = false;
-		foreach ($this->object->url_rewrite as $rewrite)
-			if($is_index != true)
-				$is_index = ($this->object->page == 'index' && empty($rewrite)) ? true : false;
+		if (is_array($this->object))
+			foreach ($this->object->url_rewrite as $rewrite)
+				if($is_index != true)
+					$is_index = ($this->object->page == 'index' && empty($rewrite)) ? true : false;
 
 		$pages = array(
 			'common' => array(

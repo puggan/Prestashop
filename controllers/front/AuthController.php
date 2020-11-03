@@ -93,8 +93,10 @@ class AuthControllerCore extends FrontController
 		$key = Tools::safeOutput(Tools::getValue('key'));
 		if (!empty($key))
 			$back .= (strpos($back, '?') !== false ? '&' : '?').'key='.$key;
-		if (!empty($back))
-			$this->context->smarty->assign('back', Tools::safeOutput(Tools::secureReferrer($back)));
+		if ($back == Tools::secureReferrer(Tools::getValue('back')))
+			$this->context->smarty->assign('back', html_entity_decode($back));
+		else
+			$this->context->smarty->assign('back', Tools::safeOutput($back));
 	
 		if (Tools::getValue('display_guest_checkout'))
 		{

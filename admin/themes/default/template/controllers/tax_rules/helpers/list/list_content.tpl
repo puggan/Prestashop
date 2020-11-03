@@ -101,10 +101,10 @@
 						{if $tr.$key == '0 - 0'}
 							--
 						{else}
-							{$tr.$key|escape:'htmlall':'UTF-8'}
+							{$tr.$key|escape:'html':'UTF-8'}
 						{/if}
 					{else}
-						{$tr.$key|escape:'htmlall':'UTF-8'}
+						{$tr.$key|escape:'html':'UTF-8'}
 					{/if}
 				{else}
 					--
@@ -129,7 +129,7 @@
 				{/foreach}
 				{if $compiled_actions|count > 0}
 					{if $compiled_actions|count > 1}<div class="btn-group-action">{/if}
-					<div class="btn-group">
+					<div class="btn-group pull-right">
 						{$compiled_actions[0]|regex_replace:'/class\s*=\s*"(\w*)"/':'class="$1 btn btn-default"'}
 						{if $compiled_actions|count > 1}
 						<button class="btn btn-default dropdown-toggle" data-toggle="dropdown">

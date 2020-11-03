@@ -71,16 +71,13 @@
 									type="text"
 									id="email"
 									class="form-control"
-									value="{if isset($email)}{$email|escape:'htmlall':'UTF-8'}{/if}"
+									value="{if isset($email)}{$email|escape:'html':'UTF-8'}{/if}"
 									autofocus="autofocus"
 									tabindex="1"
 									placeholder="test@example.com" />
 							</div>
 						</div>
 						<div class="form-group">
-								<a href="#" class="show-forgot-password pull-right" >
-									{l s='Lost password'}
-								</a>
 							<label class="control-label" for="passwd">
 								{l s='Password'}
 							</label>
@@ -96,15 +93,17 @@
 									placeholder="{l s='Password'}" />
 							</div>
 						</div>
-						<div class="form-group">
-							<div class="checkbox">
+						<div class="form-group clearfix">
+							<div id="remind-me" class="checkbox pull-left">
 								<label for="stay_logged_in">
 									<input name="stay_logged_in" type="checkbox" id="stay_logged_in" value="1"	tabindex="3"/>
 									{l s='Keep me logged in'}
 								</label>
 							</div>
+							<a href="#" class="show-forgot-password pull-right" >
+								{l s='Lost password'}
+							</a>
 						</div>
-						<hr/>
 						<div class="panel-footer">
 							<button name="submitLogin" type="submit" tabindex="4" class="btn btn-default btn-lg btn-block ladda-button" data-style="slide-up" data-spinner-color="black" >
 								<span class="ladda-label">
@@ -143,7 +142,7 @@
 							</div>
 						</div>
 						<div class="panel-footer">
-							<button href="#" class="btn btn-default show-login-form" tabindex="7">
+							<button type="button" href="#" class="btn btn-default show-login-form" tabindex="7">
 								<i class="icon-caret-left"></i>
 								{l s='Back to login'}
 							</button>
@@ -167,32 +166,33 @@
 					{/if}
 				</ul>
 				<p>
-					<a href="{$adminUrl|escape:'htmlall':'UTF-8'}">
+					<a href="{$adminUrl|escape:'html':'UTF-8'}">
 						{l s='Please then access this page by the new URL (e.g. %s)' sprintf=$adminUrl}
 					</a>
 				</p>
 			</div>
 			{/if}
 		</div>
+		<div id="login-footer" class="animated fadeIn">
+			<p class="text-center text-muted">
+				<a href="http://www.prestashop.com/" onclick="return !window.open(this.href);">
+					&copy; PrestaShop&#8482; 2005-{$smarty.now|date_format:"%Y"} - All rights reserved
+				</a>
+			</p>
+			<p class="text-center">
+				<a class="link-social link-twitter" href="https://twitter.com/PrestaShop" target="_blank" title="Twitter">
+					<i class="icon-twitter"></i>
+				</a>
+				<a class="link-social link-facebook" href="https://www.facebook.com/prestashop" target="_blank" title="Facebook">
+					<i class="icon-facebook"></i>
+				</a>
+				<a class="link-social link-github" href="https://github.com/PrestaShop/PrestaShop/" target="_blank" title="Github">
+					<i class="icon-github"></i>
+				</a>
+				<a class="link-social link-google" href="https://plus.google.com/+prestashop/" target="_blank" title="Google">
+					<i class="icon-google-plus"></i>
+				</a>
+			</p>
+		</div>
 	</div>
-	<div id="login-footer" class="animated fadeIn">
-		<p class="text-center text-muted">
-			<a href="http://www.prestashop.com/" onclick="return !window.open(this.href);">
-				&copy; PrestaShop&#8482; 2005-{$smarty.now|date_format:"%Y"} - All rights reserved
-			</a>
-		</p>
-		<p class="text-center">
-			<a class="link-social link-twitter" href="https://twitter.com/PrestaShop" target="_blank" title="Twitter">
-				<i class="icon-twitter"></i>
-			</a>
-			<a class="link-social link-facebook" href="https://www.facebook.com/prestashop" target="_blank" title="Facebook">
-				<i class="icon-facebook"></i>
-			</a>
-			<a class="link-social link-github" href="https://github.com/PrestaShop/PrestaShop/" target="_blank" title="Github">
-				<i class="icon-github"></i>
-			</a>
-			<a class="link-social link-google" href="https://plus.google.com/+prestashop/" target="_blank" title="Google">
-				<i class="icon-google-plus"></i>
-			</a>
-		</p>
-	</div>
+	

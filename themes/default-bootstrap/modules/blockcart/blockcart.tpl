@@ -41,11 +41,16 @@ var delete_txt = '{l s='Delete' mod='blockcart' js=1}';
 var generated_date = {$smarty.now|intval};
 </script>
 
+<script>
+	$( document ).ready(function() {
+		$("#cart_block").appendTo("#header_nav");
+	});
+</script>
 
 <!-- MODULE Block cart -->
 <div id="cart_block" class="block exclusive">
 	<p class="title_block">
-		<a href="{$link->getPageLink("$order_process", true)|escape:'html'}" title="{l s='View my shopping cart' mod='blockcart'}" rel="nofollow">{l s='Cart' mod='blockcart'}
+		<a href="{$link->getPageLink("$order_process", true)|escape:'html':'UTF-8'}" title="{l s='View my shopping cart' mod='blockcart'}" rel="nofollow">{l s='Cart' mod='blockcart'}
 		{if $ajax_allowed}
 		<span id="block_cart_expand" {if isset($colapseExpandStatus) && $colapseExpandStatus eq 'expanded' || !isset($colapseExpandStatus)}class="unvisible"{/if}>&nbsp;</span>
 		<span id="block_cart_collapse" {if isset($colapseExpandStatus) && $colapseExpandStatus eq 'collapsed'}class="unvisible"{/if}>&nbsp;</span>
@@ -76,16 +81,16 @@ var generated_date = {$smarty.now|intval};
 			{assign var='productId' value=$product.id_product}
 			{assign var='productAttributeId' value=$product.id_product_attribute}
 			<dt id="cart_block_product_{$product.id_product}_{if $product.id_product_attribute}{$product.id_product_attribute}{else}0{/if}_{if $product.id_address_delivery}{$product.id_address_delivery}{else}0{/if}" class="{if $smarty.foreach.myLoop.first}first_item{elseif $smarty.foreach.myLoop.last}last_item{else}item{/if}">
-            	<a class="cart-images" href="{$link->getProductLink($product.id_product, $product.link_rewrite, $product.category)}">
-                    <img src="{$link->getImageLink($product.link_rewrite, $product.id_image, 'cart_default')}" alt=""  title="{$product.name|escape:htmlall:'UTF-8'|truncate:20}" />
+            	<a class="cart-images" href="{$link->getProductLink($product.id_product, $product.link_rewrite, $product.category)|escape:'html':'UTF-8'}" title="{$product.name|escape:'html':'UTF-8'|truncate:20}">
+                    <img src="{$link->getImageLink($product.link_rewrite, $product.id_image, 'cart_default')}" alt="{$product.name|escape:'html':'UTF-8'}" />
                 </a>
                 <div class="cart-info">
                 	<div class="product-name">
-                   		<a class="cart_block_product_name" href="{$link->getProductLink($product, $product.link_rewrite, $product.category, null, null, $product.id_shop, $product.id_product_attribute)|escape:'html'}" title="{$product.name|escape:html:'UTF-8'}">{$product.name|truncate:40:'...'|escape:html:'UTF-8'}</a>
+                   		<a class="cart_block_product_name" href="{$link->getProductLink($product, $product.link_rewrite, $product.category, null, null, $product.id_shop, $product.id_product_attribute)|escape:'html':'UTF-8'}" title="{$product.name|escape:'html':'UTF-8'}">{$product.name|truncate:100:'...'|escape:'html':'UTF-8'}</a>
                     </div>
                     {if isset($product.attributes_small)}
                     	<div class="product-atributes">
-                        	<a href="{$link->getProductLink($product, $product.link_rewrite, $product.category, null, null, $product.id_shop, $product.id_product_attribute)|escape:'html'}" title="{l s='Product detail' mod='blockcart'}">{$product.attributes_small}</a>
+                        	<a href="{$link->getProductLink($product, $product.link_rewrite, $product.category, null, null, $product.id_shop, $product.id_product_attribute)|escape:'html':'UTF-8'}" title="{l s='Product detail' mod='blockcart'}">{$product.attributes_small}</a>
                         </div>
                     {/if}
                     <span class="quantity-formated"><span class="quantity">{$product.cart_quantity}</span>x</span>
@@ -97,7 +102,7 @@ var generated_date = {$smarty.now|intval};
                         {/if}
                     </span>
                 </div>
-                <span class="remove_link">{if !isset($customizedDatas.$productId.$productAttributeId) && (!isset($product.is_gift) || !$product.is_gift)}<a rel="nofollow" class="ajax_cart_block_remove_link" href="{$link->getPageLink('cart', true, NULL, "delete=1&amp;id_product={$product.id_product}&amp;ipa={$product.id_product_attribute}&amp;id_address_delivery={$product.id_address_delivery}&amp;token={$static_token}", true)|escape:'html'}" title="{l s='remove this product from my cart' mod='blockcart'}">&nbsp;</a>{/if}</span>
+                <span class="remove_link">{if !isset($customizedDatas.$productId.$productAttributeId) && (!isset($product.is_gift) || !$product.is_gift)}<a rel="nofollow" class="ajax_cart_block_remove_link" href="{$link->getPageLink('cart', true, NULL, "delete=1&amp;id_product={$product.id_product}&amp;ipa={$product.id_product_attribute}&amp;id_address_delivery={$product.id_address_delivery}&amp;token={$static_token}", true)|escape:'html':'UTF-8'}" title="{l s='remove this product from my cart' mod='blockcart'}">&nbsp;</a>{/if}</span>
 			</dt>
 			{if isset($product.attributes_small)}
 			<dd id="cart_block_combination_of_{$product.id_product}{if $product.id_product_attribute}_{$product.id_product_attribute}{/if}_{$product.id_address_delivery|intval}" class="{if $smarty.foreach.myLoop.first}first_item{elseif $smarty.foreach.myLoop.last}last_item{else}item{/if}">
@@ -109,9 +114,9 @@ var generated_date = {$smarty.now|intval};
 				<ul class="cart_block_customizations" id="customization_{$productId}_{$productAttributeId}">
 					{foreach from=$customizedDatas.$productId.$productAttributeId[$product.id_address_delivery] key='id_customization' item='customization' name='customizations'}
 						<li name="customization">
-							<div class="deleteCustomizableProduct" id="deleteCustomizableProduct_{$id_customization|intval}_{$product.id_product|intval}_{$product.id_product_attribute|intval}_{$product.id_address_delivery|intval}"><a class="ajax_cart_block_remove_link" href="{$link->getPageLink('cart', true, NULL, "delete=1&amp;id_product={$product.id_product|intval}&amp;ipa={$product.id_product_attribute|intval}&amp;id_customization={$id_customization}&amp;token={$static_token}", true)|escape:'html'}" rel="nofollow"> </a></div>
+							<div class="deleteCustomizableProduct" id="deleteCustomizableProduct_{$id_customization|intval}_{$product.id_product|intval}_{$product.id_product_attribute|intval}_{$product.id_address_delivery|intval}"><a class="ajax_cart_block_remove_link" href="{$link->getPageLink('cart', true, NULL, "delete=1&amp;id_product={$product.id_product|intval}&amp;ipa={$product.id_product_attribute|intval}&amp;id_customization={$id_customization}&amp;token={$static_token}", true)|escape:'html':'UTF-8'}" rel="nofollow"> </a></div>
 							<span class="quantity-formated"><span class="quantity">{$customization.quantity}</span>x</span>{if isset($customization.datas.$CUSTOMIZE_TEXTFIELD.0)}
-							{$customization.datas.$CUSTOMIZE_TEXTFIELD.0.value|replace:"<br />":" "|truncate:28:'...'|escape:html:'UTF-8'}
+							{$customization.datas.$CUSTOMIZE_TEXTFIELD.0.value|replace:"<br />":" "|truncate:28:'...'|escape:'html':'UTF-8'}
 							{else}
 							{l s='Customization #%d:' sprintf=$id_customization|intval mod='blockcart'}
 							{/if}
@@ -133,7 +138,7 @@ var generated_date = {$smarty.now|intval};
 				{if $discount.value_real > 0}
 				<tr class="bloc_cart_voucher" id="bloc_cart_voucher_{$discount.id_discount}">
 					<td class="quantity">1x</td>
-					<td class="name" title="{$discount.description}">{$discount.name|cat:' : '|cat:$discount.description|truncate:18:'...'|escape:'htmlall':'UTF-8'}</td>
+					<td class="name" title="{$discount.description}">{$discount.name|cat:' : '|cat:$discount.description|truncate:18:'...'|escape:'html':'UTF-8'}</td>
 					<td class="price">-{if $priceDisplay == 1}{convertPrice price=$discount.value_tax_exc}{else}{convertPrice price=$discount.value_real}{/if}</td>
 					<td class="delete">
 						{if strlen($discount.code)}
@@ -182,7 +187,7 @@ var generated_date = {$smarty.now|intval};
 			{/if}
 		{/if}
 		<p id="cart-buttons">
-			<a href="{$link->getPageLink("$order_process", true)|escape:'html'}" id="button_order_cart" class="btn btn-default button button-small" title="{l s='Check out' mod='blockcart'}" rel="nofollow"><span>{l s='Check out' mod='blockcart'}<i class="icon-chevron-right right"></i></span></a>
+			<a href="{$link->getPageLink("$order_process", true)|escape:'html':'UTF-8'}" id="button_order_cart" class="btn btn-default button button-small" title="{l s='Check out' mod='blockcart'}" rel="nofollow"><span>{l s='Check out' mod='blockcart'}<i class="icon-chevron-right right"></i></span></a>
 		</p>
 	</div>
 	</div>
@@ -215,7 +220,7 @@ var generated_date = {$smarty.now|intval};
                     </div>
             {/if}
             <div class="layer_cart_row">
-                <strong class="dark">{l s='Total shipping (tax exclu.):' mod='blockcart'}</strong>
+                <strong class="dark">{l s='Total shipping (tax excl.):' mod='blockcart'}</strong>
                 <span class="ajax_cart_shipping_cost">{if $shipping_cost_float == 0}{l s='Free shipping!' mod='blockcart'}{else}{$shipping_cost}{/if}</span>
             </div>
             {if $show_tax && isset($tax_cost)}
@@ -230,7 +235,7 @@ var generated_date = {$smarty.now|intval};
             </div>
             <div class="button-container">	
                 <span class="continue btn btn-default button exclusive-medium" title="{l s='Continue shopping' mod='blockcart'}"><span><i class="icon-chevron-left left"></i>{l s='Continue shopping' mod='blockcart'}</span></span>
-                <a class="btn btn-default button button-medium" href="{$link->getPageLink("$order_process", true)|escape:'html'}" title="{l s='Procedd to checkout' mod='blockcart'}" rel="nofollow"><span>{l s='Proceed to checkout' mod='blockcart'}<i class="icon-chevron-right right"></i></span></a>	
+                <a class="btn btn-default button button-medium" href="{$link->getPageLink("$order_process", true)|escape:'html':'UTF-8'}" title="{l s='Proceed to checkout' mod='blockcart'}" rel="nofollow"><span>{l s='Proceed to checkout' mod='blockcart'}<i class="icon-chevron-right right"></i></span></a>	
             </div>
         </div>
     </div>
@@ -238,4 +243,3 @@ var generated_date = {$smarty.now|intval};
 </div>
 <div class="layer_cart_overlay"></div>
 <!-- /MODULE Block cart -->
-

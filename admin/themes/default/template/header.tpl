@@ -33,10 +33,9 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
 	<meta name="robots" content="NOFOLLOW, NOINDEX">
-	<title>{$shop_name} {if $meta_title != ''}{if isset($navigationPipe)}{$navigationPipe|escape:'htmlall':'UTF-8'}{else}&gt;{/if} {$meta_title}{/if}</title>
+	<title>{$shop_name} {if $meta_title != ''}{if isset($navigationPipe)}{$navigationPipe|escape:'html':'UTF-8'}{else}&gt;{/if} {$meta_title}{/if}</title>
 	{if $display_header}
 	<script type="text/javascript">
-
 		var help_class_name = '{$controller_name|@addcslashes:'\''}';
 		var iso_user = '{$iso_user|@addcslashes:'\''}';
 		var country_iso_code = '{$country_iso_code|@addcslashes:'\''}';
@@ -44,13 +43,13 @@
 		var helpboxes = {$help_box|intval};
 		var roundMode = {$round_mode|intval};
 {if isset($shop_context)}
-{if $shop_context == Shop::CONTEXT_ALL}
+	{if $shop_context == Shop::CONTEXT_ALL}
 		var youEditFieldFor = '{l s='A modification of this field will be applied for all shops' js=1}';
-{elseif $shop_context == Shop::CONTEXT_GROUP}
+	{elseif $shop_context == Shop::CONTEXT_GROUP}
 		var youEditFieldFor = '{l s='A modification of this field will be applied for all shops of group' js=1} <b>{$shop_name|@addcslashes:'\''}</b>';
-{else}
+	{else}
 		var youEditFieldFor = '{l s='A modification of this field will be applied for the shop' js=1} <b>{$shop_name|@addcslashes:'\''}</b>';
-{/if}
+	{/if}
 {else}
 		var youEditFieldFor = '';
 {/if}
@@ -104,16 +103,15 @@
 
 {if $display_header}
 	<body class="{if $employee->bo_menu}page-sidebar {* page-sidebar-closed *}{else}page-topbar{/if} {$smarty.get.controller|escape|strtolower}">
-
-{* begin  HEADER *}
-	<header id="header">
+	{* begin  HEADER *}
+	<header id="header" class="bootstrap">
 		<nav id="header_infos" role="navigation">
 			<div class="navbar-header">
 			<button id="header_nav_toggle" type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse-primary">
 				<i class="icon-reorder"></i>
 			</button>
 
-			<a id="header_shopname" href="{$default_tab_link|escape:'htmlall':'UTF-8'}">
+			<a id="header_shopname" href="{$default_tab_link|escape:'html':'UTF-8'}">
 				<img src="{$img_dir}prestashop-avatar.png" height="15" width="15" />
 				{$shop_name}
 			</a>
@@ -203,7 +201,7 @@
 								</a>
 							</div>
 							<div class="panel-footer text-small">
-								<a href="index.php?tab=AdminCustomerThreads&amp;token={getAdminToken tab='AdminCustomerThreads'}">{l s='Show all messages'}</a>
+								<a href="index.php?controller=AdminCustomerThreads&amp;token={getAdminToken tab='AdminCustomerThreads'}">{l s='Show all messages'}</a>
 							</div>
 						</section>
 					</div>
@@ -298,7 +296,7 @@
 					<a href="#" id="quick_select" class="dropdown-toggle" data-toggle="dropdown">{l s='Quick Access'} <b class="caret"></b></a>
 					<ul class="dropdown-menu">
 					{foreach $quick_access as $quick}
-						<li><a href="{$quick.link|escape:'htmlall':'UTF-8'}" {if $quick.new_window} target="_blank"{/if}><i class="icon-chevron-right"></i> {$quick.name}</a></li>
+						<li><a href="{$quick.link|escape:'html':'UTF-8'}" {if $quick.new_window} target="_blank"{/if}><i class="icon-chevron-right"></i> {$quick.name}</a></li>
 					{/foreach}
 					</ul>
 				</li>
@@ -314,7 +312,7 @@
 				</li>
 {/if}
 				<li id="employee_infos" class="dropdown">
-					<a href='#' class="employee_name dropdown-toggle" data-toggle="dropdown">
+					<a href="{$link->getAdminLink('AdminEmployees')|escape:'html':'UTF-8'}&id_employee={$employee->id}&amp;updateemployee" class="employee_name dropdown-toggle" data-toggle="dropdown">
 						<span class="employee_avatar_small">{$employee_avatar}</span>
 						{$first_name}&nbsp;{$last_name}
 						<i class="caret"></i>
@@ -322,7 +320,7 @@
 					<ul id="employee_links" class="dropdown-menu">
 						<li><span class="employee_avatar">{$employee_avatar}</span></li>
 						<li class="divider"></li>
-						<li><a href="{$link->getAdminLink('AdminEmployees')|escape:'htmlall':'UTF-8'}&id_employee={$employee->id}&amp;updateemployee"><i class="icon-wrench"></i> {l s='My preferences'}</a></li>
+						<li><a href="{$link->getAdminLink('AdminEmployees')|escape:'html':'UTF-8'}&id_employee={$employee->id}&amp;updateemployee"><i class="icon-wrench"></i> {l s='My preferences'}</a></li>
 						<li class="divider"></li>
 						<li><a id="header_logout" href="index.php?logout"><i class="icon-signout"></i> {l s='Log out'}</a></li>
 					</ul>
@@ -341,24 +339,27 @@
 	<div id="main">
 		{include file='nav.tpl'}
 
-		<div id="content" class="page-content">
+		<div id="content" class="{if !$bootstrap}nobootstrap{else}bootstrap{/if}">
+		
+
 {if $install_dir_exists}
 			<div class="alert alert-warning">
 				{l s='For security reasons, you must also:'}&nbsp;{l s='delete the /install folder'}
 			</div>
 {/if}
+
 {if $is_multishop && $shop_list && ($multishop_context & Shop::CONTEXT_GROUP || $multishop_context & Shop::CONTEXT_SHOP)}
-			<div class="panel multishop_toolbar">
+			<div class="panel multishop_toolbar clearfix">
 				<div class="col-lg-12 form-horizontal">
 					<label class="control-label col-lg-3"><i class="icon-sitemap"></i> {l s='Multistore configuration for'}</label>
 					<div class="col-lg-9">{$shop_list}</div>
 				</div>
 			</div>
 {/if}
+{* end display_header*}
 
-{* end display_header*}	
 {else}
 	<body{if isset($lite_display) && $lite_display} class="display-modal"{/if}>
 		<div id="main">
-			<div id="content" class="page-content">
+			<div id="content" class="{if !$bootstrap}nobootstrap{else}bootstrap{/if}">
 {/if}

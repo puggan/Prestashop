@@ -60,8 +60,12 @@ class AdminCustomersControllerCore extends AdminController
 			$titles_array[$gender->id_gender] = $gender->name;
 
 		$this->_select = '
-		a.date_add, gl.name as title,
-		IF (YEAR(`birthday`) = 0, "-", (YEAR(CURRENT_DATE)-YEAR(`birthday`)) - (RIGHT(CURRENT_DATE, 5) < RIGHT(birthday, 5))) AS `age`, (
+		a.date_add, gl.name as title, (
+			SELECT SUM(total_paid_tax_excl / conversion_rate) FROM '._DB_PREFIX_.'orders o
+			WHERE o.id_customer = a.id_customer
+			'.Shop::addSqlRestriction(Shop::SHARE_ORDER, 'o').'
+			AND a.active = 1
+		) as total_spent, (
 			SELECT c.date_add FROM '._DB_PREFIX_.'guest g
 			LEFT JOIN '._DB_PREFIX_.'connections c ON c.id_guest = g.id_guest
 			WHERE g.id_customer = a.id_customer
@@ -92,10 +96,14 @@ class AdminCustomersControllerCore extends AdminController
 			'email' => array(
 				'title' => $this->l('Email address')
 			),
-			'age' => array(
-				'title' => $this->l('Age'),
+			'total_spent' => array(
+				'title' => $this->l('Sales'),
+				'type' => 'price',
+				'prefix' => '<span class="badge badge-success">',
+				'suffix' => '</span>',
 				'search' => false,
-				'align' => 'center'
+				'havingFilter' => true,
+				'align' => 'right'
 			),
 			'active' => array(
 				'title' => $this->l('Enabled'),
@@ -470,7 +478,7 @@ class AdminCustomersControllerCore extends AdminController
 				'label' => $this->l('Outstanding allowed:'),
 				'name' => 'outstanding_allow_amount',
 				'hint' => $this->l('Valid characters:').' 0-9',
-				'suffix' => '¤'
+				'suffix' => $this->context->currency->sign
 			);
 			$this->fields_form['input'][] = array(
 				'type' => 'text',
@@ -822,6 +830,12 @@ class AdminCustomersControllerCore extends AdminController
 			$this->errors[] = Tools::displayError('An account already exists for this email address:').' '.$customer_email;
 			$this->display = 'edit';
 			return $customer;
+		}
+		elseif (trim(Tools::getValue('passwd')) == '')
+		{
+			$this->validateRules();
+			$this->errors[] = Tools::displayError('Password can not be empty.');
+			$this->display = 'edit';
 		}
 		elseif ($customer = parent::processAdd())
 		{

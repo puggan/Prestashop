@@ -285,30 +285,31 @@ class HookCore extends ObjectModel
 		{
 			$frontend = true;
 			$groups = array();
+			$use_groups = Group::isFeatureActive();
 			if (isset($context->employee))
-			{
-				$shop_list = array((int)$context->shop->id);
 				$frontend = false;
-			}
 			else
 			{
-				// Get shops and groups list
-				$shop_list = Shop::getContextListShopID();
-				if (isset($context->customer) && $context->customer->isLogged())
-					$groups = $context->customer->getGroups();
-				elseif (isset($context->customer) && $context->customer->isLogged(true))
-					$groups = array((int)Configuration::get('PS_GUEST_GROUP'));
-				else
-					$groups = array((int)Configuration::get('PS_UNIDENTIFIED_GROUP'));
+				// Get groups list
+				if ($use_groups)
+				{
+					if (isset($context->customer) && $context->customer->isLogged())
+						$groups = $context->customer->getGroups();
+					elseif (isset($context->customer) && $context->customer->isLogged(true))
+						$groups = array((int)Configuration::get('PS_GUEST_GROUP'));
+					else
+						$groups = array((int)Configuration::get('PS_UNIDENTIFIED_GROUP'));
+				}
 			}
 			
 			// SQL Request
 			$sql = new DbQuery();
 			$sql->select('h.`name` as hook, m.`id_module`, h.`id_hook`, m.`name` as module, h.`live_edit`');
 			$sql->from('module', 'm');
+			$sql->join(Shop::addSqlAssociation('module', 'm', true, 'module_shop.enable_device & '.(int)Context::getContext()->getDevice()));
+			$sql->innerJoin('module_shop', 'ms', 'ms.`id_module` = m.`id_module`');
 			$sql->innerJoin('hook_module', 'hm', 'hm.`id_module` = m.`id_module`');
 			$sql->innerJoin('hook', 'h', 'hm.`id_hook` = h.`id_hook`');
-			$sql->where('(SELECT COUNT(*) FROM '._DB_PREFIX_.'module_shop ms WHERE ms.id_module = m.id_module AND ms.id_shop IN ('.implode(', ', $shop_list).')) = '.count($shop_list));
 			if ($hook_name != 'displayPayment')
 				$sql->where('h.name != "displayPayment"');
 			// For payment modules, we check that they are available in the contextual country
@@ -325,11 +326,17 @@ class HookCore extends ObjectModel
 
 			if ($frontend)
 			{
-				$sql->leftJoin('module_group', 'mg', 'mg.`id_module` = m.`id_module`');
-				$sql->where('mg.`id_group` IN ('.implode(', ', $groups).')');
-				$sql->groupBy('hm.id_hook, hm.id_module');
+				if ($use_groups)
+				{
+					$sql->leftJoin('module_group', 'mg', 'mg.`id_module` = m.`id_module`');
+					if (Validate::isLoadedObject($context->shop))
+						$sql->where('mg.id_shop = '.((int)$context->shop->id).' AND  mg.`id_group` IN ('.implode(', ', $groups).')');
+					else
+						$sql->where('mg.`id_group` IN ('.implode(', ', $groups).')');
+				}
 			}
 
+			$sql->groupBy('hm.id_hook, hm.id_module');
 			$sql->orderBy('hm.`position`');
 
 			$list = array();

@@ -26,7 +26,7 @@
 
 /**
  * @since 1.5.0
- * @version 1.2 (2012-03-14)
+ * @version 1.3 (2012-03-14)
  */
 
 if (!defined('_PS_VERSION_'))
@@ -42,7 +42,7 @@ class HomeSlider extends Module
 	{
 		$this->name = 'homeslider';
 		$this->tab = 'front_office_features';
-		$this->version = '1.2.1';
+		$this->version = '1.2.3';
 		$this->author = 'PrestaShop';
 		$this->need_instance = 0;
 		$this->secure_key = Tools::encrypt($this->name);
@@ -60,7 +60,7 @@ class HomeSlider extends Module
 	public function install()
 	{
 		/* Adds Module */
-		if (parent::install() && $this->registerHook('displayTop') && $this->registerHook('actionShopDataDuplication'))
+		if (parent::install() && $this->registerHook('displayHeader') && $this->registerHook('displayTopColumn') && $this->registerHook('actionShopDataDuplication'))
 		{
 			/* Sets up configuration */
 			$res = Configuration::updateValue('HOMESLIDER_WIDTH', '779');
@@ -94,9 +94,11 @@ class HomeSlider extends Module
 			foreach ($languages as $language)
 			{
 				$slide->title[$language['id_lang']] = 'Sample '.$i;
-				$slide->description[$language['id_lang']] = 'This is a sample picture';
+				$slide->description[$language['id_lang']] = '<h2>EXCEPTEUR<br />OCCAECAT</h2>
+				<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin tristique in tortor et dignissim. Quisque non tempor leo. Maecenas egestas sem elit</p>
+				<p><button class="btn btn-default" type="button">Shop now !</button></p>';
 				$slide->legend[$language['id_lang']] = 'sample-'.$i;
-				$slide->url[$language['id_lang']] = 'http://www.prestashop.com';
+				$slide->url[$language['id_lang']] = 'http://www.prestashop.com/?utm_source=v16_homeslider';
 				$slide->image[$language['id_lang']] = 'sample-'.$i.'.jpg';
 			}
 			$slide->add();
@@ -660,7 +662,30 @@ class HomeSlider extends Module
 		return true;
 	}
 
-	public function hookDisplayTop()
+	public function hookdisplayHeader($params)
+	{
+		$this->context->controller->addJS($this->_path.'js/jquery.bxSlider.min.js');
+		$this->context->controller->addCSS($this->_path.'bx_styles.css');
+		$this->context->controller->addJS($this->_path.'js/homeslider.js');
+	}
+
+	public function hookdisplayTop($params)
+	{
+		return $this->hookdisplayTopColumn($params);
+	}
+
+	public function hookdisplayTopColumn($params)
+	{
+		if (!isset($this->context->controller->php_self) || $this->context->controller->php_self != 'index' || $this->context->getMobileDevice() != false)
+			return ;
+
+		if (!$this->_prepareHook())
+			return false;
+
+		return $this->display(__FILE__, 'homeslider.tpl', $this->getCacheId());
+	}
+
+	public function hookDisplayHome()
 	{
 		if(!$this->_prepareHook())
 			return;
@@ -668,20 +693,9 @@ class HomeSlider extends Module
 		// Check if not a mobile theme
 		if ($this->context->getMobileDevice() != false)
 			return false;
-
-		$this->context->controller->addJS($this->_path.'js/jquery.bxSlider.min.js');
-		$this->context->controller->addCSS($this->_path.'bx_styles.css');
-		$this->context->controller->addJS($this->_path.'js/homeslider.js');
 		return $this->display(__FILE__, 'homeslider.tpl', $this->getCacheId());
 	}
-	
-	public function getCacheId($name = null)
-	{
-		if ($name === null && isset($this->context->smarty->tpl_vars['page_name']))
-			return parent::getCacheId($this->context->smarty->tpl_vars['page_name']->value);
-		return parent::getCacheId($name);
-	}
-	
+
 	public function clearCache()
 	{
 		$this->_clearCache('homeslider.tpl');
@@ -768,7 +782,7 @@ class HomeSlider extends Module
 			FROM '._DB_PREFIX_.'homeslider hs
 			LEFT JOIN '._DB_PREFIX_.'homeslider_slides hss ON (hs.id_homeslider_slides = hss.id_homeslider_slides)
 			LEFT JOIN '._DB_PREFIX_.'homeslider_slides_lang hssl ON (hss.id_homeslider_slides = hssl.id_homeslider_slides)
-			WHERE (id_shop = '.(int)$id_shop.')
+			WHERE id_shop = '.(int)$id_shop.'
 			AND hssl.id_lang = '.(int)$id_lang.
 			($active ? ' AND hss.`active` = 1' : ' ').'
 			ORDER BY hss.position');
@@ -845,6 +859,7 @@ class HomeSlider extends Module
 						'type' => 'textarea',
 						'label' => $this->l('Description:'),
 						'name' => 'description',
+						'autoload_rte' => true,
 						'lang' => true,
 					),
 					array(

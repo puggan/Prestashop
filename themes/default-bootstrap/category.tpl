@@ -36,7 +36,7 @@
                         {if $category->description}
                             <div class="cat_desc">
                             {if strlen($category->description) > 350}
-                                <div id="category_description_short">{$category->description|truncate:350}</div>
+                                <div id="category_description_short">{$description_short}</div>
                                 <div id="category_description_full" style="display:none">{$category->description}</div>
                                 <a href="#" onclick="$('#category_description_short').hide(); $('#category_description_full').show(); $(this).hide(); return false;" class="lnk_more">{l s='More'}</a>
                             {else}
@@ -47,19 +47,19 @@
                         </div>
                     {else}
                     <!-- Category image -->
-                    <div class="content_scene_cat_bg" {if $category->id_image}style="background:url({$link->getCatImageLink($category->link_rewrite, $category->id_image, 'category_default')|escape:'html'}) 0 bottom no-repeat; background-size:contain; min-height:{$categorySize.height}px;" {/if}>
+                    <div class="content_scene_cat_bg" {if $category->id_image}style="background:url({$link->getCatImageLink($category->link_rewrite, $category->id_image, 'category_default')|escape:'html':'UTF-8'}) 0 bottom no-repeat; background-size:contain; min-height:{$categorySize.height}px;" {/if}>
                         {if $category->description}
                             <div class="cat_desc">
                             <h1 class="category-name">
                                 {strip}
-                                    {$category->name|escape:'htmlall':'UTF-8'}
+                                    {$category->name|escape:'html':'UTF-8'}
                                     {if isset($categoryNameComplement)}
-                                        {$categoryNameComplement|escape:'htmlall':'UTF-8'}
+                                        {$categoryNameComplement|escape:'html':'UTF-8'}
                                     {/if}
                                 {/strip}
                             </h1>
                             {if strlen($category->description) > 350}
-                                <div id="category_description_short">{$category->description|truncate:350}</div>
+                                <div id="category_description_short">{$description_short}</div>
                                 <div id="category_description_full" style="display:none">{$category->description}</div>
                                 <a href="#" onclick="$('#category_description_short').hide(); $('#category_description_full').show(); $(this).hide(); return false;" class="lnk_more">{l s='More'}</a>
                             {else}
@@ -72,11 +72,11 @@
                   {/if}
             </div>
 		{/if}
-		<h1 class="page-heading{if (isset($subcategories) && !$products) || (isset($subcategories) && $products)} product-listing{/if}">
+		<h1 class="page-heading{if (isset($subcategories) && !$products) || (isset($subcategories) && $products) || !isset($subcategories) && $products} product-listing{/if}">
 			{strip}
-				{$category->name|escape:'htmlall':'UTF-8'}
+				{$category->name|escape:'html':'UTF-8'}
 				{if isset($categoryNameComplement)}
-					{$categoryNameComplement|escape:'htmlall':'UTF-8'}
+					{$categoryNameComplement|escape:'html':'UTF-8'}
 				{/if}
 			{/strip}
             <span class="heading-counter">{include file="$tpl_dir./category-count.tpl"}</span>
@@ -91,15 +91,15 @@
 			{foreach from=$subcategories item=subcategory}
 				<li>
                 	<div class="subcategory-image">
-						<a href="{$link->getCategoryLink($subcategory.id_category, $subcategory.link_rewrite)|escape:'htmlall':'UTF-8'}" title="{$subcategory.name|escape:'htmlall':'UTF-8'}" class="img">
+						<a href="{$link->getCategoryLink($subcategory.id_category, $subcategory.link_rewrite)|escape:'html':'UTF-8'}" title="{$subcategory.name|escape:'html':'UTF-8'}" class="img">
 						{if $subcategory.id_image}
-							<img class="replace-2x" src="{$link->getCatImageLink($subcategory.link_rewrite, $subcategory.id_image, 'medium_default')|escape:'html'}" alt="" width="{$mediumSize.width}" height="{$mediumSize.height}" />
+							<img class="replace-2x" src="{$link->getCatImageLink($subcategory.link_rewrite, $subcategory.id_image, 'medium_default')|escape:'html':'UTF-8'}" alt="" width="{$mediumSize.width}" height="{$mediumSize.height}" />
 						{else}
 							<img class="replace-2x" src="{$img_cat_dir}default-medium_default.jpg" alt="" width="{$mediumSize.width}" height="{$mediumSize.height}" />
 						{/if}
 					</a>
                    	</div>
-					<h5><a class="subcategory-name" href="{$link->getCategoryLink($subcategory.id_category, $subcategory.link_rewrite)|escape:'htmlall':'UTF-8'}">{$subcategory.name|truncate:25:'...'|escape:'htmlall':'UTF-8'|truncate:350}</a></h5>
+					<h5><a class="subcategory-name" href="{$link->getCategoryLink($subcategory.id_category, $subcategory.link_rewrite)|escape:'html':'UTF-8'}">{$subcategory.name|truncate:25:'...'|escape:'html':'UTF-8'|truncate:350}</a></h5>
 					{if $subcategory.description}
 						<div class="cat_desc">{$subcategory.description}</div>
 					{/if}

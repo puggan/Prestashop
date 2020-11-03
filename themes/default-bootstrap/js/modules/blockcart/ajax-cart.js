@@ -35,7 +35,7 @@ var ajaxCart = {
 	overrideButtonsInThePage : function(){
 		//for every 'add' buttons...
 		$('.ajax_add_to_cart_button').unbind('click').click(function(){
-			var idProduct =  $(this).attr('rel').replace('nofollow', '').replace('ajax_id_product_', '');
+			var idProduct =  $(this).data('id-product');
 			if ($(this).attr('disabled') != 'disabled')
 				ajaxCart.add(idProduct, null, false, this);
 			return false;
@@ -176,8 +176,15 @@ var ajaxCart = {
 		ajaxCart.updateCart(jsonData);
 		
 		//reactive the button when adding has finished
-		if (addedFromProductPage)
+		if (addedFromProductPage) {
 			$('#add_to_cart button').removeAttr('disabled').removeClass('disabled');
+			if (!jsonData.hasError || jsonData.hasError==false) {
+				$('#add_to_cart button').addClass('added');
+			}
+			else {
+				$('#add_to_cart button').removeClass('added');
+			}
+		}
 		else
 			$('.ajax_add_to_cart_button').removeAttr('disabled');
 	},
@@ -591,13 +598,13 @@ var ajaxCart = {
 		var h = parseInt($(window).height());
 		var s = parseInt($(window).scrollTop());
 		var t = $('#layer_cart').outerHeight(true);
+		//alert(h+' '+s+' '+t);
 		if (t < h)
-			var n = parseInt(((h-t) / 2) + s) + 'px';
+			var n = parseInt(((h-t) / 2) + s - t/2) + 'px';
 		$('.layer_cart_overlay').css('width','100%');
 		$('.layer_cart_overlay').css('height','100%');
 		$('.layer_cart_overlay').show();
 		$('#layer_cart').css({'top': n}).fadeIn('fast');
-		$.scrollTo('#layer_cart', 400);
 		crossselling_serialScroll();
 	},
 
@@ -718,23 +725,23 @@ $(document).ready(function()
 	$("#shopping_cart a:first").hover(
 		function() {
 			if (ajaxCart.nb_total_products > 0 || cart_qty > 0)
-				$("#header_right #cart_block").stop(true, true).slideDown(450);
+				$("#header #cart_block").stop(true, true).slideDown(450);
 		},
 		function() {
 			setTimeout(function() {
 				if (!shopping_cart.isHoveringOver() && !cart_block.isHoveringOver())
-					$("#header_right #cart_block").stop(true, true).slideUp(450);
+					$("#header #cart_block").stop(true, true).slideUp(450);
 			}, 200);
 		}
 	);
 
-	$("#header_right #cart_block").hover(
+	$("#header #cart_block").hover(
 		function() {
 		},
 		function() {
 			setTimeout(function() {
 				if (!shopping_cart.isHoveringOver())
-					$("#header_right #cart_block").stop(true, true).slideUp(450);
+					$("#header #cart_block").stop(true, true).slideUp(450);
 			}, 200);
 		}
 	);

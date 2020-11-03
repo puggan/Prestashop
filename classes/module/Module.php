@@ -69,6 +69,8 @@ abstract class ModuleCore
 	/** @var string Fill it if the module is installed but not yet set up */
 	public $warning;
 
+	public $enable_device = 7;
+
 	/** @var array to store the limited country */
 	public $limited_countries = array();
 
@@ -239,7 +241,7 @@ abstract class ModuleCore
 			$this->installOverrides();
 		} catch (Exception $e) {
 			$this->_errors[] = sprintf(Tools::displayError('Unable to install override: %s'), $e->getMessage());
-			//$this->uninstallOverrides(); remove this line because if module a install an override, then module b install same override, this line will remove override of module a (if you find a bug related to this line please don't forget what i say before)
+			$this->uninstallOverrides();
 			return false;
 		}
 
@@ -598,6 +600,30 @@ abstract class ModuleCore
 				));
 
 		return true;
+	}
+	
+	public function enableDevice($device)
+	{
+		Db::getInstance()->execute('
+			UPDATE '._DB_PREFIX_.'module_shop
+			SET enable_device = enable_device + '.(int)$device.'
+			WHERE enable_device &~ '.(int)$device.' AND id_module='.(int)$this->id.
+			Shop::addSqlRestriction()
+		);
+
+		return true;
+	}
+	
+	public function disableDevice($device)
+	{
+		Db::getInstance()->execute('
+			UPDATE '._DB_PREFIX_.'module_shop
+			SET enable_device = enable_device - '.(int)$device.'
+			WHERE enable_device & '.(int)$device.' AND id_module='.(int)$this->id.
+			Shop::addSqlRestriction()
+		);
+
+		return true;		
 	}
 
 	/**
@@ -1006,9 +1032,10 @@ abstract class ModuleCore
 		
 		$modules_installed = array();
 		$result = Db::getInstance()->executeS('
-		SELECT name, version, interest
-		FROM `'._DB_PREFIX_.'module`
-		LEFT JOIN `'._DB_PREFIX_.'module_preference` ON (`module` = `name` AND `id_employee` = '.(int)$id_employee.')');
+		SELECT m.name, m.version, mp.interest, module_shop.enable_device
+		FROM `'._DB_PREFIX_.'module` m
+		'.Shop::addSqlAssociation('module', 'm').'
+		LEFT JOIN `'._DB_PREFIX_.'module_preference` mp ON (mp.`module` = m.`name` AND mp.`id_employee` = '.(int)$id_employee.')');
 		foreach ($result as $row)
 			$modules_installed[$row['name']] = $row;
 
@@ -1239,6 +1266,7 @@ abstract class ModuleCore
 				$module->installed = true;
 				$module->database_version = $modules_installed[$module->name]['version'];
 				$module->interest = $modules_installed[$module->name]['interest'];
+				$module->enable_device = $modules_installed[$module->name]['enable_device'];
 			}
 			else
 			{
@@ -1271,7 +1299,9 @@ abstract class ModuleCore
 		$modules = scandir(_PS_MODULE_DIR_);
 		foreach ($modules as $name)
 		{
-			if (is_dir(_PS_MODULE_DIR_.$name) && Tools::file_exists_cache(_PS_MODULE_DIR_.$name.'/'.$name.'.php'))
+			if (is_file(_PS_MODULE_DIR_.$name))
+				continue;
+			elseif (is_dir(_PS_MODULE_DIR_.$name.DIRECTORY_SEPARATOR) && Tools::file_exists_cache(_PS_MODULE_DIR_.$name.'/'.$name.'.php'))
 			{
 				if (!Validate::isModuleName($name))
 					throw new PrestaShopException(sprintf('Module %s is not a valid module name', $name));
@@ -1387,11 +1417,13 @@ abstract class ModuleCore
 		if (isset($context->cart))
 			$billing = new Address((int)$context->cart->id_address_invoice);
 
+		$use_groups = Group::isFeatureActive();
+
 		$frontend = true;
 		$groups = array();
 		if (isset($context->employee))
 			$frontend = false;
-		elseif (isset($context->customer))
+		elseif (isset($context->customer) && $use_groups)
 		{
 			$groups = $context->customer->getGroups();
 			if (!count($groups))
@@ -1409,15 +1441,15 @@ abstract class ModuleCore
 		return Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS('SELECT DISTINCT m.`id_module`, h.`id_hook`, m.`name`, hm.`position`
 		FROM `'._DB_PREFIX_.'module` m
 		'.($frontend ? 'LEFT JOIN `'._DB_PREFIX_.'module_country` mc ON (m.`id_module` = mc.`id_module` AND mc.id_shop = '.(int)$context->shop->id.')' : '').'
-		'.($frontend ? 'INNER JOIN `'._DB_PREFIX_.'module_group` mg ON (m.`id_module` = mg.`id_module` AND mg.id_shop = '.(int)$context->shop->id.')' : '').'
-		'.($frontend && isset($context->customer) ? 'INNER JOIN `'._DB_PREFIX_.'customer_group` cg on (cg.`id_group` = mg.`id_group`AND cg.`id_customer` = '.(int)$context->customer->id.')' : '').'
+		'.($frontend && $use_groups ? 'INNER JOIN `'._DB_PREFIX_.'module_group` mg ON (m.`id_module` = mg.`id_module` AND mg.id_shop = '.(int)$context->shop->id.')' : '').'
+		'.($frontend && isset($context->customer) && $use_groups ? 'INNER JOIN `'._DB_PREFIX_.'customer_group` cg on (cg.`id_group` = mg.`id_group`AND cg.`id_customer` = '.(int)$context->customer->id.')' : '').'
 		LEFT JOIN `'._DB_PREFIX_.'hook_module` hm ON hm.`id_module` = m.`id_module`
 		LEFT JOIN `'._DB_PREFIX_.'hook` h ON hm.`id_hook` = h.`id_hook`
 		WHERE h.`name` = \''.pSQL($hookPayment).'\'
 		'.(isset($billing) && $frontend ? 'AND mc.id_country = '.(int)$billing->id_country : '').'
 		AND (SELECT COUNT(*) FROM '._DB_PREFIX_.'module_shop ms WHERE ms.id_module = m.id_module AND ms.id_shop IN('.implode(', ', $list).')) = '.count($list).'
 		AND hm.id_shop IN('.implode(', ', $list).')
-		'.((count($groups) && $frontend) ? 'AND (mg.`id_group` IN ('.implode(', ', $groups).'))' : '').$paypal_condition.'
+		'.((count($groups) && $frontend && $use_groups) ? 'AND (mg.`id_group` IN ('.implode(', ', $groups).'))' : '').$paypal_condition.'
 		GROUP BY hm.id_hook, hm.id_module
 		ORDER BY hm.`position`, m.`name` DESC');
 	}
@@ -1677,7 +1709,8 @@ abstract class ModuleCore
 			$cache_array[] = (int)Tools::usingSecureMode();
 		if (Shop::isFeatureActive())
 			$cache_array[] = (int)$this->context->shop->id;
-		$cache_array[] = (int)Group::getCurrent()->id;
+		if (Group::isFeatureActive())
+			$cache_array[] = (int)Group::getCurrent()->id;
 		if (Language::isMultiLanguageActivated())
 			$cache_array[] = (int)$this->context->language->id;
 		if (Currency::isMultiCurrencyActivated())
@@ -1878,7 +1911,13 @@ abstract class ModuleCore
 	 */
 	public static function getModuleIdByName($name)
 	{
-		return Db::getInstance()->getValue('SELECT `id_module` FROM `'._DB_PREFIX_.'module` WHERE `name` = "'.pSQL($name).'"');
+		$cache_id = 'Module::getModuleIdByName_'.pSQL($name);
+		if (!Cache::isStored($cache_id))
+		{
+			$result = (int)Db::getInstance()->getValue('SELECT `id_module` FROM `'._DB_PREFIX_.'module` WHERE `name` = "'.pSQL($name).'"');
+			Cache::store($cache_id, $result);
+		}
+		return Cache::retrieve($cache_id);
 	}
 
 	/**
@@ -2011,6 +2050,7 @@ abstract class ModuleCore
 			if (Autoload::getInstance()->getClassPath($class.'Core'))
 				$result &= $this->removeOverride($class);
 		}
+
 		return $result;
 	}
 
@@ -2114,7 +2154,17 @@ abstract class ModuleCore
 
 			$method = $override_class->getMethod($method->getName());
 			$length = $method->getEndLine() - $method->getStartLine() + 1;
-			array_splice($override_file, $method->getStartLine() - 1, $length, array_pad(array(), $length, '#--remove--#'));
+			
+			$module_method = $module_class->getMethod($method->getName());
+			$module_length = $module_method->getEndLine() - $module_method->getStartLine() + 1;
+
+			$override_file_orig = $override_file;
+
+			$orig_content = preg_replace("/\s/", '', implode('', array_splice($override_file, $method->getStartLine() - 1, $length, array_pad(array(), $length, '#--remove--#'))));
+			$module_content = preg_replace("/\s/", '', implode('', array_splice($module_file, $module_method->getStartLine() - 1, $length, array_pad(array(), $length, '#--remove--#'))));
+
+			if (md5($module_content) != md5($orig_content))
+				$override_file = $override_file_orig;
 		}
 
 		// Remove properties from override file
@@ -2142,6 +2192,9 @@ abstract class ModuleCore
 			$code .= $line;
 		}
 		file_put_contents($override_path, $code);
+
+		// Re-generate the class index
+		Autoload::getInstance()->generateIndex();
 
 		return true;
 	}

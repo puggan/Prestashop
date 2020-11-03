@@ -48,8 +48,8 @@ class FrontControllerCore extends Controller
 	protected $restrictedCountry = false;
 	protected $maintenance = false;
 
-	public $display_column_left = true;
-	public $display_column_right = true;
+	public $display_column_left;
+	public $display_column_right;
 
 	public static $initialized = false;
 
@@ -64,7 +64,7 @@ class FrontControllerCore extends Controller
 		global $useSSL;
 
 		parent::__construct();
-
+		
 		if (Configuration::get('PS_SSL_ENABLED') && Configuration::get('PS_SSL_ENABLED_EVERYWHERE'))
 			$this->ssl = true;
 
@@ -72,6 +72,9 @@ class FrontControllerCore extends Controller
 			$this->ssl = $useSSL;
 		else
 			$useSSL = $this->ssl;
+			
+		$this->display_column_left = (isset($this->php_self) ? Context::getContext()->theme->hasLeftColumn($this->php_self) : true);
+		$this->display_column_right = (isset($this->php_self) ? Context::getContext()->theme->hasRightColumn($this->php_self) : true);
 	}
 
 	/**
@@ -162,7 +165,7 @@ class FrontControllerCore extends Controller
 
 		/* Theme is missing */
 		if (!is_dir(_PS_THEME_DIR_))
-			die(sprintf(Tools::displayError('Current theme unavailable "%s". Please check your theme directory name and permissions.'), basename(rtrim(_PS_THEME_DIR_, '/\\'))));
+			throw new PrestaShopException((sprintf(Tools::displayError('Current theme unavailable "%s". Please check your theme directory name and permissions.'), basename(rtrim(_PS_THEME_DIR_, '/\\')))));
 
 		if (Configuration::get('PS_GEOLOCATION_ENABLED'))
 			if (($newDefault = $this->geolocationManagement($this->context->country)) && Validate::isLoadedObject($newDefault))
@@ -330,7 +333,7 @@ class FrontControllerCore extends Controller
 			'cart_qties' => (int)$cart->nbProducts(),
 			'currencies' => Currency::getCurrencies(),
 			'languages' => $languages,
-			'meta_language' => implode('-', $meta_language),
+			'meta_language' => implode(',', $meta_language),
 			'priceDisplay' => Product::getTaxCalculationMethod((int)$this->context->cookie->id_customer),
 			'add_prod_display' => (int)Configuration::get('PS_ATTRIBUTE_CATEGORY_DISPLAY'),
 			'shop_name' => Configuration::get('PS_SHOP_NAME'),
@@ -848,48 +851,51 @@ class FrontControllerCore extends Controller
 			'stock_management' => (int)$stock_management));
 	}
 
-	public function pagination($nbProducts = 10)
+	public function pagination($total_products = null)
 	{
 		if (!self::$initialized)
 			$this->init();
 		elseif (!$this->context)
 			$this->context = Context::getContext();
 
-		$nArray = (int)Configuration::get('PS_PRODUCTS_PER_PAGE') != 10 ? array((int)Configuration::get('PS_PRODUCTS_PER_PAGE'), 10, 20, 50) : array(10, 20, 50);
-		// Clean duplicate values
-		$nArray = array_unique($nArray);
-		asort($nArray);
-		$this->n = abs((int)(Tools::getValue('n', ((isset($this->context->cookie->nb_item_per_page) && $this->context->cookie->nb_item_per_page >= 10) ? $this->context->cookie->nb_item_per_page : (int)Configuration::get('PS_PRODUCTS_PER_PAGE')))));
-		$this->p = abs((int)Tools::getValue('p', 1));
+		// Retrieve the default number of products per page and the other available selections
+		$default_products_per_page = max(1, (int)Configuration::get('PS_PRODUCTS_PER_PAGE'));
+		$nArray = array($default_products_per_page, $default_products_per_page * 2, $default_products_per_page * 5);
+		
+		// Retrieve the current number of products per page (either the default, the GET parameter or the one in the cookie)
+		$this->n = $default_products_per_page;
+		if ((int)Tools::getValue('n') > 0 && in_array((int)Tools::getValue('n'), $nArray))
+			$this->n = (int)Tools::getValue('n');
+		elseif (isset($this->context->cookie->nb_item_per_page) && in_array($this->context->cookie->nb_item_per_page, $nArray))
+			$this->n = (int)$this->context->cookie->nb_item_per_page;
 
-		if (!is_numeric(Tools::getValue('p', 1)) || Tools::getValue('p', 1) < 0)
+		// Retrieve the page number (either the GET parameter or the first page)
+		$this->p = (int)Tools::getValue('p', 1);
+		// If the parameter is not correct then redirect (do not merge with the previous line, the redirect is required in order to avoid duplicate content)
+		if (!is_numeric($this->p) || $this->p < 1)
 			Tools::redirect(self::$link->getPaginationLink(false, false, $this->n, false, 1, false));
 
-		$current_url = tools::htmlentitiesUTF8($_SERVER['REQUEST_URI']);
-		//delete parameter page
-		$current_url = preg_replace('/(\?)?(&amp;)?p=\d+/', '$1', $current_url);
+		// Remove the page parameter in order to get a clean URL for the pagination template
+		$current_url = preg_replace('/(\?)?(&amp;)?p=\d+/', '$1', Tools::htmlentitiesUTF8($_SERVER['REQUEST_URI']));
 
-		$range = 2; /* how many pages around page selected */
-
-		if ($this->p < 1)
-			$this->p = 1;
-
-		if (isset($this->context->cookie->nb_item_per_page) && $this->n != $this->context->cookie->nb_item_per_page && in_array($this->n, $nArray))
+		if ($this->n != $default_products_per_page)
 			$this->context->cookie->nb_item_per_page = $this->n;
 
-		$pages_nb = ceil($nbProducts / (int)$this->n);
-		if ($this->p > $pages_nb && $nbProducts <> 0)
+		$pages_nb = ceil($total_products / (int)$this->n);
+		if ($this->p > $pages_nb && $total_products != 0)
 			Tools::redirect(self::$link->getPaginationLink(false, false, $this->n, false, $pages_nb, false));
 
+		$range = 2; /* how many pages around page selected */
 		$start = (int)($this->p - $range);
 		if ($start < 1)
 			$start = 1;
 		$stop = (int)($this->p + $range);
 		if ($stop > $pages_nb)
 			$stop = (int)$pages_nb;
-		$this->context->smarty->assign('nb_products', $nbProducts);
-		$pagination_infos = array(
-			'products_per_page' => (int)Configuration::get('PS_PRODUCTS_PER_PAGE'),
+
+		$this->context->smarty->assign(array(
+			'nb_products' => $total_products,
+			'products_per_page' => $this->n,
 			'pages_nb' => $pages_nb,
 			'p' => $this->p,
 			'n' => $this->n,
@@ -898,8 +904,7 @@ class FrontControllerCore extends Controller
 			'start' => $start,
 			'stop' => $stop,
 			'current_url' => $current_url
-		);
-		$this->context->smarty->assign($pagination_infos);
+		));
 	}
 
 	public static function getCurrentCustomerGroups()
@@ -934,7 +939,7 @@ class FrontControllerCore extends Controller
 		$ips = array_map('trim', $ips);
 		if (is_array($ips) && count($ips))
 			foreach ($ips as $ip)
-				if (!empty($ip) && strpos($user_ip, $ip) === 0)
+				if (!empty($ip) && preg_match('/^'.$ip.'.*/', $user_ip))
 					$allowed = true;
 		return $allowed;
 	}
@@ -1163,9 +1168,9 @@ class FrontControllerCore extends Controller
   				);
 	}
 	
-	protected function addColorsToProductList(&$products)
+	public function addColorsToProductList(&$products)
 	{
-		if (!is_array($products) || !count($products))
+		if (!is_array($products) || !count($products) || !file_exists(_PS_THEME_DIR_.'product-list-colors.tpl'))
 			return;
 
 		$products_need_cache = array();

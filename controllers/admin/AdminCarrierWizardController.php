@@ -129,9 +129,13 @@ class AdminCarrierWizardControllerCore extends AdminController
 			array_splice($this->tpl_view_vars['wizard_contents']['contents'], 1, 0, array(0 => $this->renderStepTwo($carrier)));
 
 		$this->context->smarty->assign(array(
-				'carrier_logo' => (Validate::isLoadedObject($carrier) && file_exists(_PS_SHIP_IMG_DIR_.$carrier->id.'.jpg') ? _THEME_SHIP_DIR_.$carrier->id.'.jpg' : false)
-			));
-		$this->content .= $this->createTemplate('logo.tpl')->fetch();
+				'carrier_logo' => (Validate::isLoadedObject($carrier) && file_exists(_PS_SHIP_IMG_DIR_.$carrier->id.'.jpg') ? _THEME_SHIP_DIR_.$carrier->id.'.jpg' : false),
+ 			));
+ 			
+ 		$this->context->smarty->assign(array(
+ 			'logo_content' => $this->createTemplate('logo.tpl')->fetch()
+ 		));
+ 		
 		$this->addjQueryPlugin(array('ajaxfileupload'));
 
 		return parent::renderView();
@@ -152,7 +156,10 @@ class AdminCarrierWizardControllerCore extends AdminController
 	public function initPageHeaderToolbar()
 	{
 		parent::initPageHeaderToolbar();
-		$this->page_header_toolbar_btn['back']['href'] = $this->context->link->getAdminLink('AdminCarriers');
+		$this->page_header_toolbar_btn['cancel'] = array(
+			'href' => $this->context->link->getAdminLink('AdminCarriers'),
+			'desc' => $this->l('Cancel')
+		);
 	}
 
 	public function renderStepOne($carrier)
@@ -683,15 +690,17 @@ class AdminCarrierWizardControllerCore extends AdminController
 				if (is_array($fees) && count($fees))
 				{
 					foreach ($fees as $id_zone => $fee)
+					{
 						$price_list[] = array(
 							'id_range_price' => ($range_type == Carrier::SHIPPING_METHOD_PRICE ? (int)$range->id : null),
 							'id_range_weight' => ($range_type == Carrier::SHIPPING_METHOD_WEIGHT ? (int)$range->id : null),
 							'id_carrier' => (int)$carrier->id,
 							'id_zone' => (int)$id_zone,
-							'price' => (float)$fee[$key]
+							'price' => isset($fee[$key]) ? (float)$fee[$key] : 0,
 						);
+					}
 				}
-
+				
 				if (count($price_list) && !$carrier->addDeliveryPrice($price_list, true))
 					return false;
 			}

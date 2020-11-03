@@ -394,7 +394,7 @@ class AdminModulesControllerCore extends AdminController
 		foreach($zip_folders as $folder)
 			if (!in_array($folder, array('.', '..', '.svn', '.git', '__MACOSX')) && !Module::getInstanceByName($folder))
 			{
-				$this->errors[] = Tools::displayError('The \'.$folder.\' you uploaded is not a module');
+				$this->errors[] = sprintf(Tools::displayError('The folder %1$s you uploaded is not a module.'), $folder);
 				$this->recursiveDeleteOnDisk(_PS_MODULE_DIR_.$folder);
 			}
 			
@@ -531,12 +531,29 @@ class AdminModulesControllerCore extends AdminController
 			// UPLOAD_ERR_CANT_WRITE: 7
 			// UPLOAD_ERR_EXTENSION: 8
 			// UPLOAD_ERR_PARTIAL: 3
-			if (!isset($_FILES['file']['tmp_name']) || empty($_FILES['file']['tmp_name']))
+
+			if (isset($_FILES['file']['error']) && $_FILES['file']['error'] != UPLOAD_ERR_OK)
+				switch($_FILES['file']['error']) {
+		            case UPLOAD_ERR_INI_SIZE:
+		            case UPLOAD_ERR_FORM_SIZE:
+		                $this->errors[] = sprintf($this->l('File too large (limit of %s bytes).'), Tools::getMaxUploadSize());
+		                break;
+		            case UPLOAD_ERR_PARTIAL:
+		                $this->errors[] = $this->l('File upload was not completed.');
+		                break;
+		            case UPLOAD_ERR_NO_FILE:
+		                $this->errors[] = $this->l('Zero-length file uploaded.');
+		                break;
+		            default:
+		                $this->errors[] = sprintf($this->l('Internal error #%s'), $_FILES['newfile']['error']);
+		                break;
+		        }
+		    elseif (!isset($_FILES['file']['tmp_name']) || empty($_FILES['file']['tmp_name']))
 				$this->errors[] = $this->l('No file has been selected');
 			elseif (substr($_FILES['file']['name'], -4) != '.tar' && substr($_FILES['file']['name'], -4) != '.zip'
 				&& substr($_FILES['file']['name'], -4) != '.tgz' && substr($_FILES['file']['name'], -7) != '.tar.gz')
 				$this->errors[] = Tools::displayError('Unknown archive type.');
-			elseif (!@copy($_FILES['file']['tmp_name'], _PS_MODULE_DIR_.$_FILES['file']['name']))
+			elseif (!move_uploaded_file($_FILES['file']['tmp_name'], _PS_MODULE_DIR_.$_FILES['file']['name']))
 				$this->errors[] = Tools::displayError('An error occurred while copying archive to the module directory.');
 			else
 				$this->extractArchive(_PS_MODULE_DIR_.$_FILES['file']['name']);
@@ -561,6 +578,50 @@ class AdminModulesControllerCore extends AdminController
 					else
 						$module->disable();
 					Tools::redirectAdmin($this->getCurrentUrl('enable'));
+				}
+			}
+			else
+				$this->errors[] = Tools::displayError('Cannot load the module\'s object.');
+		}
+		else
+			$this->errors[] = Tools::displayError('You do not have permission to add this.');
+	}
+	
+	public function postProcessEnable_Device()
+	{
+	 	if ($this->tabAccess['edit'] === '1')
+		{
+			$module = Module::getInstanceByName(Tools::getValue('module_name'));
+			if (Validate::isLoadedObject($module))
+			{
+				if (!$module->getPermission('configure'))
+					$this->errors[] = Tools::displayError('You do not have the permission to use this module.');
+				else
+				{
+					$module->enableDevice((int)Tools::getValue('enable_device'));
+					Tools::redirectAdmin($this->getCurrentUrl('enable_device'));
+				}
+			}
+			else
+				$this->errors[] = Tools::displayError('Cannot load the module\'s object.');
+		}
+		else
+			$this->errors[] = Tools::displayError('You do not have permission to add this.');
+	}
+
+	public function postProcessDisable_Device()
+	{
+	 	if ($this->tabAccess['edit'] === '1')
+		{
+			$module = Module::getInstanceByName(Tools::getValue('module_name'));
+			if (Validate::isLoadedObject($module))
+			{
+				if (!$module->getPermission('configure'))
+					$this->errors[] = Tools::displayError('You do not have the permission to use this module.');
+				else
+				{
+					$module->disableDevice((int)Tools::getValue('disable_device'));
+					Tools::redirectAdmin($this->getCurrentUrl('disable_device'));
 				}
 			}
 			else
@@ -627,23 +688,23 @@ class AdminModulesControllerCore extends AdminController
 							{
 								$file = $f['file'];
 								$content = Tools::file_get_contents(_PS_ROOT_DIR_.$file);
-								$xml = @simplexml_load_string($content, null, LIBXML_NOCDATA);
-								foreach ($xml->module as $modaddons)
-									if ($name == $modaddons->name && isset($modaddons->id) && ($this->logged_on_addons || $f['loggedOnAddons'] == 0))
-									{
-										$download_ok = false;
-										if ($f['loggedOnAddons'] == 0)
-											if (file_put_contents(_PS_MODULE_DIR_.$modaddons->name.'.zip', Tools::addonsRequest('module', array('id_module' => pSQL($modaddons->id)))))
-												$download_ok = true;
-										elseif ($f['loggedOnAddons'] == 1 && $this->logged_on_addons)
-											if (file_put_contents(_PS_MODULE_DIR_.$modaddons->name.'.zip', Tools::addonsRequest('module', array('id_module' => pSQL($modaddons->id), 'username_addons' => pSQL(trim($this->context->cookie->username_addons)), 'password_addons' => pSQL(trim($this->context->cookie->password_addons))))))
-												$download_ok = true;
+								if ($xml = @simplexml_load_string($content, null, LIBXML_NOCDATA))
+									foreach ($xml->module as $modaddons)
+										if ($name == $modaddons->name && isset($modaddons->id) && ($this->logged_on_addons || $f['loggedOnAddons'] == 0))
+										{
+											$download_ok = false;
+											if ($f['loggedOnAddons'] == 0)
+												if (file_put_contents(_PS_MODULE_DIR_.$modaddons->name.'.zip', Tools::addonsRequest('module', array('id_module' => pSQL($modaddons->id)))))
+													$download_ok = true;
+											elseif ($f['loggedOnAddons'] == 1 && $this->logged_on_addons)
+												if (file_put_contents(_PS_MODULE_DIR_.$modaddons->name.'.zip', Tools::addonsRequest('module', array('id_module' => pSQL($modaddons->id), 'username_addons' => pSQL(trim($this->context->cookie->username_addons)), 'password_addons' => pSQL(trim($this->context->cookie->password_addons))))))
+													$download_ok = true;
 
-										if (!$download_ok)
-											$this->errors[] = $this->l('Error on downloading the lastest version');
-										elseif (!$this->extractArchive(_PS_MODULE_DIR_.$modaddons->name.'.zip', false))
-											$this->errors[] = $this->l(sprintf("Module %s can't be upgraded: ", $modaddons->name));
-									}
+											if (!$download_ok)
+												$this->errors[] = $this->l('Error on downloading the lastest version');
+											elseif (!$this->extractArchive(_PS_MODULE_DIR_.$modaddons->name.'.zip', false))
+												$this->errors[] = $this->l(sprintf("Module %s can't be upgraded: ", $modaddons->name));
+										}
 							}
 					}
 
@@ -815,7 +876,7 @@ class AdminModulesControllerCore extends AdminController
 
 		// Execute filter or callback methods
 		$filterMethods = array('filterModules', 'resetFilterModules', 'filterCategory', 'unfilterCategory');
-		$callbackMethods = array('reset', 'download', 'enable', 'delete');
+		$callbackMethods = array('reset', 'download', 'enable', 'delete', 'enable_device', 'disable_device');
 		$postProcessMethodsList = array_merge((array)$filterMethods, (array)$callbackMethods);
 		foreach ($postProcessMethodsList as $ppm)
 			if (Tools::isSubmit($ppm))
@@ -1003,7 +1064,7 @@ class AdminModulesControllerCore extends AdminController
 		$helper->icon = 'icon-puzzle-piece';
 		$helper->color = 'color1';
 		$helper->title = $this->l('Installed Modules', null, null, false);
-		if (ConfigurationKPI::get('INSTALLED_MODULES') !== false)
+		if (ConfigurationKPI::get('INSTALLED_MODULES') !== false && ConfigurationKPI::get('INSTALLED_MODULES') != '')
 			$helper->value = ConfigurationKPI::get('INSTALLED_MODULES');
 		if (ConfigurationKPI::get('INSTALLED_MODULES_EXPIRE') < $time)
 			$helper->source = $this->context->link->getAdminLink('AdminStats').'&ajax=1&action=getKpi&kpi=installed_modules';
@@ -1014,7 +1075,7 @@ class AdminModulesControllerCore extends AdminController
 		$helper->icon = 'icon-off';
 		$helper->color = 'color2';
 		$helper->title = $this->l('Disabled Modules', null, null, false);
-		if (ConfigurationKPI::get('DISABLED_MODULES') !== false)
+		if (ConfigurationKPI::get('DISABLED_MODULES') !== false && ConfigurationKPI::get('DISABLED_MODULES') != '')
 			$helper->value = ConfigurationKPI::get('DISABLED_MODULES');
 		if (ConfigurationKPI::get('DISABLED_MODULES_EXPIRE') < $time)
 			$helper->source = $this->context->link->getAdminLink('AdminStats').'&ajax=1&action=getKpi&kpi=disabled_modules';
@@ -1025,7 +1086,7 @@ class AdminModulesControllerCore extends AdminController
 		$helper->icon = 'icon-refresh';
 		$helper->color = 'color3';
 		$helper->title = $this->l('Modules to update', null, null, false);
-		if (ConfigurationKPI::get('UPDATE_MODULES') !== false)
+		if (ConfigurationKPI::get('UPDATE_MODULES') !== false && ConfigurationKPI::get('UPDATE_MODULES') != '')
 			$helper->value = ConfigurationKPI::get('UPDATE_MODULES');
 		if (ConfigurationKPI::get('UPDATE_MODULES_EXPIRE') < $time)
 			$helper->source = $this->context->link->getAdminLink('AdminStats').'&ajax=1&action=getKpi&kpi=update_modules';
@@ -1049,9 +1110,14 @@ class AdminModulesControllerCore extends AdminController
 		$categoryFiltered = array();
 		$filterCategories = explode('|', Configuration::get('PS_SHOW_CAT_MODULES_'.(int)$this->id_employee));
 		if (count($filterCategories) > 0)
+		{
 			foreach ($filterCategories as $fc)
 				if (!empty($fc))
 					$categoryFiltered[$fc] = 1;
+		}
+
+		if (empty($categoryFiltered) && Tools::getValue('tab_module'))
+			$categoryFiltered[Tools::getValue('tab_module')] = 1;
 
 		foreach ($this->list_modules_categories as $k => $v)
 			$this->list_modules_categories[$k]['nb'] = 0;
@@ -1200,16 +1266,13 @@ class AdminModulesControllerCore extends AdminController
 		$tpl_vars['dirNameCurrentIndex'] = dirname(self::$currentIndex);
 		$tpl_vars['ajaxCurrentIndex'] = str_replace('index', 'ajax-tab', self::$currentIndex);
 		$tpl_vars['autocompleteList'] = rtrim($autocompleteList, ' ,').'];';
-
 		$tpl_vars['showTypeModules'] = $this->filter_configuration['PS_SHOW_TYPE_MODULES_'.(int)$this->id_employee];
 		$tpl_vars['showCountryModules'] = $this->filter_configuration['PS_SHOW_COUNTRY_MODULES_'.(int)$this->id_employee];
 		$tpl_vars['showInstalledModules'] = $this->filter_configuration['PS_SHOW_INSTALLED_MODULES_'.(int)$this->id_employee];
 		$tpl_vars['showEnabledModules'] = $this->filter_configuration['PS_SHOW_ENABLED_MODULES_'.(int)$this->id_employee];
 		$tpl_vars['nameCountryDefault'] = Country::getNameById($this->context->language->id, Configuration::get('PS_COUNTRY_DEFAULT'));
 		$tpl_vars['isoCountryDefault'] = $this->iso_default_country;
-
 		$tpl_vars['categoryFiltered'] = $categoryFiltered;
-
 		$tpl_vars['modules'] = $modules;
 		$tpl_vars['nb_modules'] = $this->nb_modules_total;
 		$tpl_vars['nb_modules_favorites'] = Db::getInstance()->getValue('SELECT COUNT(`id_module_preference`) FROM `'._DB_PREFIX_.'module_preference` WHERE `id_employee` = '.(int)$this->id_employee.' AND `favorite` = 1 AND (`interest` = 1 OR `interest` IS NULL)');
@@ -1219,14 +1282,12 @@ class AdminModulesControllerCore extends AdminController
 		$tpl_vars['nb_modules_unactivated'] = $tpl_vars['nb_modules_installed'] - $tpl_vars['nb_modules_activated'];
 		$tpl_vars['list_modules_categories'] = $cleaned_list;
 		$tpl_vars['list_modules_authors'] = $this->modules_authors;
-
 		$tpl_vars['check_url_fopen'] = (ini_get('allow_url_fopen') ? 'ok' : 'ko');
 		$tpl_vars['check_openssl'] = (extension_loaded('openssl') ? 'ok' : 'ko');
-
 		$tpl_vars['add_permission'] = $this->tabAccess['add'];
 		$tpl_vars['tab_modules_preferences'] = $tab_modules_preferences;
-
 		$tpl_vars['kpis'] = $this->renderKpis();
+		$tpl_vars['module_name'] = Tools::getValue('module_name');
 
 		if ($this->logged_on_addons)
 		{

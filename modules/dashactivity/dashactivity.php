@@ -50,21 +50,19 @@ class Dashactivity extends Module
 		Configuration::updateValue('DASHACTIVITY_CART_ABANDONED_MAX', 48);
 		Configuration::updateValue('DASHACTIVITY_VISITOR_ONLINE', 24);
 		
-		if (!parent::install() 
-			|| !$this->registerHook('dashboardZoneOne') 
-			|| !$this->registerHook('dashboardData')
-			|| !$this->registerHook('actionObjectOrderAddAfter')
-			|| !$this->registerHook('actionObjectCustomerAddAfter')
-			|| !$this->registerHook('actionObjectCustomerMessageAddAfter')
-			|| !$this->registerHook('actionObjectCustomerThreadAddAfter')
-			|| !$this->registerHook('actionObjectOrderReturnAddAfter')
-			|| !$this->registerHook('displayBackOfficeHeader')
-		)
-			return false;
-		return true;
+		return (parent::install() 
+			&& $this->registerHook('dashboardZoneOne') 
+			&& $this->registerHook('dashboardData')
+			&& $this->registerHook('actionObjectOrderAddAfter')
+			&& $this->registerHook('actionObjectCustomerAddAfter')
+			&& $this->registerHook('actionObjectCustomerMessageAddAfter')
+			&& $this->registerHook('actionObjectCustomerThreadAddAfter')
+			&& $this->registerHook('actionObjectOrderReturnAddAfter')
+			&& $this->registerHook('actionAdminControllerSetMedia')
+		);
 	}
 	
-	public function hookDisplayBackOfficeHeader()
+	public function hookActionAdminControllerSetMedia()
 	{
 		if (get_class($this->context->controller) == 'AdminDashboardController')
 		{
@@ -72,26 +70,26 @@ class Dashactivity extends Module
 				$this->context->controller->addJquery();
 
 			$this->context->controller->addJs($this->_path.'views/js/'.$this->name.'.js');
-			$this->context->controller->addJs(_PS_JS_DIR_.'date.js');
+			$this->context->controller->addJs(array(_PS_JS_DIR_.'date.js', _PS_JS_DIR_.'tools.js'));
 		}
 	}
 
 	public function hookDashboardZoneOne($params)
 	{
+		$gapi_mode = 'configure';
 		if (!Module::isInstalled('gapi'))
 			$gapi_mode = 'install';
 		elseif (($gapi = Module::getInstanceByName('gapi')) && Validate::isLoadedObject($gapi) && $gapi->isConfigured())
 			$gapi_mode = false;
-		else
-			$gapi_mode = 'configure';
 
-		$this->context->smarty->assign(array_merge(array(
+		$this->context->smarty->assign($this->getConfigFieldsValues());
+		$this->context->smarty->assign(array(
 			'gapi_mode' => $gapi_mode,
 			'dashactivity_config_form' => $this->renderConfigForm(),
 			'date_subtitle' => $this->l('(from %s to %s)'),
 			'date_format' => $this->context->language->date_format_lite,
 			'link' => $this->context->link,
-		), $this->getConfigFieldsValues()));
+		));
 		return $this->display(__FILE__, 'dashboard_zone_one.tpl');
 	}
 	
@@ -110,7 +108,6 @@ class Dashactivity extends Module
 					'abandoned_cart' => round(rand(5, 50)),
 					'products_out_of_stock' => round(rand(1, 10)),
 					'new_messages' => round(rand(1, 10) * $days),
-					'order_inquires' => 42,
 					'product_reviews' => round(rand(5, 50) * $days),
 					'new_customers' => round(rand(1, 5) * $days),
 					'online_visitor' => $online_visitor,
@@ -265,7 +262,6 @@ class Dashactivity extends Module
 				'abandoned_cart' => $abandoned_cart,
 				'products_out_of_stock' => $products_out_of_stock,
 				'new_messages' => $new_messages,
-				'order_inquires' => 42,
 				'product_reviews' => $product_reviews,
 				'new_customers' => $new_customers,
 				'online_visitor' => $online_visitor,
@@ -354,8 +350,8 @@ class Dashactivity extends Module
 		);
 			
 		$fields_form['form']['input'][] = array(
-			'label' => $this->l('Cart as active'),
-			'desc' => $this->l('Default time range to consider a Shopping cart as active (default 30, max 120)'),
+			'label' => $this->l('Activate Cart'),
+			'desc' => $this->l('How long (in minutes) a cart is to be considered active after the last recorded change.'),
 			'name' => 'DASHACTIVITY_CART_ACTIVE',
 			'type' => 'select',
 			'options' => array(
@@ -372,8 +368,8 @@ class Dashactivity extends Module
 			),
 		);
 		$fields_form['form']['input'][] = array(
-			'label' => $this->l('Visitor online'),
-			'desc' => $this->l('Default time range to consider a Visitor as online (default 30, max 120)'), 
+			'label' => $this->l('Online Visitor'),
+			'desc' => $this->l('How long (in minutes) a visitor is to be considered online after their last action (default: 30 min).'), 
 			'name' => 'DASHACTIVITY_VISITOR_ONLINE',
 			'type' => 'select',
 			'options' => array(
@@ -390,15 +386,15 @@ class Dashactivity extends Module
 			),
 		);
 		$fields_form['form']['input'][] = array(
-				'label' => $this->l('Cart abandoned (min)'),
-				'desc' => $this->l('Default time range (min) to consider a Shopping cart as abandoned (default 24hrs)'),
+				'label' => $this->l('Abandoned Cart (min)'),
+				'desc' => $this->l('How long (in hours) after the last action a cart is to be considered as abandoned (default: 24 hrs).'),
 				'name' => 'DASHACTIVITY_CART_ABANDONED_MIN',
 				'type' => 'text',
 				'suffix' => $this->l('hrs'),
 				);
 		$fields_form['form']['input'][] = array(
 				'label' => $this->l('Cart abandoned (max)'),
-				'desc' => $this->l('Default time range (max) to consider a Shopping cart as abandoned (default 48hrs)'),
+				'desc' => $this->l('How long (in hours) after the last action a cart is no longer to be considered as abandoned (default: 24 hrs).'),
 				'name' => 'DASHACTIVITY_CART_ABANDONED_MAX',
 				'type' => 'text',
 				'suffix' => $this->l('hrs'),

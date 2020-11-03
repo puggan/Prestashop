@@ -92,7 +92,8 @@ class CompareControllerCore extends FrontController
 		elseif (isset($this->context->cookie->id_compare))
 		{
 			$ids = CompareProduct::getCompareProducts($this->context->cookie->id_compare);
-			Tools::redirect($this->context->link->getPageLink('products-comparison', null, $this->context->language->id, array('compare_product_list' => implode('|', $ids))));
+			if (count($ids))
+				Tools::redirect($this->context->link->getPageLink('products-comparison', null, $this->context->language->id, array('compare_product_list' => implode('|', $ids))));
 		}
 
 		if ($ids)
@@ -137,11 +138,12 @@ class CompareControllerCore extends FrontController
 						'product_features' => $listFeatures,
 						'products' => $listProducts,
 						'width' => $width,
+						'HOOK_COMPARE_EXTRA_INFORMATION' => Hook::exec('displayCompareExtraInformation', array('list_ids_product' => $ids)),
+						'HOOK_EXTRA_PRODUCT_COMPARISON' => Hook::exec('displayProductComparison', array('list_ids_product' => $ids)),
 						'homeSize' => Image::getSize(ImageType::getFormatedName('home'))
 					));
-					$this->context->smarty->assign('HOOK_EXTRA_PRODUCT_COMPARISON', Hook::exec('displayProductComparison', array('list_ids_product' => $ids)));
 				}
-				else if (isset($this->context->cookie->id_compare))
+				elseif (isset($this->context->cookie->id_compare))
 				{
 					$object = new CompareProduct((int)$this->context->cookie->id_compare);
 					if (Validate::isLoadedObject($object))

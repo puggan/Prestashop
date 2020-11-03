@@ -51,7 +51,7 @@ class ConfigurationCore extends ObjectModel
 		'primary' => 'id_configuration',
 		'multilang' => true,
 		'fields' => array(
-			'name' => 			array('type' => self::TYPE_STRING, 'validate' => 'isConfigName', 'required' => true, 'size' => 32),
+			'name' => 			array('type' => self::TYPE_STRING, 'validate' => 'isConfigName', 'required' => true, 'size' => 254),
 			'id_shop_group' => 	array('type' => self::TYPE_NOTHING, 'validate' => 'isUnsignedId'),
 			'id_shop' => 		array('type' => self::TYPE_NOTHING, 'validate' => 'isUnsignedId'),
 			'value' => 			array('type' => self::TYPE_STRING),
@@ -314,7 +314,8 @@ class ConfigurationCore extends ObjectModel
 		$result = true;
 		foreach ($values as $lang => $value)
 		{
-			if ($value === Configuration::get($key, $lang, $id_shop_group, $id_shop))
+			$stored_value = Configuration::get($key, $lang, $id_shop_group, $id_shop);
+			if ((!is_numeric($value) && $value === $stored_value) || (is_numeric($value) && $value == $stored_value))
 				continue;
 
 			// If key already exists, update value

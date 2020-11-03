@@ -179,6 +179,8 @@ function setDayPeriod() {
 	$('#date-start').trigger('change');
 
 	updatePickerFromInput();
+	$('#datepicker-from-info').html($("#date-start").val());
+	$('#datepicker-to-info').html($("#date-end").val());
 	$('button[name="submitDateRange"]').click();
 }
 
@@ -190,6 +192,8 @@ function setPreviousDayPeriod() {
 	$('#date-start').trigger('change');
 
 	updatePickerFromInput();
+	$('#datepicker-from-info').html($("#date-start").val());
+	$('#datepicker-to-info').html($("#date-end").val());
 	$('button[name="submitDateRange"]').click();
 }
 
@@ -201,6 +205,8 @@ function setMonthPeriod() {
 	$('#date-start').trigger('change');	
 
 	updatePickerFromInput();
+	$('#datepicker-from-info').html($("#date-start").val());
+	$('#datepicker-to-info').html($("#date-end").val());
 	$('button[name="submitDateRange"]').click();
 }
 
@@ -213,6 +219,8 @@ function setPreviousMonthPeriod() {
 	$('#date-start').trigger('change');	
 
 	updatePickerFromInput();
+	$('#datepicker-from-info').html($("#date-start").val());
+	$('#datepicker-to-info').html($("#date-end").val());
 	$('button[name="submitDateRange"]').click();
 }
 
@@ -224,11 +232,14 @@ function setYearPeriod() {
 	$('#date-start').trigger('change');
 
 	updatePickerFromInput();
+	$('#datepicker-from-info').html($("#date-start").val());
+	$('#datepicker-to-info').html($("#date-end").val());
 	$('button[name="submitDateRange"]').click();
 }
 
 function setPreviousYearPeriod() {
 	date = new Date();
+	date = new Date(date.getFullYear(), 11, 31);
 	date = date.subYears(1);
 	$("#date-end").val(date.format($("#date-end").data('date-format')));
 	date = new Date(date.getFullYear(), 0, 1);
@@ -236,6 +247,8 @@ function setPreviousYearPeriod() {
 	$('#date-start').trigger('change');
 
 	updatePickerFromInput();
+	$('#datepicker-from-info').html($("#date-start").val());
+	$('#datepicker-to-info').html($("#date-end").val());
 	$('button[name="submitDateRange"]').click();
 }
 
@@ -411,5 +424,4 @@ $( document ).ready(function() {
 		e.preventDefault;
 		setPreviousYearPeriod();
 	});
-
 });

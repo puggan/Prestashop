@@ -50,7 +50,6 @@ if (!file_exists(dirname(__FILE__).'/settings.inc.php'))
 }
 
 require_once(dirname(__FILE__).'/settings.inc.php');
-
 require_once(dirname(__FILE__).'/autoload.php');
 
 if (_PS_DEBUG_PROFILING_)
@@ -93,13 +92,15 @@ $context = Context::getContext();
 try 
 {
 	$context->shop = Shop::initialize();
+	$context->theme = new Theme((int)$context->shop->id_theme);
+	if ((Tools::isEmpty($theme_name = $context->shop->getTheme()) || !Validate::isLoadedObject($context->theme)) && !defined('_PS_ADMIN_DIR_'))
+		throw new PrestaShopException(Tools::displayError('Current theme unselected. Please check your theme configuration.'));
 }
 catch (PrestaShopException $e)
 {
 	$e->displayMessage();
 }
-
-define('_THEME_NAME_', $context->shop->getTheme());
+define('_THEME_NAME_', $theme_name);
 define('__PS_BASE_URI__', $context->shop->getBaseURI());
 
 /* Include all defines related to base uri and theme name */

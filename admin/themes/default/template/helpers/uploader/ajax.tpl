@@ -62,7 +62,7 @@
 			<i class="icon-plus-sign"></i> {if isset($multiple) && $multiple}{l s='Add files'}{else}{l s='Add file'}{/if}
 		</button>
 		<button class="ladda-button btn btn-default" data-style="expand-right" type="button" id="{$id}-upload-button" style="display:none;">
-			<i class="icon-cloud-upload"></i> <span class="ladda-label">{if isset($multiple) && $multiple}{l s='Upload files'}{else}{l s='Upload file'}{/if}</span>
+			<i class="icon-cloud-upload text-success"></i> <span class="ladda-label text-success">{if isset($multiple) && $multiple}{l s='Upload files'}{else}{l s='Upload file'}{/if}</span>
 		</button>
 	</div>
 </div>
@@ -109,7 +109,8 @@
 			dataType: 'json',
 			autoUpload: false,
 			singleFileUploads: true,
-			maxFileSize: {$post_max_size},
+			{if isset($post_max_size)}maxFileSize: {$post_max_size},{/if}
+			{if isset($drop_zone)}dropZone: {$drop_zone},{/if}
 			start: function (e) {
 				{$id}_upload_button.start();
 				$('#{$id}-upload-button').unbind('click'); //Important as we bind it for every elements in add function
@@ -122,25 +123,32 @@
 					if (typeof data.result.{$name} !== 'undefined') {
 						for (var i=0; i<data.result.{$name}.length; i++) {
 							if (data.result.{$name}[i] !== null) {
-								if (typeof data.result.{$name}[i].image !== 'undefined') {
-									var template = '<div class="img-thumbnail text-center">';
-									template += '<p>'+data.result.{$name}[i].image+'</p>';
-									
-									if (typeof data.result.{$name}[i].delete_url !== 'undefined') {
-										template += '<p><a class="btn btn-default" href="'+data.result.{$name}[i].delete_url+'"><i class="icon-trash"></i> {l s='Delete'}</a></p>';
-									}
+								if (typeof data.result.{$name}[i].error !== 'undefined' && data.result.{$name}[i].error != '') {
+									$('#{$id}-errors').html('<strong>'+data.result.{$name}[i].name+'</strong> : '+data.result.{$name}[i].error).parent().show();
+								}
+								else 
+								{
+									$(data.context).appendTo($('#{$id}-success'));
+									$('#{$id}-success').parent().show();
 
-									template += '</div>';
-									$('#{$id}-images-thumbnails').html($('#{$id}-images-thumbnails').html()+template);
-									$('#{$id}-images-thumbnails').parent().show();
+									if (typeof data.result.{$name}[i].image !== 'undefined')
+									{
+										var template = '<div class="img-thumbnail text-center">';
+										template += '<p>'+data.result.{$name}[i].image+'</p>';
+										
+										if (typeof data.result.{$name}[i].delete_url !== 'undefined')
+											template += '<p><a class="btn btn-default" href="'+data.result.{$name}[i].delete_url+'"><i class="icon-trash"></i> {l s='Delete'}</a></p>';
+
+										template += '</div>';
+										$('#{$id}-images-thumbnails').html($('#{$id}-images-thumbnails').html()+template);
+										$('#{$id}-images-thumbnails').parent().show();
+									}
 								}
 							}
 						}
 					}
 
-					$(data.context).find('button').remove();
-					$(data.context).appendTo($('#{$id}-success'));
-					$('#{$id}-success').parent().show();
+					$(data.context).find('button').remove();					
 				}
 			},
 		}).on('fileuploadalways', function (e, data) {

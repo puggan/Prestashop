@@ -23,6 +23,13 @@
 *  International Registered Trademark & Property of PrestaShop SA
 *}
 {if isset($files) && $files|count > 0}
+	{assign var='show_thumbnail' value=false}
+	{foreach $files as $file}
+		{if isset($file.image) && $file.type == 'image'}
+			{assign var='show_thumbnail' value=true}
+		{/if}
+	{/foreach}
+{if $show_thumbnail}
 <div class="form-group">
 	<div class="col-lg-12" id="{$id}-images-thumbnails">
 		{foreach $files as $file}
@@ -43,6 +50,7 @@
 	</div>
 </div>
 {/if}
+{/if}
 {if isset($max_files) && $files|count >= $max_files}
 <div class="row">
 	<div class="alert alert-warning">{l s='You have reached the limit (%s) of files to upload, please remove files to continue uploading' sprintf=$max_files}</div>
@@ -53,7 +61,7 @@
 		<input id="{$id}" type="file" name="{$name}"{if isset($multiple) && $multiple} multiple="multiple"{/if} class="hide" />
 		<div class="dummyfile input-group">
 			<span class="input-group-addon"><i class="icon-file"></i></span>
-			<input id="{$id}-name" type="text" class="disabled" name="filename" readonly />
+			<input id="{$id}-name" type="text" name="filename" readonly />
 			<span class="input-group-btn">
 				<button id="{$id}-selectbutton" type="button" name="submitAddAttachments" class="btn btn-default">
 					<i class="icon-folder-open"></i> {if isset($multiple) && $multiple}{l s='Add files'}{else}{l s='Add file'}{/if}
@@ -82,6 +90,23 @@
 
 		$('#{$id}-name').click(function(e) {
 			$('#{$id}').trigger('click');
+		});
+
+		$('#{$id}-name').on('dragenter', function(e) {
+			e.stopPropagation();
+			e.preventDefault();
+		});
+
+		$('#{$id}-name').on('dragover', function(e) {
+			e.stopPropagation();
+			e.preventDefault();
+		});
+
+		$('#{$id}-name').on('drop', function(e) {
+			e.preventDefault();
+			var files = e.originalEvent.dataTransfer.files;
+			$('#{$id}')[0].files = files;
+			$(this).val(files[0].name);
 		});
 
 		$('#{$id}').change(function(e) {

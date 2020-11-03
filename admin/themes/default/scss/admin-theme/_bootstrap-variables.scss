@@ -19,7 +19,7 @@ $brand-info:            #5bc0de ;
 // Scaffolding
 // -------------------------
 
-$body-bg:               $main-color ;
+$body-bg:               $bg-content-color ;
 $text-color:            $gray ;
 
 // Links
@@ -73,8 +73,8 @@ $border-radius-base:             3px ;
 // -------------------------
 
 // $table-bg:                           transparent ; overall background-color
-// $table-bg-accent:                    #f9f9f9 ; for striping
-$table-bg-hover:                     $bg-panel-heading-color ;
+$table-bg-accent:                    #f9f9f9 ; //for striping
+$table-bg-hover:                     #EDF7FB;
 
 // $table-border-color:                 #ddd ; table and cell border
 
@@ -136,8 +136,8 @@ $input-height-base:              ($line-height-computed + ($padding-base-vertica
 // $dropdown-link-active-bg:        $component-active-bg ;
 
 // $dropdown-link-color:            $gray-dark ;
-// $dropdown-link-hover-color:      #fff ;
-// $dropdown-link-hover-bg:         $dropdown-link-active-bg ;
+$dropdown-link-hover-color:      	white ;
+$dropdown-link-hover-bg:         	$brand-primary ;
 
 
 // Grid system

@@ -35,7 +35,7 @@ class CrossSelling extends Module
 	{
 		$this->name = 'crossselling';
 		$this->tab = 'front_office_features';
-		$this->version = 0.7;
+		$this->version = 0.8;
 		$this->author = 'PrestaShop';
 		$this->need_instance = 0;
 
@@ -44,9 +44,6 @@ class CrossSelling extends Module
 
 		$this->displayName = $this->l('Cross Selling');
 		$this->description = $this->l('Customers who bought this product also bought:');
-
-		if (!$this->isRegisteredInHook('header'))
-			$this->registerHook('header');
 	}
 
 	public function install()
@@ -161,7 +158,7 @@ class CrossSelling extends Module
 				$taxCalc = Product::getTaxCalculationMethod();
 				foreach ($orderProducts AS &$orderProduct)
 				{
-					$orderProduct['image'] = $this->context->link->getImageLink($orderProduct['link_rewrite'], (int)$orderProduct['product_id'].'-'.(int)$orderProduct['id_image'], ImageType::getFormatedName('medium'));
+					$orderProduct['image'] = $this->context->link->getImageLink($orderProduct['link_rewrite'], (int)$orderProduct['product_id'].'-'.(int)$orderProduct['id_image'], ImageType::getFormatedName('home'));
 					$orderProduct['link'] = $this->context->link->getProductLink((int)$orderProduct['product_id'], $orderProduct['link_rewrite'], $orderProduct['category'], $orderProduct['ean13']);
 					if (Configuration::get('CROSSSELLING_DISPLAY_PRICE') AND ($taxCalc == 0 OR $taxCalc == 2))
 						$orderProduct['displayed_price'] = Product::getPriceStatic((int)$orderProduct['product_id'], true, NULL);
@@ -218,7 +215,7 @@ class CrossSelling extends Module
 				$taxCalc = Product::getTaxCalculationMethod();
 				foreach ($orderProducts AS &$orderProduct)
 				{
-					$orderProduct['image'] = $this->context->link->getImageLink($orderProduct['link_rewrite'], (int)$orderProduct['product_id'].'-'.(int)$orderProduct['id_image'], ImageType::getFormatedName('medium'));
+					$orderProduct['image'] = $this->context->link->getImageLink($orderProduct['link_rewrite'], (int)$orderProduct['product_id'].'-'.(int)$orderProduct['id_image'], ImageType::getFormatedName('home'));
 					$orderProduct['link'] = $this->context->link->getProductLink((int)$orderProduct['product_id'], $orderProduct['link_rewrite'], $orderProduct['category'], $orderProduct['ean13']);
 					if (Configuration::get('CROSSSELLING_DISPLAY_PRICE') AND ($taxCalc == 0 OR $taxCalc == 2))
 						$orderProduct['displayed_price'] = Product::getPriceStatic((int)$orderProduct['product_id'], true, NULL);

@@ -62,9 +62,9 @@ class AdminEmailsControllerCore extends AdminController
 							2 => $this->l('Set my own SMTP parameters. For advanced users ONLY')
 						),
 						'js' => array(
-							1 => 'onclick="$(\'#smtp\').slideUp();"', 
-							2 => 'onclick="$(\'#smtp\').slideDown();"',
-							3 => 'onclick="$(\'#smtp\').slideUp();"'
+							1 => 'onclick="$(\'#configuration_fieldset_smtp\').slideUp();"', 
+							2 => 'onclick="$(\'#configuration_fieldset_smtp\').slideDown();"',
+							3 => 'onclick="$(\'#configuration_fieldset_smtp\').slideUp();"'
 						),
 						'visibility' => Shop::CONTEXT_ALL
 					),
@@ -79,8 +79,6 @@ class AdminEmailsControllerCore extends AdminController
 			),
 			'smtp' => array(
 				'title' => $this->l('Email'),
-				'top' => '<div id="smtp" style="display: '.((Configuration::get('PS_MAIL_METHOD') == 2) ? 'block' : 'none').';">',
-				'bottom' => '</div>',
 				'fields' =>	array(
 					'PS_MAIL_DOMAIN' => array(
 						'title' => $this->l('Mail domain name:'),
@@ -171,7 +169,13 @@ class AdminEmailsControllerCore extends AdminController
 			return true;
 		else
 			Configuration::updateValue('PS_MAIL_PASSWD', Tools::getValue('PS_MAIL_PASSWD'));
-	}	
+	}
+	
+	public function setMedia()
+	{
+		$this->addJs(_PS_JS_DIR_.'sendMailTest.js');
+		return parent::setMedia();
+	}
 	
 	
 	/**
